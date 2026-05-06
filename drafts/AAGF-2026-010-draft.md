@@ -1,0 +1,534 @@
+---
+id: "AAGF-2026-010"
+title: "OpenClaw Security Crisis: CVE Storm, Marketplace Malware, and Vibe-Coded Infrastructure Breach"
+status: "reviewed"
+date_occurred: "2026-01-27"        # ClawHavoc marketplace poisoning began; vulnerabilities existed from before November 2025 launch
+date_discovered: "2026-01-27"      # Koi Security's "Alex" bot identified first malicious skills; DepthFirst found ClawBleed in late January
+date_reported: "2026-02-01"        # CVE-2026-25253 published on NVD
+date_curated: "2026-05-05"
+date_council_reviewed: "2026-05-05"
+
+# Classification
+category:
+  - "Supply chain compromise"
+  - "Unauthorized data access / exfiltration"
+  - "Infrastructure damage"
+  - "Privacy violation"
+severity: "Critical"
+agent_type:
+  - "Task automation agents"
+  - "Tool-using agents (MCP / function calling)"
+  - "Email / calendar agents"
+agent_name: "OpenClaw (aka clawdbot / Moltbot)"
+platform: "OpenClaw + ClawHub Marketplace + Moltbook"
+industry: "AI Infrastructure / Developer Tools"
+
+# Impact
+financial_impact: "Not quantified publicly. Cryptocurrency theft highly probable via AMOS/Vidar malware targeting exchange API keys and wallet private keys. Exposed OpenAI/Anthropic API keys via Moltbook could enable unauthorized compute consumption. No specific dollar amount confirmed."
+financial_impact_usd: null
+refund_status: "none"
+refund_amount_usd: null
+affected_parties:
+  count: 135000                    # 135K+ GitHub stars as proxy for user base; 21,639 exposed instances; 35K Moltbook emails
+  scale: "widespread"
+  data_types_exposed: ["credentials", "PII", "financial"]
+
+# Damage Timing
+damage_speed: "instantaneous"      # ClawBleed executes in "milliseconds"; ClawJacked brute-forces at hundreds/second
+damage_duration: "3+ months"       # Jan 27 - Apr 2026: continuous stream of vulnerabilities and exploitation
+total_damage_window: "3+ months"   # From ClawHavoc to CVE-2026-33579
+
+# Recovery
+recovery_time: "unknown"          # Individual CVEs patched within hours/days; systemic issues remain
+recovery_labor_hours: null
+recovery_cost_usd: null
+recovery_cost_notes: "137 security advisories required individual triage and patching across Feb-Apr 2026"
+full_recovery_achieved: "partial"  # CVEs patched; exposed instances and stolen credentials cannot be recalled
+
+# Business Impact
+business_scope: "multi-org"        # 135K+ users, 21K+ exposed instances, downstream organizations via OAuth tokens
+business_criticality: "existential"
+business_criticality_notes: "Platform's security credibility fundamentally undermined — 137 advisories in 3 months, 12% malicious marketplace, multiple critical CVEs. Connected to sensitive corporate services (email, Slack, calendars, OAuth tokens) meaning compromise cascades into victim organizations."
+systems_affected: ["agent-runtime", "marketplace", "authentication", "credential-storage", "connected-services", "customer-data"]
+
+# Vendor Response
+vendor_response: "fixed"           # Individual CVEs patched; marketplace controls added; but systemic architecture unchanged
+vendor_response_time: "<24h"       # For individual CVEs; but 137 advisories indicate ongoing reactive posture
+
+# Presentation
+headline_stat: "137 security advisories in 3 months for the world's fastest-growing AI agent"
+operator_tldr: "Do not run OpenClaw on a public IP address, audit every ClawHub skill before installation, and rotate all API keys that were ever stored in an OpenClaw-connected service."
+containment_method: "third_party"  # Security researchers (Wiz, Oasis, Koi, Censys, DepthFirst) discovered and disclosed all major vectors
+public_attention: "viral"
+
+actual_vs_potential: "actual"      # Active exploitation confirmed: ClawBleed actively exploited per Blink Blog; 341+ malicious skills distributed real malware; 1.5M API tokens exposed
+
+# Framework References
+framework_refs:
+  mitre_atlas:
+    - "AML.T0010"      # AI Supply Chain Compromise — ClawHub marketplace poisoning
+    - "AML.T0010.005"  # AI Agent Tool — supply chain via agent tool/skill
+    - "AML.T0104"      # Publish Poisoned AI Agent Tool — attacker published malicious skills
+    - "AML.T0110"      # AI Agent Tool Poisoning — persistence via poisoned skills
+    - "AML.T0111"      # AI Supply Chain Reputation Inflation — fake credibility (professional docs, innocuous names)
+    - "AML.T0055"      # Unsecured Credentials — plaintext API keys on exposed instances and Moltbook
+    - "AML.T0083"      # Credentials from AI Agent Configuration — OAuth tokens, API keys in agent config
+    - "AML.T0098"      # AI Agent Tool Credential Harvesting — malicious skills exfiltrating credentials
+    - "AML.T0085"      # Data from AI Services — data collected from connected services (Slack, email, etc.)
+    - "AML.T0086"      # Exfiltration via AI Agent Tool Invocation — credential exfiltration via skills
+    - "AML.T0112"      # Machine Compromise — full agent takeover via CVEs
+    - "AML.T0112.000"  # Local AI Agent — local agent compromised
+    - "AML.T0048"      # External Harms — harm class parent
+    - "AML.T0048.000"  # Financial Harm — crypto theft, API key abuse
+    - "AML.T0048.003"  # User Harm — PII exposure, credential theft
+  owasp_llm:
+    - "LLM02:2025"     # Sensitive Information Disclosure — credentials exposed on 21K+ instances, Moltbook breach
+    - "LLM03:2025"     # Supply Chain — ClawHub marketplace poisoning
+    - "LLM06:2025"     # Excessive Agency — agents with full access to email, Slack, calendars, OAuth tokens
+  owasp_agentic:
+    - "ASI02:2026"     # Tool Misuse and Exploitation — malicious skills exploiting agent tool execution
+    - "ASI03:2026"     # Agent Identity and Privilege Abuse — compromised agents accessing connected services
+    - "ASI04:2026"     # Agentic Supply Chain Compromise — direct mapping to ClawHub poisoning
+    - "ASI09:2026"     # Human-Agent Trust Exploitation — deceptive human-in-the-loop dialogue tricking users into entering passwords
+  ttps_ai:
+    - "2.3"            # Initial Access — supply chain as initial access vector
+    - "2.9"            # Credential Access — credential harvesting across all vectors
+    - "2.12"           # Collection — data gathering from connected services
+    - "2.15"           # Exfiltration — credential and data exfiltration
+    - "2.16"           # Impact — malware distribution, credential theft, data breach
+
+# Relationships
+related_incidents: []              # First non-Claude-Code incident; starts new pattern group
+pattern_group: "ai-agent-platform-security-crisis"
+tags:
+  - supply-chain
+  - marketplace-poisoning
+  - cve-storm
+  - authentication-bypass
+  - credential-exposure
+  - malware-distribution
+  - amos-stealer
+  - vidar-infostealer
+  - vibe-coding
+  - supabase-rls-failure
+  - websocket-hijacking
+  - rate-limiter-bypass
+  - privilege-escalation
+  - open-source-agent
+  - explosive-growth
+  - security-debt
+  - multi-vector-crisis
+  - moltbook
+  - clawhub
+  - openclaw
+
+# Metadata
+sources:
+  - "https://www.reco.ai/blog/openclaw-the-ai-agent-security-crisis-unfolding-right-now"
+  - "https://nvd.nist.gov/vuln/detail/CVE-2026-25253"
+  - "https://blink.new/blog/openclaw-2026-cve-complete-timeline-security-history"
+  - "https://www.oasis.security/blog/openclaw-vulnerability"
+  - "https://www.wiz.io/blog/exposed-moltbook-database-reveals-millions-of-api-keys"
+  - "https://thehackernews.com/2026/02/researchers-find-341-malicious-clawhub.html"
+  - "https://censys.com/blog/openclaw-in-the-wild-mapping-the-public-exposure-of-a-viral-ai-assistant/"
+  - "https://www.trendmicro.com/en_us/research/26/b/openclaw-skills-used-to-distribute-atomic-macos-stealer.html"
+  - "https://blog.virustotal.com/2026/02/from-automation-to-infection-how.html"
+  - "https://www.sonicwall.com/blog/openclaw-auth-token-theft-leading-to-rce-cve-2026-25253"
+  - "https://socradar.io/blog/cve-2026-25253-rce-openclaw-auth-token/"
+  - "https://www.armosec.io/blog/cve-2026-32922-openclaw-privilege-escalation-cloud-security/"
+  - "https://www.ox.security/blog/one-step-away-from-a-massive-data-breach-what-we-found-inside-moltbot/"
+  - "https://cyberpress.org/clawhavoc-poisons-openclaws-clawhub-with-1184-malicious-skills/"
+  - "https://github.com/jgamblin/OpenClawCVEs/"
+researcher_notes: "This is a multi-vector crisis, not a single incident. Five interconnected attack vectors converged within a 3-month window on the same platform. The research document draws from 14+ independent sources including original security research by Wiz, Oasis Security, Koi Security, Censys, Reco, and DepthFirst. Government sources (NVD/NIST) provide authoritative CVE data. Key gap: no confirmed victim count for ClawHub malware installations or CVE exploitation. Financial losses from cryptocurrency theft via AMOS/Vidar are highly probable but unquantified. The Moltbook 'no human wrote the code' quote is verified via Wiz's original research citing the founder's public statement. Dark Reading article (403 on fetch) may contain additional uncaptured details."
+council_verdict: "Critical severity upheld; unified report structure is analytically defensible but the report should add explicit severity disaggregation per vector, qualify the 12% marketplace statistic with methodology context, and flag the vibe-coding causal attribution as inferential rather than proven."
+---
+
+# OpenClaw Security Crisis: CVE Storm, Marketplace Malware, and Vibe-Coded Infrastructure Breach
+
+## Executive Summary
+
+Between January and April 2026, OpenClaw -- the world's fastest-growing open-source AI agent platform (135,000+ GitHub stars) -- experienced a cascading security crisis across five interconnected attack vectors: a marketplace poisoned with 824+ malicious skills distributing AMOS and Vidar malware; a one-click RCE vulnerability (CVE-2026-25253, CVSS 8.8) actively exploited in the wild; 21,639 publicly exposed instances leaking API keys, OAuth tokens, and plaintext credentials; a Moltbook database breach exposing 1.5 million agent API tokens and 35,000 email addresses due to a Supabase deployment without Row Level Security; and a critical authentication bypass (CVE-2026-28472, CVSS 9.8) allowing any website to silently brute-force its way into a user's local agent. In total, 137 security advisories were issued in three months, including a CVSS 9.9 privilege escalation (CVE-2026-32922) -- the most severe vulnerability in OpenClaw's history. This is the defining AI agent security incident of 2026: a case study in what happens when explosive adoption outpaces security investment, and when AI-generated infrastructure manages millions of API tokens without basic security controls.
+
+---
+
+## Timeline
+
+| Date/Time | Event |
+|-----------|-------|
+| 2025-11 | OpenClaw launches publicly; rapid adoption begins |
+| 2026-01-27 | ClawHavoc campaign begins: 341 malicious skills published to ClawHub marketplace (12% of all skills) |
+| 2026-01-29 | DepthFirst discovers CVE-2026-25253 (ClawBleed) -- one-click RCE via cross-site WebSocket hijacking |
+| 2026-01-30 | OpenClaw patches ClawBleed in version 2026.1.29, before public disclosure |
+| 2026-01-31 | Censys scan identifies 21,639 publicly exposed OpenClaw instances (up from ~1,000 days earlier) |
+| 2026-01-31 21:48 UTC | Gal Nagli (Wiz Research) contacts Moltbook team about exposed Supabase database |
+| 2026-01-31 23:29 UTC | Moltbook first patch (agents/owners tables secured) |
+| 2026-02-01 00:44 UTC | Wiz discovers write access vulnerability in Moltbook database |
+| 2026-02-01 01:00 UTC | Moltbook comprehensive fix deployed; 1.5M API tokens and 35K emails were exposed |
+| 2026-02-01 | CVE-2026-25253 published on NVD |
+| 2026-02-02 | Koi Security publishes ClawHavoc audit: 341 malicious skills identified using an OpenClaw bot named "Alex" |
+| 2026-02-03 | Full public disclosure of ClawBleed; OpenClaw issues three high-impact security advisories including two command injection vulnerabilities |
+| 2026-02-16 | Malicious ClawHub skill count grows to 824+ across expanded registry of 10,700+ skills |
+| 2026-02-26 | Oasis Security publishes ClawJacked (CVE-2026-28472) research -- CVSS 9.8 auth bypass via localhost WebSocket |
+| 2026-02-27 | CVE-2026-27002 published: Docker container escape / privilege escalation |
+| 2026-03-05 | CVE-2026-28472 (ClawJacked) published on NVD |
+| 2026-03-13 | OpenClaw patches CVE-2026-32922 in v2026.3.11 (before CVE publication) |
+| 2026-03-28 | CVE-2026-33579 patched: directory traversal and command injection in pair approval |
+| 2026-03-29 | CVE-2026-32922 published: CVSS 9.9 privilege escalation -- most severe OpenClaw vulnerability |
+| 2026-04-01 | CVE-2026-33579 published: pair path directory traversal |
+| 2026-02 to 2026-04 | 137 total security advisories issued across three months |
+
+---
+
+## What Happened
+
+OpenClaw launched in November 2025 as an open-source local AI agent that integrates natively with email, calendars, documents, smart-home services, food delivery, and corporate SaaS applications. It grew to 135,000+ GitHub stars in weeks, making it the fastest-growing AI agent platform in history. Its marketplace, ClawHub, allowed anyone with a one-week-old GitHub account to publish "skills" -- plugins that extend agent capabilities. The platform was designed to run locally on TCP/18789, but users rapidly deployed it on public infrastructure.
+
+What followed was not a single security incident but a systemic crisis across five attack vectors that unfolded over three months. Each vector exploited a different facet of the same underlying problem: an AI agent platform built for virality, not security.
+
+### Vector 1: ClawHub Marketplace Poisoning (ClawHavoc)
+
+On January 27, 2026, security researchers began identifying malicious skills on ClawHub. The initial audit, conducted by Koi Security using an OpenClaw bot named "Alex," found 341 malicious skills out of 2,857 total -- meaning approximately 12% of the entire marketplace was malware. By February 16, the count had grown to 824+ malicious skills across an expanded registry of 10,700+, with one report citing 1,184 at peak.
+
+The campaign, codenamed ClawHavoc, was sophisticated. 335 of the 341 initial malicious skills traced to a single coordinated operation. Skills used professional documentation and innocuous names: "solana-wallet-tracker," crypto trading tools, YouTube utilities, Google Workspace integrations, Ethereum gas trackers, Bitcoin recovery tools. Malicious instructions were hidden in SKILL.md files that exploited AI agents as trusted intermediaries. A deceptive human-in-the-loop dialogue box tricked users into manually entering passwords.
+
+The malware payloads were commodity infostealers. On Windows, users downloaded keyloggers disguised as "openclaw-agent.zip." On macOS, an installation script fetched obfuscated shell scripts that deployed Atomic Stealer (AMOS), a commodity macOS stealer available for $500-1,000/month. Additional payloads included Vidar infostealer. Some skills contained reverse shell backdoors hidden inside functional code. Others exfiltrated bot credentials from `~/.clawdbot/.env` to `webhook[.]site`.
+
+The systemic vulnerability was ClawHub's open-by-default publishing model: no security review, no code scanning, no behavioral analysis. A one-week-old GitHub account was the only barrier to publishing malware to 135,000+ users.
+
+### Vector 2: ClawBleed -- One-Click RCE (CVE-2026-25253)
+
+DepthFirst security researchers discovered that OpenClaw's Control UI trusted URL parameters without validation. The `gatewayUrl` parameter in the query string was used to automatically establish a WebSocket connection, and the local WebSocket server did not validate the Origin header. An attacker could craft a malicious webpage that, when visited, would hijack the user's WebSocket connection in milliseconds -- stealing the stored authentication token via cross-site WebSocket hijacking (CSWSH). No download, no prompt, no confirmation required. CVSS 8.8 (High). Confirmed actively exploited.
+
+### Vector 3: 21,639 Exposed Instances
+
+On January 31, 2026, Censys scanned the internet and found 21,639 publicly accessible OpenClaw instances -- up from approximately 1,000 just days earlier, a 20x increase in under a week. OpenClaw was designed for local operation, but massive misconfiguration exposed instances directly to the internet. Each exposed instance leaked API keys for integrated services, OAuth tokens enabling lateral movement into Slack, email, and calendar systems, and plaintext credentials. The largest concentration was in the United States, with significant presence on Alibaba Cloud infrastructure in China (~30%) and Singapore.
+
+### Vector 4: The Moltbook Breach -- "No Human Wrote the Code"
+
+Moltbook was an AI agent social network that launched in January 2026 and grew to 770,000 active agents. On January 31, Gal Nagli of Wiz Research discovered that Moltbook's Supabase database had been deployed without Row Level Security policies. The Supabase credentials -- project URL and public API key -- were visible in client-side JavaScript at moltbook.com. This exposed the REST API with full read/write access to all tables.
+
+The breach exposed 1.5 million agent API tokens, 35,000 email addresses, 29,631 additional emails from early access signups, and approximately 4.75 million total records. Private messages contained plaintext OpenAI and Anthropic API keys. A single bot called "OpenClaw" had created 500,000 fraudulent accounts due to zero rate limiting -- while Moltbook reported 1.5 million registered agents, only ~17,000 human owners existed (an 88:1 bot-to-human ratio).
+
+The most significant detail: Moltbook's founder publicly stated, "I didn't write a single line of code for @moltbook. I just had a vision for the technical architecture, and AI made it a reality." This is the vibe-coding problem crystallized: AI-generated infrastructure managing 1.5 million API tokens without basic security controls. Andrej Karpathy called it "genuinely the most incredible sci-fi takeoff-adjacent thing" while warning that exposed API keys could let attackers hijack agents and access connected services.
+
+### Vector 5: ClawJacked -- Critical Auth Bypass (CVE-2026-28472)
+
+Oasis Security discovered a chained authentication bypass rated CVSS 9.8. The attack exploited three architectural flaws simultaneously: (1) WebSocket connections to localhost bypass cross-origin policy restrictions, allowing any website to silently connect to the local OpenClaw gateway; (2) the rate limiter completely exempted localhost connections, permitting brute-force attacks at hundreds of attempts per second with no counting, throttling, or logging; (3) including any value -- valid, invalid, or malformed -- in the `auth.token` field during connection completely bypassed device identity checks.
+
+The result: any website a user visited could silently open a WebSocket to their local OpenClaw, brute-force the password unthrottled, receive automatic device approval, and gain full operator-level access -- including reading messages, dumping configuration, executing commands on connected nodes, and accessing developer credentials.
+
+### The Additional CVE Storm
+
+Beyond the five primary vectors, OpenClaw accumulated 137 security advisories between February and April 2026, including:
+
+- **CVE-2026-27002** (February 27): Docker container escape via configuration injection in the agent runtime sandbox.
+- **CVE-2026-32922** (CVSS 9.9, March 29): Privilege escalation in `device.token.rotate` -- the most severe vulnerability in OpenClaw's history. A flaw failed to constrain newly minted token scopes to the caller's existing scope set, allowing an attacker with minimal `operator.pairing` scope to mint tokens with arbitrary permissions.
+- **CVE-2026-33579** (April 1): Directory traversal and command injection in pair approval systems -- crafted device names could execute commands with OpenClaw process privileges.
+
+Palo Alto Networks described the platform as a "lethal trifecta": access to private data, exposure to untrusted content, and external communication ability.
+
+---
+
+## Technical Analysis
+
+### CVE-2026-25253 (ClawBleed) -- Cross-Site WebSocket Hijacking
+
+OpenClaw's Control UI accepted a `gatewayUrl` parameter from the URL query string and automatically established a WebSocket connection to it, transmitting the user's stored authentication token. The WebSocket server performed no Origin header validation. This is a textbook CSWSH vulnerability (CWE-669: Incorrect Resource Transfer Between Spheres).
+
+**Attack chain:**
+1. Attacker crafts webpage with malicious `gatewayUrl`
+2. Victim visits the page (one click)
+3. Browser establishes WebSocket to attacker's server
+4. Authentication token transmitted automatically
+5. Attacker gains full agent access
+
+Execution time: milliseconds. User interaction required: one click.
+
+### CVE-2026-28472 (ClawJacked) -- Localhost Trust Chain Collapse
+
+This vulnerability chains three independently reasonable design decisions into a critical authentication bypass:
+
+**Flaw 1 -- WebSocket localhost bypass:** Browsers allow any website's JavaScript to open WebSocket connections to localhost without cross-origin restrictions. OpenClaw's gateway listened on a known port, making it reachable from any webpage.
+
+**Flaw 2 -- Rate limiter localhost exemption:** The rate limiter was designed to prevent brute-force attacks from the network but treated localhost as inherently trusted. Failed password attempts from 127.0.0.1 were not counted, not throttled, and not logged. This architectural assumption predated the web-to-localhost attack vector.
+
+**Flaw 3 -- Token validation bypass:** The device identity check examined whether `auth.token` was present in the WebSocket request -- but never validated its value. Any string, valid or garbage, bypassed the check entirely. The mere presence of the field triggered the flawed code path.
+
+**Combined attack:** Malicious JavaScript on any website opens WebSocket to localhost -> brute-forces password at hundreds of attempts per second (unthrottled) -> automatic device approval -> full operator access.
+
+### ClawHub Marketplace Architecture Failure
+
+ClawHub's skill verification model had no security gate whatsoever:
+- **Publishing requirement:** One-week-old GitHub account
+- **Code review:** None
+- **Static analysis:** None
+- **Behavioral sandboxing:** None
+- **Reputation system:** None at launch
+
+Skills were SKILL.md files that contained natural language instructions for the AI agent. Because agents treat skill instructions as trusted, hiding malicious instructions inside these files effectively weaponized the agent as a trusted intermediary executing attacker commands.
+
+The remediation -- a reporting feature where skills receiving 3+ unique reports auto-hide -- is a reactive mechanism that requires victims to exist before malware is removed.
+
+### Moltbook -- Supabase Without RLS
+
+Moltbook deployed Supabase with these critical failures:
+- **Row Level Security:** Disabled on all tables
+- **API key exposure:** Supabase project URL (`ehxbxtjliybbloantpwq.supabase.co`) and public API key visible in client-side JavaScript
+- **Rate limiting:** None on registration endpoint (enabling 500,000 fraudulent account registrations by a single bot)
+- **Result:** Full read/write REST API access to all 4.75 million records
+
+This is Supabase's default-insecure deployment: the `anon` key grants access to any table without RLS policies. The documentation warns about this, but the AI-generated code apparently skipped that step.
+
+### CVE-2026-32922 -- Scope Escalation via Token Rotation
+
+The `device.token.rotate` function minted new tokens without constraining their scopes to the caller's existing scope set. An attacker with minimal `operator.pairing` scope could rotate their token and receive one with significantly broader permissions -- effectively privilege escalation from a low-privilege device to full administrative control. CVSS 9.9.
+
+---
+
+## Root Cause Analysis
+
+**Proximate cause:** Five independent attack vectors exploited across the same platform within a three-month window.
+
+**Why 1:** Why did all five vectors exist simultaneously?
+OpenClaw's security architecture was not designed -- it was assembled. The platform prioritized functionality and growth over security controls at every layer: marketplace publishing, WebSocket authentication, credential storage, and rate limiting.
+
+**Why 2:** Why was security not prioritized during development?
+OpenClaw grew from launch to 135,000+ stars in weeks. The development team was building features to match demand -- skill marketplace, service integrations, multi-device pairing -- without a security team, security review process, or threat model.
+
+**Why 3:** Why did explosive growth not trigger security investment?
+The open-source AI agent ecosystem in late 2025 was a land-grab. First-mover advantage was existential. Security review slows velocity. No competitive AI agent platform had been breached yet -- there was no precedent to learn from.
+
+**Why 4:** Why did users deploy 21,639 instances on public IPs when the platform was designed for localhost?
+OpenClaw's documentation assumed local deployment, but provided no architectural enforcement. There was no binding to 127.0.0.1 only, no warning on public network interfaces, no mutual TLS requirement. Users -- many of them enthusiasts, not security engineers -- deployed it like any other web application.
+
+**Why 5 / Root cause:** The AI agent ecosystem's growth-at-all-costs culture produced platforms that hold persistent credentials to sensitive corporate services, execute arbitrary code from untrusted marketplaces, and run on infrastructure with authentication models designed for an era before AI agents existed -- all without the security investment commensurate with the trust users place in them.
+
+**The Moltbook dimension:** The "no human wrote the code" revelation adds a recursive failure mode. AI-generated code was used to build infrastructure for AI agents, and that AI-generated code failed to implement basic security controls (Supabase RLS). This is not a hypothetical risk of vibe-coding -- it is a confirmed, production failure managing 1.5 million API tokens.
+
+**Root cause summary:** OpenClaw's explosive adoption created a platform trusted with sensitive credentials and deep service integrations, but its security posture -- marketplace verification, authentication architecture, deployment guidance, and ecosystem infrastructure -- remained appropriate for an early prototype, not a platform with 135,000+ users and connections to corporate email, Slack, and cloud services.
+
+---
+
+## Impact Assessment
+
+**Severity:** Critical
+
+**Who was affected:**
+- 135,000+ OpenClaw users worldwide (GitHub star count as adoption proxy)
+- 21,639 organizations/individuals with publicly exposed instances
+- 35,000 Moltbook users whose email addresses were exposed
+- Unknown number of users who installed 824+ malicious ClawHub skills
+- Any organization whose employees ran compromised OpenClaw instances (lateral movement risk via OAuth tokens)
+
+**What was affected:**
+- Agent authentication tokens and credentials
+- OAuth tokens for integrated services (Slack, email, calendars, cloud storage)
+- API keys for OpenAI, Anthropic, and other AI providers
+- Personal email addresses and private messages
+- Cryptocurrency wallets, exchange API keys, and SSH credentials (targeted by AMOS/Vidar)
+- Platform trust and security credibility
+
+**Quantified impact (where known):**
+
+| Metric | Value | Source |
+|--------|-------|--------|
+| Publicly exposed instances | 21,639 | Censys |
+| Malicious marketplace skills (initial) | 341 of 2,857 (12%) | Koi Security, Reco |
+| Malicious marketplace skills (expanded) | 824+ of 10,700+ | CyberPress |
+| Malicious marketplace skills (peak) | 1,184 | CyberPress |
+| Moltbook API tokens exposed | 1,500,000 | Wiz Research |
+| Moltbook emails exposed | 35,000 + 29,631 early access | Wiz Research |
+| Moltbook total database records exposed | ~4,750,000 | Wiz Research |
+| Security advisories (Feb-Apr 2026) | 137 | Blink Blog |
+| Formal CVEs (minimum) | 5 | Blink Blog |
+| Highest CVSS score | 9.9 (CVE-2026-32922) | ARMO, NVD |
+| Growth rate of exposed instances | ~1,000 to 21,000+ in <1 week | Censys |
+| Moltbook bot-to-human ratio | 88:1 | Wiz Research |
+
+**Containment:** Each vector was contained separately. ClawBleed was patched before public disclosure. ClawJacked was patched within 24 hours of responsible disclosure. Moltbook was secured within 3 hours of Wiz's contact. However, credentials already exposed on 21,639 instances and 1.5M API tokens from Moltbook cannot be recalled. Malicious skills that were installed before detection delivered persistent malware payloads. The 3-report auto-hide mechanism for ClawHub is a minimal, reactive control.
+
+---
+
+## How It Could Have Been Prevented
+
+1. **Mandatory skill code review and static analysis on ClawHub.** Before any skill is listed, automated analysis should scan for known malware signatures, suspicious network calls (webhook[.]site, external IPs), credential access patterns (~/.clawdbot/.env), and obfuscated code. This is the minimum bar that package registries like npm and PyPI have learned through their own supply chain incidents.
+
+2. **WebSocket Origin validation and CSRF protection.** CVE-2026-25253 (ClawBleed) is a textbook CSWSH vulnerability. Validating the Origin header on WebSocket connections and requiring a CSRF token would have prevented the entire attack chain. This is a solved problem in web security.
+
+3. **Rate limiting without localhost exemption.** The ClawJacked auth bypass relied entirely on the rate limiter treating localhost as trusted. Rate limiting should apply uniformly regardless of source IP. The assumption that localhost connections are safe predates the era of browser-to-localhost attacks via WebSocket.
+
+4. **Binding to 127.0.0.1 by default with explicit opt-in for network exposure.** 21,639 instances were exposed because OpenClaw did not enforce local-only binding. Requiring users to explicitly configure network exposure (with a security warning) would have prevented mass misconfiguration.
+
+5. **Supabase RLS enabled by default on Moltbook, with security review of AI-generated code.** The Moltbook breach is a direct consequence of deploying AI-generated code without human security review. Any infrastructure managing API tokens at scale requires at minimum: RLS on all tables, API key rotation policies, and rate limiting on registration endpoints.
+
+6. **Cryptographic skill signing and sandboxed execution.** ClawHub skills execute with the full permissions of the agent. A signed skill registry (where publishers are verified and skills are cryptographically attested) combined with sandboxed execution (skills cannot access the filesystem or network beyond declared permissions) would contain the blast radius of malicious skills.
+
+---
+
+## How It Was / Could Be Fixed
+
+**Actual remediation taken:**
+
+- **CVE-2026-25253 (ClawBleed):** Patched January 30, 2026 in version 2026.1.29, before public disclosure. Fixed WebSocket connection validation.
+- **CVE-2026-28472 (ClawJacked):** Patched within 24 hours of Oasis Security's responsible disclosure. Fixed in versions 2026.2.2 / 2026.2.25.
+- **CVE-2026-32922:** Patched March 13, 2026 in v2026.3.11, before CVE publication on March 29. Fixed token scope constraint in `device.token.rotate`.
+- **CVE-2026-33579:** Patched in 2026.3.28. Fixed directory traversal and command injection in pair approval.
+- **ClawHub marketplace:** Implemented a reporting feature where skills receiving 3+ unique reports auto-hide.
+- **Moltbook:** Secured database within 3 hours of Wiz disclosure. RLS policies applied. All researcher-accessed data deleted.
+
+**What remains unresolved:**
+
+- **Stolen credentials cannot be recalled.** API keys, OAuth tokens, and plaintext credentials exposed on 21,639 instances and via the Moltbook breach are in attacker hands permanently unless individually rotated by each affected user.
+- **Malware already installed.** AMOS and Vidar payloads delivered via malicious ClawHub skills are persistent on victim machines. The marketplace cleanup does not remove already-installed malware.
+- **No proactive skill verification.** The 3-report auto-hide mechanism is reactive, not preventive. New malicious skills can still be published and installed before accumulating reports.
+- **Systemic architecture unchanged.** The fundamental architecture -- agents with persistent credentials to sensitive services, executing marketplace code with full permissions -- remains the same.
+- **137 advisories indicate ongoing vulnerability discovery.** The rate of vulnerability disclosure suggests a large backlog of undiscovered issues.
+
+**Additional recommended fixes:**
+
+- Implement mandatory security review pipeline for all ClawHub skill submissions
+- Add skill sandboxing with declared permission manifests
+- Enforce default binding to 127.0.0.1 with explicit user opt-in for network exposure
+- Implement credential rotation reminders for all OpenClaw users
+- Publish a comprehensive security audit by an independent third party
+- Establish a formal bug bounty program to incentivize responsible disclosure
+
+---
+
+## Solutions Analysis
+
+### 1. Agentic Supply Chain Verification Pipeline
+
+- **Type:** Cryptographic / Integrity Controls + Input Validation and Sanitization
+- **Plausibility:** 4/5 -- Package registries (npm, PyPI, crates.io) have demonstrated that automated malware scanning, publisher verification, and cryptographic signing significantly reduce supply chain attacks. The ClawHub case is directly analogous.
+- **Practicality:** 3/5 -- Requires significant engineering investment: signing infrastructure, automated scanning pipeline, publisher identity verification, and a review queue. Slows skill publishing velocity, which conflicts with the platform's growth-first culture.
+- **How it applies:** Would have prevented or significantly reduced the ClawHavoc campaign. 335 of 341 malicious skills came from a single campaign -- identity verification alone would have constrained the attack surface. Automated scanning for credential access patterns and outbound network calls would have flagged the payloads.
+- **Limitations:** Sophisticated attackers can craft skills that pass static analysis. Behavioral analysis (runtime sandboxing) is needed for completeness but adds complexity. Does not address zero-day skill exploits.
+
+### 2. Network Isolation and Secure-by-Default Deployment
+
+- **Type:** Sandboxing and Isolation + Architectural Redesign
+- **Plausibility:** 5/5 -- Binding to 127.0.0.1 by default would have directly prevented the 21,639 exposed instances. Requiring explicit opt-in for network exposure is a proven pattern (Docker, database servers).
+- **Practicality:** 4/5 -- A configuration change, not an architecture change. Can be shipped in a single release. The trade-off is that users who want remote access must configure it explicitly, which is the correct friction for a security-sensitive application.
+- **How it applies:** Directly prevents the mass exposure vector. Combined with WebSocket Origin validation, also mitigates ClawBleed and ClawJacked attack chains for non-localhost deployments.
+- **Limitations:** Does not protect users who intentionally expose instances to the network. Does not address marketplace poisoning or the Moltbook breach.
+
+### 3. Uniform Rate Limiting with No Trust Exemptions
+
+- **Type:** Guardrails / Output Filters + Permission Scoping
+- **Plausibility:** 5/5 -- Removing the localhost rate limiter exemption directly prevents the ClawJacked brute-force attack. This is not a novel security technique -- it is the removal of a specific, dangerous exemption.
+- **Practicality:** 5/5 -- A code change to remove a conditional branch. No architectural redesign required. No user-facing friction.
+- **How it applies:** CVE-2026-28472 (ClawJacked) relied entirely on the rate limiter exemption for localhost. Without it, brute-force attacks from browser JavaScript would be throttled to uselessness.
+- **Limitations:** Addresses only the brute-force vector of ClawJacked, not the token validation bypass (Flaw 3) which must be fixed independently.
+
+### 4. Mandatory Security Review for AI-Generated Infrastructure
+
+- **Type:** Policy and Governance Controls
+- **Plausibility:** 4/5 -- A human security review of Moltbook's Supabase deployment would have caught the missing RLS policies immediately. This is a fundamental, well-understood security control (authentication/authorization on database access).
+- **Practicality:** 2/5 -- Requires organizational discipline that conflicts with the vibe-coding ethos. The Moltbook founder explicitly celebrated that "no human wrote the code." Mandating human review for AI-generated infrastructure requires a cultural shift in how AI-assisted development is perceived.
+- **How it applies:** Would have prevented the Moltbook breach entirely. RLS is Supabase's primary security mechanism, documented prominently, and flagged in Supabase's own security checklist.
+- **Limitations:** Requires security expertise that many early-stage projects lack. Does not scale to the speed at which AI-generated infrastructure can be deployed. The cultural resistance to slowing AI-assisted development velocity is significant.
+
+### 5. Skill Sandboxing with Permission Manifests
+
+- **Type:** Sandboxing and Isolation + Permission Scoping / Least Privilege
+- **Plausibility:** 4/5 -- Sandboxing skill execution so that skills cannot access the filesystem, network, or credentials beyond declared permissions would contain the blast radius of malicious skills. Browser extension permission models provide a precedent.
+- **Practicality:** 2/5 -- Requires a fundamental redesign of how skills interact with the agent runtime. Skills currently execute with the agent's full permissions. Implementing a permission manifest system, runtime sandbox, and user-facing permission prompts is a major engineering effort.
+- **How it applies:** Would contain ClawHavoc's blast radius: malicious skills could not access `~/.clawdbot/.env`, could not make outbound network requests to `webhook[.]site`, and could not install AMOS/Vidar payloads without explicit filesystem permission grants.
+- **Limitations:** Overly restrictive sandboxing breaks legitimate skill functionality. The permission manifest must be granular enough to be useful but simple enough for users to evaluate. Sophisticated attackers may social-engineer users into granting excessive permissions.
+
+---
+
+## Related Incidents
+
+| Incident | Connection |
+|----------|------------|
+| (none currently in AgentFail database) | This is the first AI agent platform-level security crisis in the database. It establishes a new pattern group: `ai-agent-platform-security-crisis`. Future incidents involving marketplace poisoning, agent infrastructure CVEs, or vibe-coded security failures should be linked here. |
+| [[AAGF-2026-007]] | Shared root cause: credential over-permissioning enabling agent blast radius. In AAGF-2026-007, a Railway API token with excessive scope enabled infrastructure destruction. In AAGF-2026-010, OpenClaw agents hold persistent OAuth tokens and API keys that enable lateral movement when compromised. Both demonstrate that agent credential management is a critical, unsolved problem. |
+
+---
+
+## Strategic Council Review
+
+*Independent review conducted 2026-05-05. This review replaces any prior analyst-authored council section.*
+
+### Phase 1: Challenger
+
+**Challenge 1 -- One report or five? The conflation problem is serious.** This report merges five technically distinct incident types: (a) supply chain poisoning of a marketplace, (b) two WebSocket authentication CVEs in a specific product, (c) mass user misconfiguration of deployment, (d) a third-party platform (Moltbook) with entirely separate codebase and ownership, and (e) a CVE storm of 137 advisories across varied severity levels. Each has a different threat actor profile, different responsible party, different remediation path, and different affected population. Moltbook is not OpenClaw -- it is a separate company that integrated with OpenClaw's ecosystem. The 21,639 exposed instances are arguably user misconfiguration, not a platform vulnerability. Bundling all five into a single "crisis" narrative risks obscuring which failures belong to OpenClaw the product, which to the ecosystem, and which to end users. The analytical question is whether the shared platform context is sufficient justification or whether this report is doing the work of five.
+
+**Challenge 2 -- The "137 security advisories" headline conflates severity levels.** The report uses "137 security advisories in 3 months" as a headline statistic and treats it as a signal of systemic crisis. But advisories span the full severity spectrum from informational to critical. How many of the 137 were Critical? How many were Low or Informational? The Blink Blog source is cited but the report does not break down severity distribution. If 120 of 137 were Low/Medium and only 5 were formal CVEs, the headline dramatically overstates the severity picture. For comparison, Chromium and the Linux kernel routinely receive hundreds of advisories per quarter without being characterized as "in crisis." The number requires context to be meaningful.
+
+**Challenge 3 -- The 12% malicious marketplace rate needs methodological scrutiny.** The 341-of-2,857 figure (12%) comes from Koi Security's audit using an OpenClaw bot named "Alex." What was the detection methodology? What constituted "malicious"? Did it include merely suspicious skills, or only confirmed malware distributors? The number later grows to 824+ of 10,700+ (roughly 7.7%) and then to 1,184 at "peak" -- but 1,184 of what total? The denominator shifts across sources. If the initial 12% rate was based on a different detection threshold than the later counts, the figures are not directly comparable. The report presents all three numbers without reconciling the methodology differences.
+
+**Challenge 4 -- The Moltbook "vibe-coding" narrative is editorializing beyond the evidence.** The founder's statement ("I didn't write a single line of code") is confirmed. However, attributing the RLS failure specifically to AI-generated code is a logical leap. The failure mode -- deploying Supabase without RLS -- is one of the most common mistakes human developers make with Supabase, well-documented across forums and incident reports predating AI coding tools. The report frames this as "the vibe-coding problem crystallized" when it could equally be framed as "a common deployment mistake made by a non-technical founder using any development approach." The causal arrow from "AI wrote the code" to "therefore AI caused the security failure" is inferential, not demonstrated.
+
+**Challenge 5 -- The "ai-agent-platform-security-crisis" pattern group is premature.** A pattern group requires multiple data points to establish a pattern. This is the first and only incident in the group. Creating a pattern group from n=1 is definitionally premature. It presupposes that future incidents will follow a similar pattern before any evidence exists. The pattern group should be proposed but flagged as provisional.
+
+**Challenge 6 -- Responsibility attribution for exposed instances is unclear.** The 21,639 exposed instances are presented as part of OpenClaw's security crisis, but OpenClaw was designed for localhost operation. If users deploy any localhost application on a public IP without firewalling, they will be exposed. Is this an OpenClaw vulnerability or a user deployment failure? The report partially acknowledges this (noting lack of binding enforcement) but still counts it as a platform failure in the severity assessment. A more precise framing would distinguish between vulnerabilities in OpenClaw's code and failures in its deployment guidance.
+
+### Phase 2: Steelman
+
+**Defense 1 -- Unified reporting is analytically superior because the vectors compound.** The five vectors are not merely coincidental -- they interact. ClawHub marketplace poisoning is more dangerous because of ClawBleed (malicious skills can be force-loaded via CSWSH). Exposed instances are more dangerous because of ClawJacked (any website can brute-force into them). Moltbook's breach is more dangerous because OpenClaw agent tokens were among the 1.5M exposed, meaning Moltbook compromise cascades into OpenClaw compromise. The compound risk -- where each vector amplifies the others -- is only visible in a unified report. Five separate reports would miss the emergent systemic risk entirely. Furthermore, all five vectors share a common root cause: a platform ecosystem that prioritized growth velocity over security investment at every layer. This is not coincidence; it is a design philosophy producing predictable, correlated failures.
+
+**Defense 2 -- Critical severity is justified on any reasonable decomposition.** Even if you disaggregate the vectors: (a) Moltbook alone exposed 1.5M API tokens and 35K emails -- Critical by any data breach framework. (b) CVE-2026-32922 alone is CVSS 9.9 -- Critical by CVSS. (c) CVE-2026-28472 alone is CVSS 9.8 -- Critical by CVSS. (d) ClawHavoc distributed commodity malware (AMOS, Vidar) to an unknown number of the 135K+ user base -- Critical by potential impact. The composite is not inflating severity; each individual vector independently qualifies for High or Critical. The composite simply reflects the reality that all five happened to the same platform within 90 days.
+
+**Defense 3 -- The vibe-coding angle is systemically important regardless of causal certainty.** The challenger is correct that the causal link is inferential. But the systemic importance does not require proving that AI specifically caused the RLS omission. What matters is the demonstrated pattern: AI-generated code was deployed to production managing 1.5M API tokens with zero security review. Whether a human developer would have made the same mistake is irrelevant to the systemic lesson -- the AI-assisted development pipeline produced insecure infrastructure at scale, and the founder's explicit celebration of "no human wrote the code" demonstrates that the lack of human review was intentional, not accidental. This is a novel failure mode worth documenting regardless of the counterfactual.
+
+**Defense 4 -- Independent convergence from 9+ security research firms validates the severity assessment.** Wiz, Oasis Security, Koi Security, Censys, DepthFirst, Reco, Trend Micro, SonicWall, and ARMO all independently investigated and published findings. Palo Alto Networks characterized it as a "lethal trifecta." This is not a single researcher's opinion amplified by press coverage -- it is convergent assessment from the industry's most credible security organizations. The breadth of independent discovery also implies that attackers with equivalent capabilities had equivalent access to these vulnerabilities.
+
+**Defense 5 -- The 137 advisories figure, even without severity breakdown, signals architectural debt.** Even if the majority were Low/Medium, the sheer rate of discovery -- roughly 1.5 advisories per day for 90 days -- indicates that the codebase has a density of security-relevant defects far exceeding normal baselines. This is a meaningful architectural signal even if the headline number conflates severity levels. The five formal CVEs (including two Critical and one High) provide the severity anchor; the 137 number provides the breadth signal. Together they tell a coherent story.
+
+### Phase 3: Synthesis
+
+The challenger raises two categories of concern: structural issues with the report's framing, and evidentiary gaps in specific claims. On the structural question -- whether this should be one report or five -- the steelman prevails. The vectors interact and compound in ways that only a unified analysis reveals: marketplace poisoning is amplified by authentication bypasses, exposed instances are amplified by localhost trust assumptions, and the Moltbook breach cascades into OpenClaw compromise through shared agent tokens. Five separate reports would be technically precise but analytically incomplete. However, the challenger is correct that the report should more explicitly delineate which failures belong to OpenClaw's codebase, which to the ecosystem (ClawHub, Moltbook), and which to user deployment practices. A responsibility attribution table would strengthen the analysis without abandoning the unified framing.
+
+On the evidentiary challenges, three require report adjustments. First, the "137 security advisories" headline should include a severity breakdown or, if the breakdown is unavailable, an explicit caveat that the number spans all severity levels and that 5 formal CVEs anchor the Critical assessment. Presenting the raw number without context invites the same critique that inflated vulnerability counts receive in other security reporting. Second, the 12% malicious marketplace rate should note the detection methodology and acknowledge that the denominator and detection criteria shifted across the three cited counts (341/2,857, 824/10,700+, 1,184/unknown). Third, the vibe-coding narrative should be reframed: the Moltbook RLS failure is a confirmed instance of AI-generated infrastructure deployed without security review, but the specific causal attribution (AI caused the RLS omission vs. any developer might have) should be presented as inferential rather than proven. The report currently presents it closer to proven than the evidence supports.
+
+The pattern group "ai-agent-platform-security-crisis" should be retained but marked as provisional (n=1). Critical severity is upheld -- it is independently justified by the Moltbook breach scale, the CVSS 9.8/9.9 CVEs, and confirmed active exploitation, regardless of how the vectors are grouped.
+
+**Confidence level:** High on severity rating, CVE technical details, and exposure scale. Medium on the 137-advisory headline (severity distribution unknown), the 12% marketplace rate (methodology unverified), and the vibe-coding causal attribution (inferential). The evidence base of 14+ independent sources including NVD, Wiz, Oasis Security, and Censys provides strong triangulation on the core facts.
+
+**Unresolved uncertainties:**
+- Severity distribution of the 137 advisories (Critical vs. Low/Medium breakdown unavailable)
+- Detection methodology and consistency behind the 12%/7.7%/peak malicious skill rates
+- Confirmed victim count for ClawHub malware installations and CVE exploitation (zero public data)
+- Financial losses from AMOS/Vidar cryptocurrency theft (highly probable, entirely unquantified)
+- Enterprise breach confirmations (none named; inferred from OAuth integrations on exposed instances)
+- Whether Moltbook's RLS omission is specifically attributable to AI code generation or represents a common human-equivalent deployment error
+- Whether the 137-advisory rate normalizes to concerning levels when adjusted for codebase size and contributor count relative to comparable open-source projects
+
+---
+
+## Key Takeaways
+
+1. **AI agent marketplaces are the new package registries -- and they need the same security infrastructure.** ClawHub launched with zero verification. npm, PyPI, and crates.io spent years learning that open publishing + trusted execution = supply chain attacks. AI agent skill marketplaces must implement automated malware scanning, publisher identity verification, and behavioral sandboxing from day one, not after 12% of the registry is malware.
+
+2. **Localhost is not a security boundary anymore.** Both ClawBleed and ClawJacked exploited the assumption that localhost connections are trusted. Any web page can open a WebSocket to localhost. AI agents that listen on local ports must implement full authentication, Origin validation, and rate limiting on all connections regardless of source IP. The "it only runs locally" defense is obsolete.
+
+3. **AI-generated infrastructure requires human security review before handling credentials at scale.** The Moltbook breach is a warning: AI can generate functional code faster than ever, but it does not reliably generate secure code. Any infrastructure managing API tokens, credentials, or PII -- whether written by humans or AI -- must pass a security review before production deployment. The velocity of vibe-coding does not exempt it from security diligence.
+
+4. **Explosive growth without proportional security investment creates compound risk.** OpenClaw went from launch to 135,000+ stars in weeks. Each new integration (email, Slack, calendars, OAuth services) expanded the blast radius of any compromise. Security investment must scale with adoption and with the sensitivity of the data the platform accesses -- not with the team's engineering bandwidth.
+
+5. **137 security advisories in 3 months is not a bug count -- it is a platform architecture signal.** When vulnerability discovery rate exceeds the team's capacity for root cause analysis, the issue is not individual bugs but structural security debt. OpenClaw demonstrated fast patching (often before CVE publication), but the volume indicates that the security architecture itself needs redesign, not just incremental fixes.
+
+---
+
+## References
+
+| Source | URL | Date | Credibility |
+|--------|-----|------|-------------|
+| Reco Security (Alon Klayman) | https://www.reco.ai/blog/openclaw-the-ai-agent-security-crisis-unfolding-right-now | 2026-02 | High -- comprehensive analysis by Senior Security Researcher (GCFA, GNFA, CARTP, CESP, CRTP) |
+| NVD (NIST) | https://nvd.nist.gov/vuln/detail/CVE-2026-25253 | 2026-02-01 | Authoritative -- government vulnerability database |
+| Blink Blog (CVE Timeline) | https://blink.new/blog/openclaw-2026-cve-complete-timeline-security-history | 2026-04 | Medium-High -- most complete CVE timeline; tracks 137+ advisories |
+| Oasis Security | https://www.oasis.security/blog/openclaw-vulnerability | 2026-02-26 | High -- original ClawJacked discovery with PoC |
+| Wiz Research (Gal Nagli) | https://www.wiz.io/blog/exposed-moltbook-database-reveals-millions-of-api-keys | 2026-02 | High -- original Moltbook breach discovery |
+| The Hacker News | https://thehackernews.com/2026/02/researchers-find-341-malicious-clawhub.html | 2026-02-02 | High -- ClawHavoc campaign details, Koi Security research |
+| Censys | https://censys.com/blog/openclaw-in-the-wild-mapping-the-public-exposure-of-a-viral-ai-assistant/ | 2026-01-31 | Authoritative -- primary source for exposed instance count |
+| Trend Micro | https://www.trendmicro.com/en_us/research/26/b/openclaw-skills-used-to-distribute-atomic-macos-stealer.html | 2026-02 | High -- AMOS malware analysis |
+| VirusTotal | https://blog.virustotal.com/2026/02/from-automation-to-infection-how.html | 2026-02 | High -- malware payload analysis |
+| SonicWall | https://www.sonicwall.com/blog/openclaw-auth-token-theft-leading-to-rce-cve-2026-25253 | 2026-02 | Medium-High -- CVE-2026-25253 technical details |
+| SOCRadar | https://socradar.io/blog/cve-2026-25253-rce-openclaw-auth-token/ | 2026-02 | Medium-High -- CVE-2026-25253 analysis |
+| ARMO | https://www.armosec.io/blog/cve-2026-32922-openclaw-privilege-escalation-cloud-security/ | 2026-03 | Medium-High -- CVE-2026-32922 analysis |
+| OX Security | https://www.ox.security/blog/one-step-away-from-a-massive-data-breach-what-we-found-inside-moltbot/ | 2026-02 | High -- MoltBot analysis |
+| CyberPress | https://cyberpress.org/clawhavoc-poisons-openclaws-clawhub-with-1184-malicious-skills/ | 2026-02 | Medium -- expanded malicious skill count |
+| GitHub CVE Tracker | https://github.com/jgamblin/OpenClawCVEs/ | 2026-04 | Medium -- community-maintained CVE list |

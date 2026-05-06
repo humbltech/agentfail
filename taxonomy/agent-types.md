@@ -6,7 +6,7 @@ Used to classify what kind of AI agent was involved in the incident. Understandi
 
 ## Agent Types
 
-### Coding Assistants
+### Coding Assistant
 AI agents that write, edit, review, or execute code on behalf of developers.
 
 **Products:** GitHub Copilot, Claude Code, Cursor, Devin, Replit Agent, Windsurf, Aider
@@ -14,7 +14,7 @@ AI agents that write, edit, review, or execute code on behalf of developers.
 
 ---
 
-### Customer Service Bots
+### Customer Service Bot
 AI agents deployed to handle customer inquiries, support tickets, or sales interactions.
 
 **Products:** Intercom AI, Zendesk AI, custom chatbots, voice bots
@@ -22,7 +22,7 @@ AI agents deployed to handle customer inquiries, support tickets, or sales inter
 
 ---
 
-### Autonomous Research Agents
+### Autonomous Research Agent
 AI agents that browse the web, gather information, synthesize research, and produce reports with minimal human oversight.
 
 **Products:** Perplexity, custom research pipelines, Auto-GPT derivatives, deep research modes
@@ -30,7 +30,7 @@ AI agents that browse the web, gather information, synthesize research, and prod
 
 ---
 
-### Task Automation Agents
+### Task Automation Agent
 AI agents embedded in workflow automation platforms that execute multi-step business processes.
 
 **Products:** Zapier AI, Make (Integromat), Microsoft Power Automate AI, n8n AI nodes
@@ -38,7 +38,7 @@ AI agents embedded in workflow automation platforms that execute multi-step busi
 
 ---
 
-### Multi-Agent Systems
+### Multi-Agent System
 Architectures where multiple AI agents communicate and delegate tasks to each other, often with one orchestrator and multiple sub-agents.
 
 **Products:** AutoGen, CrewAI, LangGraph, custom orchestration
@@ -46,7 +46,7 @@ Architectures where multiple AI agents communicate and delegate tasks to each ot
 
 ---
 
-### RAG-Augmented Agents
+### RAG Agent
 Agents that retrieve context from a knowledge base (vector database, document store) to augment their responses.
 
 **Products:** Any agent with Pinecone, Weaviate, Qdrant, pgvector integration
@@ -54,7 +54,7 @@ Agents that retrieve context from a knowledge base (vector database, document st
 
 ---
 
-### Tool-Using Agents (MCP / Function Calling)
+### Tool-Using Agent
 Agents that can invoke external tools, APIs, and services via structured function calls or MCP servers.
 
 **Products:** Any agent using OpenAI function calling, Anthropic tool use, MCP protocol
@@ -62,7 +62,7 @@ Agents that can invoke external tools, APIs, and services via structured functio
 
 ---
 
-### Memory-Persistent Agents
+### Memory-Persistent Agent
 Agents with long-term memory that persists across sessions, allowing them to learn and adapt over time.
 
 **Products:** MemGPT, agents with external memory stores, custom memory architectures
@@ -70,7 +70,7 @@ Agents with long-term memory that persists across sessions, allowing them to lea
 
 ---
 
-### Email / Calendar Agents
+### Email Agent
 Agents with access to email, calendar, and communication tools — often with send/write privileges.
 
 **Products:** Microsoft Copilot for Outlook, Google Workspace AI, custom email agents
@@ -78,7 +78,7 @@ Agents with access to email, calendar, and communication tools — often with se
 
 ---
 
-### Financial Agents
+### Financial Agent
 Agents with access to financial accounts, payment systems, or trading platforms.
 
 **Products:** AI-powered expense management, trading bots, accounting AI, bill-pay automation
@@ -86,7 +86,7 @@ Agents with access to financial accounts, payment systems, or trading platforms.
 
 ---
 
-### Embodied Agents / Robotics
+### Embodied Agent
 AI agents that control physical hardware — robots, autonomous vehicles, drones, or industrial systems.
 
 **Products:** Autonomous vehicles, warehouse robots, drone systems, industrial AI controllers
@@ -94,7 +94,7 @@ AI agents that control physical hardware — robots, autonomous vehicles, drones
 
 ---
 
-### Browser / Web Agents
+### Browser Agent
 Agents that control a web browser to automate tasks — filling forms, clicking buttons, navigating sites.
 
 **Products:** Operator (OpenAI), Computer Use (Anthropic), custom Playwright/Selenium agents
@@ -107,3 +107,20 @@ Agents that control a web browser to automate tasks — filling forms, clicking 
 - Tag with the **primary agent type** involved
 - If an incident involves multiple agent types (e.g., a coding assistant with email access), tag all relevant types
 - If the product doesn't fit cleanly into a category, use the closest match and note in `researcher_notes`
+
+## Valid Values (use exactly as written)
+
+```
+Coding Assistant
+Customer Service Bot
+Autonomous Research Agent
+Task Automation Agent
+Multi-Agent System
+RAG Agent
+Tool-Using Agent
+Memory-Persistent Agent
+Email Agent
+Financial Agent
+Embodied Agent
+Browser Agent
+```
