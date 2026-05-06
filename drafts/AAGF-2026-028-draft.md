@@ -1,0 +1,460 @@
+---
+id: "AAGF-2026-028"
+title: "ClawJacked — OpenClaw WebSocket Hijacking (CVE-2026-28472)"
+status: "reviewed"
+date_occurred: "2026-01-01"          # Approximate: vulnerability existed from earlier; exploitation viable ~January 2026 as platform reached significant scale
+date_discovered: "2026-02-01"        # Approximate: Oasis Security internal discovery; exact date not publicly disclosed
+date_reported: "2026-02-26"          # First public disclosure: Oasis Security blog post; OpenClaw patch released same day
+date_curated: "2026-05-06"
+date_council_reviewed: "2026-05-06"
+
+# Classification
+category:
+  - "Unauthorized Data Access"
+  - "Tool Misuse"
+  - "Autonomous Escalation"
+severity: "High"
+agent_type:
+  - "Tool-Using Agent"
+agent_name: "OpenClaw"
+platform: "OpenClaw"
+industry: "AI Infrastructure / Developer Tools"
+
+# Near-miss classification
+actual_vs_potential: "near-miss"
+potential_damage: "Full operator-level takeover of any OpenClaw agent running locally, enabling exfiltration of all stored API keys (OpenAI, Anthropic, and other AI providers), OAuth tokens for connected services (Slack, Telegram, email, calendar, cloud storage), shell command execution on connected devices, and lateral movement into organizational infrastructure. Any user who ran OpenClaw locally prior to version 2026.2.25 AND visited a malicious or compromised webpage was vulnerable with no interaction required beyond normal browsing."
+intervention: "Oasis Security responsible disclosure (February 25, 2026); OpenClaw patch 2026.2.25 released within 24 hours. No in-the-wild exploitation confirmed as of 2026-03-02. Government CERTs (Belgian CCB, CNCERT) and enterprise vendors (CrowdStrike, Cisco, Microsoft) issued advisories in March 2026."
+
+# Impact
+financial_impact: "Not quantified — API keys, OAuth tokens, and credentials exposed to potential exfiltration; no confirmed financial loss reported"
+financial_impact_usd: null
+refund_status: "unknown"
+refund_amount_usd: null
+affected_parties:
+  count: null                    # No independent count for this specific CVE; 135,000+ GitHub stars as proxy for platform user base
+  scale: "widespread"            # All local OpenClaw deployments prior to 2026.2.25 were vulnerable
+  data_types_exposed: ["credentials"]    # API keys, OAuth tokens, gateway configuration, conversation history
+
+# Damage Timing
+damage_speed: "instantaneous"          # Once victim visits malicious page, attack executes in seconds
+damage_duration: "unknown"             # No confirmed real-world exploitation; patch closes the window
+total_damage_window: "unknown"         # Vulnerability window: all versions before 2026.2.25
+
+# Recovery
+recovery_time: "not required"          # No confirmed exploitation; patch deployed within 24h of disclosure
+recovery_labor_hours: null
+recovery_cost_usd: null
+recovery_cost_notes: "No confirmed victim incidents requiring recovery. Users who had already been exploited (if any) would need to rotate all API keys and OAuth tokens held by their OpenClaw instance."
+full_recovery_achieved: "yes"          # Patch deployed; no confirmed exploitation
+
+# Business Impact
+business_scope: "multi-org"            # All local OpenClaw deployments; downstream orgs via compromised OAuth tokens
+business_criticality: "high"
+business_criticality_notes: "Full agent takeover enables exfiltration of all API keys, OAuth tokens, and credentials held by the agent; shell command execution on connected devices; lateral movement into organizational infrastructure via compromised OAuth integrations (email, Slack, calendars, cloud storage)"
+systems_affected: ["ai-agent-gateway", "credentials", "connected-integrations"]
+
+# Vendor Response
+vendor_response: "fixed"
+vendor_response_time: "<24h"           # Patch released within 24 hours of responsible disclosure
+
+# Presentation
+headline_stat: "Any website you visit could silently brute-force your local AI agent at hundreds of guesses per second — no interaction required beyond normal browsing"
+operator_tldr: "Update OpenClaw to version 2026.2.25 immediately and rotate all API keys stored in any OpenClaw instance that ran on a vulnerable version; any website visited during that window could have silently taken operator-level control."
+containment_method: "third_party"      # Oasis Security responsible disclosure prompted the fix
+public_attention: "high"               # Government CERTs, major security press, enterprise vendor advisories
+
+# Framework References
+framework_refs:
+  mitre_atlas:
+    - "AML.T0085.001"    # AI Agent Tools — agent tools (shell, integrations, APIs) exploited under attacker control
+    - "AML.T0086"        # Exfiltration via AI Agent Tool Invocation — credentials exfiltrated via hijacked agent
+    - "AML.T0057"        # LLM Data Leakage — API keys, conversation history, configuration exposed
+    - "AML.T0053"        # Exploit Public-Facing Application — WebSocket gateway endpoint exploited
+    - "AML.T0012"        # Valid Accounts — brute-forced credentials used to gain authenticated access
+    - "AML.T0055"        # Unsecured Credentials — API keys and OAuth tokens harvested from agent config
+    - "AML.T0098"        # AI Agent Tool Credential Harvesting — credentials extracted via hijacked agent
+    - "AML.T0112"        # Machine Compromise — local agent fully compromised by attacker
+    - "AML.T0112.000"    # Local AI Agent — locally running agent instance taken over
+  owasp_llm:
+    - "LLM02:2025"       # Sensitive Information Disclosure — API keys, credentials, conversation history exposed
+    - "LLM06:2025"       # Excessive Agency — hijacked agent executes shell commands, accesses all connected services
+  owasp_agentic:
+    - "ASI02:2026"       # Tool Misuse and Exploitation — attacker uses agent's own tools under hijacked control
+    - "ASI03:2026"       # Agent Identity and Privilege Abuse — operator-level permissions obtained via auth bypass
+    - "ASI10:2026"       # Inadequate Agent Boundary Enforcement — localhost trust assumption collapses under browser WebSocket
+  ttps_ai:
+    - "2.5.4"            # Tool abuse — agent tool invocation exploited for exfiltration
+    - "2.7"              # Privilege escalation — operator-level access obtained via auth bypass
+    - "2.9"              # Credential access — API keys and OAuth tokens harvested
+    - "2.12"             # Collection — agent config, conversation history, credentials collected
+    - "2.15"             # Exfiltration — credentials and data exfiltrated via hijacked agent
+
+# Relationships
+related_incidents:
+  - "AAGF-2026-010"      # OpenClaw Security Crisis — same platform; ClawJacked is a distinct CVE within the ai-agent-platform-security-crisis pattern group
+pattern_group: "ai-agent-platform-security-crisis"
+tags:
+  - websocket-hijacking
+  - authentication-bypass
+  - localhost-trust
+  - rate-limiter-bypass
+  - brute-force
+  - credential-exposure
+  - agent-takeover
+  - openclaw
+  - cve-2026-28472
+  - cve-2026-32025
+  - oasis-security
+  - near-miss
+  - open-source-agent
+  - local-service-attack
+  - browser-to-localhost
+
+# Metadata
+sources:
+  - "https://www.oasis.security/blog/openclaw-vulnerability"
+  - "https://nvd.nist.gov/vuln/detail/CVE-2026-28472"
+  - "https://nvd.nist.gov/vuln/detail/CVE-2026-32025"
+  - "https://thehackernews.com/2026/02/clawjacked-flaw-lets-malicious-sites.html"
+  - "https://securityaffairs.com/188749/hacking/clawjacked-flaw-exposed-openclaw-users-to-data-theft.html"
+  - "https://www.bleepingcomputer.com/news/security/clawjacked-attack-let-malicious-websites-hijack-openclaw-to-steal-data/"
+  - "https://www.threatintelreport.com/2026/03/02/articles/openclaw-clawjacked-chain-malicious-websites-can-hijack-local-ai-agents-via-localhost-websockets/"
+  - "https://openclawai.io/blog/clawjacked-vulnerability-what-happened/"
+  - "https://www.vulncheck.com/advisories/openclaw-password-brute-force-via-browser-origin-websocket-authentication-bypass"
+  - "https://cvereports.com/reports/CVE-2026-28472"
+  - "https://ccb.belgium.be/advisories/warning-critical-vulnerability-openclaw-allows-1-click-remote-code-execution-when"
+  - "https://blink.new/blog/openclaw-2026-cve-complete-timeline-security-history"
+  - "https://github.com/jgamblin/OpenClawCVEs/"
+researcher_notes: "Source bias: Oasis Security is both discoverer and primary technical source. The 'hundreds of guesses per second' claim originates exclusively from Oasis Security and has not been independently measured or verified by third parties. The attack mechanism itself is corroborated by 10+ independent security outlets. No independent count of affected users exists for this specific CVE (unlike CVE-2026-25253 where Censys counted 21,639 exposed instances). CVE disambiguation: 'ClawJacked' as described by Oasis Security covers a compound attack chain spanning two CVEs — CVE-2026-28472 (dummy token device identity bypass, fixed in 2026.2.2) and CVE-2026-32025 (localhost rate-limiter exemption / brute-force, fixed in 2026.2.25). Both are components of the same attack; both are fixed in the comprehensive 2026.2.25 patch. This AAGF entry uses CVE-2026-28472 as primary with CVE-2026-32025 as related, which matches the Oasis Security attribution and the broader security press coverage. Relationship to AAGF-2026-010: ClawJacked is one component of the broader OpenClaw crisis covered in AAGF-2026-010. It merits a separate entry because it has a distinct CVE, distinct mechanism (attacker connects IN to agent, vs. CVE-2026-25253 where agent connects OUT to attacker), distinct patch timeline, and distinct architectural lesson about localhost trust assumptions."
+council_verdict: "Analytically sound near-miss with well-corroborated mechanism and appropriate high-severity framing; requires minor clarification on CVE-2026-28472 vs. CVE-2026-32025 attack layer distinction and a more honest scoping of the vulnerable population beyond the GitHub stars proxy."
+---
+
+# ClawJacked — OpenClaw WebSocket Hijacking (CVE-2026-28472)
+
+## Executive Summary
+
+In February 2026, Oasis Security disclosed that any website a user visited could silently take full operator-level control of their locally running OpenClaw AI agent. The attack (CVE-2026-28472, dubbed "ClawJacked") exploited three compounding architectural flaws in OpenClaw's local gateway: browsers permit WebSocket connections to localhost without cross-origin restrictions; OpenClaw's rate limiter completely exempted loopback connections, enabling brute-force at hundreds of guesses per second; and the gateway registered any connection from localhost as a trusted paired device without explicit user confirmation. OpenClaw patched the vulnerability within 24 hours of responsible disclosure. No in-the-wild exploitation was confirmed, but government CERTs in Belgium, China, and enterprise vendors including CrowdStrike and Cisco issued advisories, reflecting the severity of a flaw that would have handed attackers complete access to an agent's stored API keys, OAuth tokens, and shell execution capabilities on connected devices.
+
+---
+
+## Timeline
+
+| Date/Time | Event |
+|-----------|-------|
+| ~2025-11 | OpenClaw launches publicly; rapid adoption begins (135,000+ GitHub stars within weeks) |
+| ~2026-01 | Exploitation becomes viable as platform reaches scale; vulnerability present from earlier |
+| 2026-02 (approx.) | Oasis Security researchers discover the ClawJacked vulnerability chain during internal research |
+| ~2026-02-25 | Oasis Security submits responsible disclosure report to OpenClaw team |
+| **2026-02-26** | OpenClaw releases patch version 2026.2.25 — within 24 hours of disclosure |
+| **2026-02-26** | Oasis Security publishes public disclosure blog post ("ClawJacked") |
+| 2026-03-01/02 | BleepingComputer, The Hacker News, Security Affairs, ThreatIntelReport publish coverage |
+| 2026-03-02 | ThreatIntelReport confirms no in-the-wild exploitation as of this date |
+| 2026-03-05 | NVD publishes CVE-2026-28472 formally |
+| 2026-03 | Belgian CCB, CNCERT, CrowdStrike, Cisco, Microsoft issue advisories |
+| 2026-03-19 | NVD publishes CVE-2026-32025 (the rate-limit brute-force variant, same fix) |
+
+---
+
+## What Happened
+
+OpenClaw is an open-source local AI agent platform that grew from launch to 135,000+ GitHub stars in weeks, connecting to users' email, calendars, Slack, cloud storage, and other services. It runs a WebSocket gateway on the local machine to coordinate between the agent and its integrations. This design — a locally running service accessed via WebSocket — proved to have a critical vulnerability that placed every user's credentials and agent capabilities at risk.
+
+In February 2026, researchers at Oasis Security discovered that any webpage a victim visited could silently and completely take over their running OpenClaw instance. The attack required no browser extensions, no download prompts, no user interaction beyond ordinary browsing.
+
+The root mechanism was straightforward: browsers enforce same-origin restrictions on HTTP requests but not on WebSocket connections. JavaScript running on any website can open `ws://localhost:<port>` without restriction. This alone is a known browser design gap, not unique to OpenClaw — but OpenClaw's trust model transformed this gap into a critical exploit.
+
+When malicious JavaScript opens a WebSocket to the local OpenClaw gateway, two additional flaws activate. First, OpenClaw's rate limiter was configured to completely exempt loopback connections — failed authentication attempts from localhost were not counted, not throttled, and generated no log entries. This allowed a browser script to try hundreds of passwords per second with no defense. Second, and separately, the gateway's device registration logic checked whether an `auth.token` field was present in the connection request, but never validated the token's content. Supplying any string value — including the literal word `"dummy"` — caused the gateway to treat the connection as authenticated and register it as a trusted paired device with no user confirmation prompt.
+
+The result of chaining these three gaps: visit a malicious page, and within seconds a script running in your browser could brute-force your gateway password (or bypass authentication entirely with a dummy token), silently register as a trusted device, and gain full operator-level access to your AI agent. The attacker would then be able to read your messages and conversation history, dump your entire gateway configuration, extract stored API keys for OpenAI, Anthropic, and other AI providers, access all OAuth-connected services, execute shell commands on devices connected to the agent, and pivot laterally into any organization whose credentials the agent held.
+
+Oasis Security responsibly disclosed the vulnerability, and OpenClaw released a comprehensive patch (version 2026.2.25) within 24 hours — among the fastest patch turnarounds for a CVSS 9.8 vulnerability on record. The patch was published simultaneously with Oasis Security's public disclosure. No in-the-wild exploitation was confirmed as of March 2, 2026, though government CERTs and major enterprise security vendors issued advisories citing the severity of the exploit chain.
+
+OpenClaw's own post-mortem acknowledged ClawJacked as the fourth major vulnerability disclosed in February 2026 alone on their platform — a remarkable admission that reflects the broader security crisis the platform was experiencing.
+
+---
+
+## Technical Analysis
+
+### Gap 1: WebSocket CORS Exception (The Entry Point)
+
+Browsers enforce cross-origin policy on HTTP requests (fetch, XMLHttpRequest) but not on WebSocket connections. The WebSocket API specification deliberately permits connections to any origin including localhost — a design choice that predates the widespread deployment of localhost-bound AI agent services. Any JavaScript running in any browser tab can open `ws://localhost:<port>` and the browser will permit it unconditionally.
+
+OpenClaw's gateway listened on a well-known port. This meant every website a user visited while running OpenClaw had a network path to the gateway.
+
+### Gap 2: Localhost Rate Limiter Exemption (CVE-2026-32025)
+
+OpenClaw's gateway included rate limiting on authentication attempts to prevent brute-force attacks. However, the rate limiter was configured to completely exempt connections from loopback addresses (127.0.0.1 / localhost). From the Oasis Security report:
+
+> "The gateway's rate limiter completely exempts loopback connections — failed attempts are not counted, not throttled, and not logged."
+
+The rationale behind this exemption — whether it was an intentional design decision treating local connections as trusted, or an oversight — was never explicitly clarified by OpenClaw's post-mortem. The effect was that browser JavaScript could submit password guesses at hundreds of attempts per second with no cooling off, no lockout, and no audit trail.
+
+VulnCheck tracks this specific flaw as CVE-2026-32025 (CWE-307: Improper Restriction of Excessive Authentication Attempts), fixed in version 2026.2.25. NVD published this CVE on 2026-03-19.
+
+### Gap 3: Token Presence vs. Token Validity (CVE-2026-28472)
+
+The device registration code in `src/gateway/server/ws-connection/message-handler.ts` evaluated whether the `auth.token` field was present in a WebSocket handshake request — not whether it contained a valid token value:
+
+```
+hasTokenAuth = auth.token ? true : false
+// ... 
+if (hasTokenAuth) {
+  canSkipDevice = true
+}
+```
+
+Supplying any non-empty string — `"dummy"`, `"x"`, or any other value — caused `hasTokenAuth` to evaluate `true`. With `canSkipDevice` set to `true`, the gateway registered the connection as a trusted paired device with no user confirmation prompt. The NVD description for CVE-2026-28472 reads:
+
+> "OpenClaw versions before 2026.2.2 contain a gateway WebSocket handshake vulnerability allowing attackers to 'skip device identity checks when auth.token is present but not validated,' potentially gaining operator access."
+
+Normally, new device pairings from non-local origins required explicit user approval via an on-screen prompt. Connections from localhost bypassed this prompt entirely — a trust exception that, combined with the dummy-token bypass, made authentication effectively optional.
+
+### The Compound Attack Chain
+
+1. Victim runs OpenClaw gateway locally (standard developer setup)
+2. Victim visits attacker-controlled or compromised website (no special permissions required)
+3. Malicious JavaScript opens `ws://localhost:<OpenClaw_port>` — browser permits without restriction
+4. Script submits password guesses at hundreds per second — rate limiter exempt for loopback
+5. Either: password is guessed (via brute-force); OR `"dummy"` is supplied as auth token (bypassing validation entirely)
+6. Gateway registers the browser connection as a trusted paired device — auto-approved, no user prompt
+7. Attacker has full operator-level access to the OpenClaw gateway
+
+Post-exploitation capabilities confirmed by Oasis Security and OpenClaw's own documentation:
+- Read and send messages to/from the AI agent
+- Dump complete gateway configuration and all configured integrations
+- Enumerate all paired devices
+- Read application and conversation logs
+- Exfiltrate stored API keys (OpenAI, Anthropic, and other AI providers)
+- Execute shell commands on connected devices (if agent has shell permissions)
+- Access all OAuth-connected services (email, calendar, Slack, Telegram, cloud storage)
+- Lateral movement into organizational infrastructure via harvested credentials
+
+### Why This Is an AI Agent Amplification
+
+The attack exploits a standard web-to-localhost vulnerability class, but the harm is amplified by OpenClaw's design as an AI agent. OpenClaw agents hold persistent credentials to sensitive services, maintain long-lived OAuth sessions, and can take autonomous real-world actions (sending emails, writing files, executing commands). A compromised OpenClaw instance is not merely a data leak — it is an autonomous actor operating under attacker control with the victim's full permission set and tool access.
+
+Security researchers noted that combining CVE-2026-28472 with CVE-2026-32922 (a separate privilege escalation) creates a full unauthenticated RCE chain — demonstrating how ClawJacked could serve as a stepping stone to even broader compromise.
+
+---
+
+## Root Cause Analysis
+
+**Proximate cause:** Three architectural gaps in OpenClaw's local gateway — browser WebSocket CORS permissiveness, a rate limiter that exempted loopback connections, and a token-presence check that never validated token content — combined to allow any malicious webpage to silently hijack the agent and register as a trusted device.
+
+**Why 1:** Why could a malicious website connect to the local gateway?
+Browsers do not block WebSocket connections to localhost. Any JavaScript running in any browser tab can open `ws://localhost:<port>` without restriction. OpenClaw listened on a predictable port, giving every website a path to the gateway.
+
+**Why 2:** Why did that enable authentication bypass?
+The gateway exempted loopback connections from rate limiting entirely, enabling brute-force at hundreds of guesses per second. Separately, the device registration logic checked token presence rather than token validity, allowing any non-empty string to bypass identity checks. Either path alone could achieve access; together they made authentication trivially bypassed.
+
+**Why 3:** Why was localhost exempted from security controls?
+OpenClaw's architecture adopted a trust-by-network-location model: connections originating from the loopback interface were treated as inherently trusted. This is a common assumption in internal tooling — services designed for local use often relax controls for local traffic, on the premise that only trusted code runs locally.
+
+**Why 4:** Why was this assumption baked into a platform with broad web-facing exposure?
+OpenClaw was designed primarily for developer usability and local operation. The trust-by-location assumption was appropriate for the original mental model: an isolated local tool accessed only by the user's own applications. The design was not re-evaluated when the attack surface changed: an AI agent platform running local HTTP services is exposed to every website the user's browser visits.
+
+**Why 5 / Root cause:** The platform's design philosophy — "local connections are trusted" — was inherited from internal tooling norms and never reassessed against the threat model of browser-accessible localhost services. When AI agent platforms run local WebSocket gateways accessible to any browser JavaScript, the distinction between "local" and "trusted" collapses: the web is inside the perimeter.
+
+**Root cause summary:** OpenClaw's localhost trust model was appropriate for isolated internal tooling but not for a browser-accessible AI agent gateway; the assumption that loopback = trusted predated the era where every website has a network path to any local service via browser WebSocket APIs.
+
+---
+
+## Impact Assessment
+
+**Severity:** High (CNA CVSS 8.1 / CVSS v4.0 9.2; NIST CVSS 9.8 likely inflated — real-world exploitation requires password brute-force or token presence, which slightly increases complexity relative to NIST's scoring)
+
+**Who was affected:**
+- All users running OpenClaw locally on versions prior to 2026.2.25
+- Platform had 135,000+ GitHub stars; local deployment is the standard developer setup
+- No independent count of locally-only running instances exists (Censys's 21,639 count covers publicly exposed instances, not localhost-only deployments)
+
+**What was affected:**
+- AI agent gateway authentication (full bypass)
+- All API keys stored in the agent (OpenAI, Anthropic, and other AI providers)
+- OAuth tokens for all connected integrations (email, Slack, calendars, cloud storage)
+- Conversation history and configuration data
+- Shell access on connected devices (if agent had shell permissions)
+- Downstream organizational infrastructure via harvested credentials
+
+**Quantified impact (where known):**
+
+| Metric | Value | Source |
+|--------|-------|--------|
+| Confirmed in-the-wild exploitation | None confirmed as of 2026-03-02 | ThreatIntelReport, Oasis Security |
+| CVSS v3.1 score (NIST) | 9.8 CRITICAL | NVD/NIST |
+| CVSS v3.1 score (CNA) | 8.1 HIGH | NVD/NIST |
+| CVSS v4.0 score (CNA) | 9.2 CRITICAL | NVD |
+| Patch response time | <24 hours | OpenClaw vendor |
+| EPSS exploitation probability | 0.04% | CVEReports.com |
+| Platform user base proxy | 135,000+ GitHub stars | GitHub |
+| Government CERTs issuing advisories | 2+ (Belgian CCB, CNCERT) | Public advisories |
+| Brute-force speed (Oasis-claimed, unverified) | "Hundreds of guesses per second" | Oasis Security (primary source only) |
+
+**Containment:** Oasis Security's responsible disclosure and OpenClaw's <24-hour patch response effectively contained the vulnerability before confirmed exploitation occurred. The attack requires the victim to run a vulnerable version AND visit a malicious page simultaneously, which limits the window. However, users who had already been targeted (if any) would have no indication — the attack generates no logs and triggers no user prompts.
+
+---
+
+## How It Could Have Been Prevented
+
+1. **Apply rate limiting uniformly to all connections, including loopback.** The localhost exemption from rate limiting was the prerequisite for brute-force at scale. Removing this exemption would have capped authentication attempts regardless of source IP, making password-guessing impractical from browser JavaScript. This requires a single code change: remove the loopback-address conditional branch in the rate limiter.
+
+2. **Validate token content, not token presence.** The token-presence check (`auth.token ? true : false`) is a textbook incomplete validation. Checking that a token is non-empty is not authentication. Cryptographically validating token content against the stored credential would have made the dummy-token bypass impossible.
+
+3. **Require explicit user approval for all device pairings regardless of origin.** The auto-approval exception for localhost connections assumed that only trusted code would initiate WebSocket connections from loopback — an assumption the browser's WebSocket API invalidates. Removing the localhost exception and requiring explicit user confirmation for all new device registrations would have broken the attack chain at the final step.
+
+4. **Enforce WebSocket Origin validation.** The browser sends an `Origin` header with WebSocket connection requests. Validating this header against expected origins (e.g., the OpenClaw Control UI's origin) would block connections from arbitrary websites. This is a standard, well-documented defense against cross-site WebSocket hijacking and would have stopped the attack at the entry point.
+
+5. **Threat model localhost services as browser-accessible.** The broader architectural lesson: any service that listens on a local port and is not protected by WebSocket Origin validation should be designed as if it is accessible from any webpage the user visits, because it is. Security controls (authentication, rate limiting, CSRF protection) must apply uniformly regardless of the source IP address.
+
+---
+
+## How It Was / Could Be Fixed
+
+**Actual remediation taken:**
+
+OpenClaw released version 2026.2.25 within 24 hours of Oasis Security's responsible disclosure. The patch addressed all three gaps:
+
+- **Rate limiting:** Added rate limiting to authentication attempts on all connections including loopback/localhost — removing the blanket loopback exemption entirely
+- **Device pairing:** Required explicit user approval for all new device registrations, including those from localhost — removing the auto-approval exception
+- **Origin validation:** Enforced origin checks for browser-origin WebSocket clients beyond the Control UI/Webchat
+- **Authentication throttling:** Applied password-auth failure throttling specifically to browser-origin loopback attempts
+
+The partial fix for the device identity check (token validation vs. token presence) was addressed in the earlier version 2026.2.2. The comprehensive patch covering all gaps landed in 2026.2.25.
+
+**Additional recommended fixes:**
+
+- Bind the gateway to 127.0.0.1 only by default, with an explicit user opt-in and security warning for any network-exposed configuration — preventing the 21,639 publicly exposed instances seen with CVE-2026-25253 (AAGF-2026-010) from becoming a vector
+- Implement a CSRF token for the WebSocket handshake (a shared secret known only to the legitimate client UI), providing defense in depth against future WebSocket hijacking variants
+- Publish guidance for existing users to rotate all API keys and OAuth tokens stored in OpenClaw instances that ran on vulnerable versions, even in the absence of confirmed exploitation
+- Establish a formal bug bounty program — ClawJacked was the fourth major vulnerability in February 2026 alone; structured incentives for responsible disclosure would have accelerated discovery and remediation
+
+---
+
+## Solutions Analysis
+
+### 1. Uniform Rate Limiting Without Trust Exemptions
+
+- **Type:** Architectural Control / Defense in Depth
+- **Plausibility:** 5/5 — Removing the localhost rate limiter exemption is a trivial code change with no meaningful trade-off. Rate limiting should never have been conditional on source IP. This is well-established security practice.
+- **Practicality:** 5/5 — Single code change, no user-visible impact, no architectural redesign. This is the simplest and most complete mitigation for the brute-force vector (CVE-2026-32025).
+- **How it applies:** Without the loopback exemption, browser JavaScript attempting password brute-force would be throttled to uselessness within seconds — even at one guess per second, a strong password would take years to crack.
+- **Limitations:** Addresses only the brute-force authentication path. The dummy-token device identity bypass (CVE-2026-28472) is a separate flaw requiring a separate fix. Both must be patched for complete remediation.
+
+### 2. Cryptographic Token Validation
+
+- **Type:** Authentication Hardening
+- **Plausibility:** 5/5 — Token presence vs. token validity is a textbook incomplete authentication check. Verifying that a supplied token matches a cryptographically generated expected value is standard authentication practice. This should have been the original implementation.
+- **Practicality:** 5/5 — Requires replacing a boolean presence check with a cryptographic comparison. Minimal code change, no user-facing impact, complete elimination of the dummy-token bypass.
+- **How it applies:** Directly closes CVE-2026-28472. An attacker supplying `"dummy"` would receive an authentication failure rather than operator access.
+- **Limitations:** Does not address the brute-force path (CVE-2026-32025); both fixes are necessary. Does not protect against password brute-force if the password itself is weak.
+
+### 3. WebSocket Origin Validation
+
+- **Type:** Input Validation / CSRF Defense
+- **Plausibility:** 5/5 — Browser WebSocket requests include an `Origin` header that identifies the initiating webpage. Validating this header against a whitelist of expected origins (e.g., the local Control UI) is a standard, proven defense against cross-site WebSocket hijacking. This is the same class of protection that CSRF tokens provide for HTTP.
+- **Practicality:** 4/5 — Requires defining and maintaining a whitelist of valid origins. Slightly more complex than the other fixes due to the need to handle the legitimate Control UI origin correctly, but well within standard practice.
+- **How it applies:** Would have stopped the ClawJacked attack at the entry point: a malicious webpage's WebSocket connection would be rejected before any authentication attempt, regardless of rate limits or token handling.
+- **Limitations:** Must be carefully implemented to not block legitimate uses (e.g., the OpenClaw Control UI itself, which also uses WebSocket). Requires thoughtful whitelist management as the platform evolves.
+
+### 4. Explicit Device Pairing Approval Without Trust Exemptions
+
+- **Type:** Human-in-the-Loop Control / Permission Scoping
+- **Plausibility:** 5/5 — Requiring explicit user confirmation for device pairings is the correct security default. The auto-approval exception for localhost was a convenience shortcut that created an exploitable trust assumption.
+- **Practicality:** 4/5 — The user experience impact is minimal: legitimate device pairings are relatively rare events, and a one-time confirmation prompt is standard for security-sensitive operations. The implementation removes a conditional branch rather than adding new infrastructure.
+- **How it applies:** Even if an attacker bypasses authentication, the explicit pairing prompt would surface the attack to the user — making it visible and interruptible rather than completely silent. This is defense-in-depth: the attack would fail at the last step even if earlier steps succeeded.
+- **Limitations:** User prompts can be social-engineered. A sophisticated attacker might time the pairing request to coincide with a moment when the user is expecting a legitimate device registration. Does not substitute for fixing the authentication bypass itself.
+
+### 5. Threat Modeling Localhost Services as Browser-Accessible
+
+- **Type:** Secure Architecture / Design Review
+- **Plausibility:** 4/5 — The root cause of ClawJacked is an unreviewed threat model assumption ("localhost = trusted"). Requiring a security review of any service that listens on a local port — specifically asking "can browser JavaScript reach this?" — would catch this class of vulnerability at design time.
+- **Practicality:** 3/5 — Requires establishing a security review practice, which demands organizational investment and discipline that may not be present in rapidly scaling open-source projects. However, a checklist item in the architecture review process ("does this service listen on a local port? if so, assume any browser can reach it") is low-cost to implement as a process control.
+- **How it applies:** Would have surfaced the browser WebSocket permissiveness concern during design, prompting origin validation and uniform rate limiting from the start. The localhost rate limiter exemption would not have survived a review that explicitly considered web-to-localhost threat vectors.
+- **Limitations:** Retrospective; does not help users already running vulnerable versions. Requires sustained organizational commitment to security review. Does not scale automatically to all future design decisions without embedded training or tooling.
+
+---
+
+## Related Incidents
+
+| Incident | Connection |
+|----------|------------|
+| [[AAGF-2026-010]] | OpenClaw Security Crisis — ClawJacked (CVE-2026-28472) is a distinct component of the same platform's broader 2026 security crisis. AAGF-2026-010 covers the compound crisis including CVE-2026-25253 (ClawBleed), ClawHavoc marketplace poisoning, and the Moltbook breach. Key distinction: ClawBleed (CVE-2026-25253) exploits the agent initiating an outbound connection to an attacker-controlled server; ClawJacked (CVE-2026-28472) exploits the attacker connecting inbound to the agent's local gateway via browser WebSocket permissiveness. Different mechanisms, same root failure: a platform trust model not designed for browser-accessible local services. |
+
+---
+
+## Strategic Council Review
+
+### Challenger Findings
+
+1. **Severity rating "High" conflates CVE severity with incident severity for a zero-exploitation near-miss.** The draft assigns `severity: "High"` and `business_criticality: "high"` to an incident with zero confirmed real-world exploitation, an EPSS of 0.04%, and a patch delivered in under 24 hours. The high severity is defensible for the *vulnerability class*, but incident severity should reflect what actually occurred. Throughout the report, CVSS scores and theoretical blast radius do the work of documented harm — which is absent. The draft would benefit from explicitly distinguishing between vulnerability severity (9.2 CRITICAL by CNA v4.0) and incident severity (near-miss: high potential, zero realized harm).
+
+2. **The compound attack chain ambiguously presents two independent bypass paths without clarifying which control layers each affects.** The draft describes CVE-2026-28472 (dummy token → device identity bypass) and CVE-2026-32025 (rate-limit exemption → brute-force) as two independently sufficient paths to operator access. However, the NVD description for CVE-2026-28472 specifies that the token bypass allows attackers to "skip device identity checks" — which may be a distinct control layer from authentication itself. If the token bypass affects device registration (not the authentication gate), then the attack chain may require specific sequencing rather than two independent routes. The draft is ambiguous on this and the distinction matters for understanding which CVE is actually load-bearing and for correctly teaching the architectural lesson.
+
+3. **"Hundreds of guesses per second" is foregrounded as a headline stat despite being explicitly flagged in researcher_notes as unverified.** The `headline_stat` field and executive summary both lead with this figure. The researcher_notes correctly note it is "Oasis-only and unverified by third parties." This self-contradiction undermines the report's stated commitment to source-attribution discipline: the most prominent public-facing figure is the least verified one.
+
+4. **The 5 Whys root cause chain stops at the proximate design decision rather than the systemic failure.** The root cause conclusion — "localhost trust model was not reassessed for browser-accessible AI agent gateways" — correctly identifies the mechanism but stops one level short. Why was the assumption never reassessed? The report implies rapid scaling as an excuse, but the deeper cause is that the AI agent platform space had no established security baseline at the time of OpenClaw's design. This is evidenced by the fact that all four simultaneous February 2026 OpenClaw CVEs share the same underlying class of failure. The solutions are all implementation-level fixes; the ecosystem-level root cause that generated all four CVEs simultaneously is unaddressed.
+
+5. **The `scale: "widespread"` YAML classification overstates the immediately vulnerable population for this specific CVE.** The draft uses 135,000+ GitHub stars as a proxy for affected users — acknowledged as a proxy but not critically examined. For a localhost-specific attack requiring both local OpenClaw deployment AND concurrent active browser session, the relevant population is a fraction of the total star count. GitHub stars include never-installers, cloud-hosted deployments (not vulnerable to localhost attacks), and inactive users. The Censys count of 21,639 for CVE-2026-25253 covers *publicly exposed* instances — not locally-only-running instances — and cannot be applied here. The `scale: "widespread"` label should specify what it means in this context.
+
+6. **The CVSS score discrepancy is noted but not resolved.** A 1.7-point gap between the NIST score (9.8 CRITICAL) and the CNA score (8.1 HIGH) represents substantive disagreement about attack complexity or prerequisites. The draft says NIST is "likely inflated" but provides no analysis. CVSS score discrepancies at this magnitude typically reflect disputes over whether user interaction is required or whether attack complexity is Low vs. High — both of which are directly relevant to the attack chain. The draft should either resolve the discrepancy or clearly state which score it treats as authoritative and why.
+
+### Steelman Defense
+
+1. **Near-miss with government CERT advisories is legitimately high-severity incident documentation.** The challenger argues severity is inflated for zero confirmed exploitation. AgentFail's near-miss classification exists precisely for this case: zero realized harm but disproportionate potential. The Belgian CCB, CNCERT, CrowdStrike, Cisco, and Microsoft independently issuing advisories — well after the patch — validates that the institutional security community assessed this as a genuine systemic risk, not an obscure research finding. The 0.04% EPSS score was calculated post-patch, making it a measure of residual risk after remediation, not a retroactive verdict on pre-patch severity. The high-severity framing is the consensus of major institutional actors, not researcher speculation.
+
+2. **The compound attack chain description is structurally correct even if the control layers need clearer delineation.** The challenger is right that CVE-2026-28472 and CVE-2026-32025 may affect different control layers (device registration vs. authentication gate). But the OpenClaw post-mortem confirms that device registration with operator-level trust is a *higher* privilege tier in the OpenClaw architecture — meaning the dummy-token bypass (if it registers a trusted device) may actually be the more dangerous of the two paths. The draft's conclusion that both routes yield operator-level access is structurally sound; the ambiguity is about mechanism, not outcome. Clarifying the control layer distinction would strengthen rather than undermine the analysis.
+
+3. **"Hundreds of guesses per second" is mechanistically derivable from documented facts and does not require trusting Oasis Security's measurement.** The rate-limit exemption is confirmed by CVE-2026-32025 and the VulnCheck advisory. Loopback WebSocket round-trip latency is physically constrained to 1-10ms (no network traversal, no external routing). Therefore 100-1000 guesses/second is derivable from physics without relying on Oasis Security's measurement. The sourcing caveat in researcher_notes is appropriate documentation discipline, but it should not be read as casting doubt on the figure's plausibility — which is independently supportable.
+
+4. **The 5 Whys stopping point is appropriate for operator-actionable intelligence.** The challenger argues the root cause analysis should identify the ecosystem-level failure ("AI agent platform space had no security baseline"). This is true but is not actionable for an individual operator reading this report. The identified root cause ("localhost trust model not reassessed for browser-accessible gateways") is both accurate and actionable — operators can audit their own local services for this exact class of assumption. An ecosystem-level observation is valuable but belongs in a strategic observation or Key Takeaways section (which the draft already begins to gesture at in Takeaway 1), not in the 5 Whys operator-action chain.
+
+5. **The solutions analysis is specifically scoped to feasibility and maps solutions to CVEs with interdependencies noted.** All four implementation solutions have individually justified plausibility/practicality scores, each noting what it fixes and what it does not. The solutions analysis explicitly calls out that Solutions 1 and 2 address different CVEs and that both are required for complete remediation. The whitelist management caveat in Solution 3 is honest about the non-trivial implementation work. This is more rigorous than most CVE remediation writeups, and the solutions are grounded in actual patch behavior (the draft cross-references what version 2026.2.25 actually implemented).
+
+### Synthesis
+
+The draft is analytically sound and well-evidenced for a near-miss incident where institutional actors across government and enterprise security independently validated the severity. The core tension — high severity classification for zero documented harm — is deliberate and appropriate to AgentFail's stated purpose of cataloguing near-misses with amplified potential. The CERT advisories and independent press corroboration establish that this was recognized as a systemic risk well beyond a single researcher's assessment.
+
+Two areas warrant targeted revision rather than structural changes. First, the attack chain narrative should specify that CVE-2026-28472 (dummy token) affects the *device registration* control layer while CVE-2026-32025 (rate-limit exemption) affects the *authentication* layer — both converging on operator-level access via different routes, but operating on distinct mechanisms. This distinction is the precise architectural lesson for platform builders and should not be blurred. Second, the `scale: "widespread"` YAML classification and the 135,000 GitHub stars proxy deserve an explicit note that the immediately-at-risk population for a localhost-specific attack is locally-running users with concurrent active browser sessions — which is a fraction of the total user base, though still potentially large in absolute terms.
+
+The "hundreds of guesses per second" credibility concern is resolved by the Steelman: the figure is derivable from loopback physics and the documented absence of rate limiting, making it a documentation gap rather than an evidentiary problem. The CVSS score discrepancy (8.1 vs. 9.8) should be addressed — the CNA score of 8.1/9.2 (v3.1/v4.0) is more credible because the CNA typically has access to the detailed exploit conditions that NIST scores from the advisory text alone. The ecosystem-level root cause observation is valid but is appropriately relegated to Key Takeaways rather than the 5 Whys chain.
+
+**Confidence level:** Medium-High — The attack mechanism is independently corroborated by 10+ sources. The near-miss status (no confirmed exploitation as of March 2, 2026) means all impact is theoretical-maximum reasoning, which is correct for AgentFail's near-miss classification but introduces inherent uncertainty about realized harm. The CVSS scoring discrepancy and the CVE control-layer ambiguity are the primary sources of analytical uncertainty.
+
+**Unresolved uncertainties:**
+- **CVE-2026-28472 vs. CVE-2026-32025 as independent or layered paths** — The NVD description for CVE-2026-28472 ("skip device identity checks when auth.token is present but not validated") suggests the token bypass may affect device registration rather than the authentication gate itself. This matters for understanding the minimum attack complexity: does an attacker need both CVEs chained, or does each independently yield operator access? Resolving this requires reading the actual patch diff in the OpenClaw 2026.2.2 and 2026.2.25 releases, or the Oasis Security technical appendix if published.
+- **Actual vulnerable population size** — The locally-running-with-active-browser subset of 135,000+ GitHub stars is unknown. No telemetry data from OpenClaw has been publicly released for this CVE specifically. An honest estimate would require either OpenClaw deployment analytics or a Censys/Shodan scan calibrated to the localhost-only (not publicly exposed) deployment pattern — which Censys's existing 21,639 count does not cover.
+- **Exploitation status after 2026-03-02** — The "no confirmed exploitation" claim is anchored to ThreatIntelReport's publication date of March 2, 2026. No source provides a later confirmation window. The EPSS of 0.04% post-patch suggests low residual risk, but the question of whether any in-the-wild exploitation occurred in the window between vulnerability existence and patching remains technically open.
+
+---
+
+## Key Takeaways
+
+1. **"Local" is not a security boundary when AI agents run browser-accessible WebSocket gateways.** Any website a user visits has a network path to any service listening on localhost. AI agent frameworks that run local gateways must implement full authentication, Origin validation, and uniform rate limiting on all connections — the assumption that loopback connections are trusted predates the era of browser-to-localhost attacks via WebSocket. ClawJacked is a textbook case of a design axiom ("localhost = trusted") failing catastrophically when applied to a new threat environment.
+
+2. **Rate limiters must apply uniformly — no trust exemptions by source IP.** The ClawJacked brute-force path (CVE-2026-32025) worked entirely because the rate limiter explicitly exempted localhost. This is a specific, single-line architectural decision that multiplied the attack surface by orders of magnitude. Any service with a rate limiter should audit for trust-by-source-IP exemptions and remove them.
+
+3. **Check authentication validity, not authentication presence.** The device identity bypass (CVE-2026-28472) came from a boolean presence check (`auth.token ? true : false`) rather than a cryptographic validation. This class of error — treating field presence as field validity — is a recurring authentication failure pattern. Any check of the form "does X exist?" that substitutes for "is X valid?" should be treated as an incomplete authentication control.
+
+4. **AI agents amplify the blast radius of credential-level attacks.** A hijacked OpenClaw instance is not merely a credential theft — it is an autonomous actor operating with the victim's full permission set. The agent's design (persistent credentials, long-lived OAuth sessions, shell execution, multi-service integration) means a single gateway authentication bypass cascades into access to email, Slack, calendars, cloud storage, and downstream organizational infrastructure. This amplification effect is intrinsic to how AI agents are designed, and it demands that gateway-level security controls be commensurate with the trust placed in the agent.
+
+5. **Responsible disclosure + rapid patch response is the correct incident trajectory for a near-miss.** Oasis Security disclosed responsibly; OpenClaw patched within 24 hours; no exploitation was confirmed. This is what the disclosure ecosystem is supposed to produce. The lesson for AI agent platform operators is to invest in relationships with security researchers (bug bounty programs, clear security contact channels) so that vulnerabilities like ClawJacked are found by defenders before attackers.
+
+---
+
+## References
+
+| Source | URL | Date | Credibility |
+|--------|-----|------|-------------|
+| Oasis Security Blog | https://www.oasis.security/blog/openclaw-vulnerability | 2026-02-26 | High — original discoverer; primary technical source; disclosing researcher bias; "hundreds of guesses per second" claim is Oasis-only and unverified by third parties |
+| NVD/NIST (CVE-2026-28472) | https://nvd.nist.gov/vuln/detail/CVE-2026-28472 | 2026-03-05 | Authoritative — government vulnerability database; CVSS scoring and CWE classification |
+| NVD/NIST (CVE-2026-32025) | https://nvd.nist.gov/vuln/detail/CVE-2026-32025 | 2026-03-19 | Authoritative — rate-limit bypass variant; CWE-307; credited to luz-oasis (Oasis Security) |
+| The Hacker News | https://thehackernews.com/2026/02/clawjacked-flaw-lets-malicious-sites.html | 2026-03-01 | High — independent corroboration of mechanism and patch; no CVSS cited in article text |
+| Security Affairs | https://securityaffairs.com/188749/hacking/clawjacked-flaw-exposed-openclaw-users-to-data-theft.html | 2026-03-01 | High — independent corroboration; confirms PoC video; no quantitative victim counts |
+| BleepingComputer | https://www.bleepingcomputer.com/news/security/clawjacked-attack-let-malicious-websites-hijack-openclaw-to-steal-data/ | 2026-03-02 | High — independent corroboration; confirms agent credential access capabilities |
+| ThreatIntelReport | https://www.threatintelreport.com/2026/03/02/articles/openclaw-clawjacked-chain-malicious-websites-can-hijack-local-ai-agents-via-localhost-websockets/ | 2026-03-02 | High — most complete step-by-step mechanism writeup; confirms no in-the-wild exploitation as of publication date |
+| OpenClaw Official Blog (post-mortem) | https://openclawai.io/blog/clawjacked-vulnerability-what-happened/ | 2026-02-26 | High — vendor self-disclosure; confirms patch timeline and attack chain; vendor characterizes this as the fourth major vulnerability in February 2026 |
+| VulnCheck Advisory (CVE-2026-32025) | https://www.vulncheck.com/advisories/openclaw-password-brute-force-via-browser-origin-websocket-authentication-bypass | 2026-03 | High — clarifies CVE-2026-32025 as the brute-force rate-limit bypass variant; CWE-307 classification |
+| CVEReports.com | https://cvereports.com/reports/CVE-2026-28472 | 2026-03 | Medium — CVE aggregator; provides root cause code analysis including the `hasTokenAuth` / `canSkipDevice` code path; EPSS probability 0.04% |
+| Belgian CCB Government Advisory | https://ccb.belgium.be/advisories/warning-critical-vulnerability-openclaw-allows-1-click-remote-code-execution-when | 2026-03 | Authoritative — government CERT advisory; confirms official security response |
+| Blink Blog (CVE Timeline) | https://blink.new/blog/openclaw-2026-cve-complete-timeline-security-history | 2026-04 | Medium-High — most complete OpenClaw CVE chronology; confirms CVE-2026-25253 as the only OpenClaw CVE with confirmed in-the-wild exploitation |
+| GitHub CVE Tracker | https://github.com/jgamblin/OpenClawCVEs/ | 2026-04 | Medium — community-maintained; useful for cross-referencing all OpenClaw CVEs |

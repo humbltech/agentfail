@@ -1,194 +1,245 @@
-# AAGF-2026-027 Research Document
-## AI Procurement Agent Manipulated into Approving $5M Fraudulent Purchase Orders
+# AAGF-2026-027 Research: Anthropic Filesystem MCP Path Traversal (CVE-2025-53109/53110)
 
-**Research Date:** 2026-05-05
-**Researcher:** Deep Research Agent
-**Status:** TRIAGE COMPLETE — DO NOT PUBLISH (see Triage Assessment)
+**Subject:** Two path traversal vulnerabilities in Anthropic's mcp-server-filesystem reference implementation allow agents to break out of configured allowed-directory scope
+**CVEs:** CVE-2025-53109, CVE-2025-53110
+**Disclosing researchers:** Elad Beber (Cymulate); wunderwuzzi/@wunderwuzzi23 (Embrace The Red, independent)
+**Suggested ID:** AAGF-2026-027
+**Date researched:** 2026-05-05
+**Researcher:** Claude (automated Stage 1)
 
----
-
-## Overview
-
-**Claimed Incident:** A manufacturing company's AI procurement agent was manipulated over three weeks through attacker-supplied "clarifications" about purchase authorization limits. The agent was deceived into believing it could approve purchases under $500,000 without human review. The attacker then placed $5 million in false purchase orders across 10 transactions to attacker-controlled shell companies.
-
-**Primary Reference:** https://stellarcyber.ai/learn/agentic-ai-securiry-threats/ ("Top Agentic AI Security Threats in Late 2026")
-
-**Estimated Date:** Q2–Q3 2026 (per original candidate entry)
-
-**Category:** Financial Loss / Social Engineering / Prompt Injection
-
----
-
-## Triage Assessment
-
-### Verdict: ILLUSTRATIVE SCENARIO — NOT A VERIFIED REAL INCIDENT
-
-**Confidence: HIGH**
-
-This incident is almost certainly a vendor-authored illustrative example used to explain prompt injection and social engineering threats against agentic AI systems, not a documented real-world event.
-
-### Evidence Supporting This Assessment
-
-1. **Stellar Cyber article is inaccessible for full text verification.** Multiple fetch attempts to https://stellarcyber.ai/learn/agentic-ai-securiry-threats/ returned only JavaScript/CSS/schema metadata — the article body could not be retrieved. The page schema confirms publication date of 2025-12-11, modified 2026-03-17. The full article text describing the incident is hidden behind client-side rendering.
-
-2. **Zero independent corroboration.** Four targeted web searches across multiple query formulations found no news articles, legal filings, law enforcement disclosures, industry reports, or vendor advisories describing this specific incident independently. Every result that quotes the $5M/10-transaction/$500K-limit narrative traces back to the Stellar Cyber blog post or appears to be AI-generated search summaries synthesizing from it.
-
-3. **Pattern matches vendor illustrative scenario conventions.** The narrative is suspiciously round-numbered and instructionally tidy: exactly $5M, exactly 10 transactions, exactly $500K per transaction, exactly 3 weeks, a single clearly-explained social engineering mechanism. Real incidents rarely package this cleanly.
-
-4. **No verified incident registries contain it.** The Oso "AI Agents Gone Rogue" registry (https://www.osohq.com/developers/ai-agents-gone-rogue), which tracks publicly documented AI agent failures, does not list this incident. The CSA report on AI agent incidents (https://cloudsecurityalliance.org/artifacts/autonomous-but-not-controlled-ai-agent-incidents-now-common-in-enterprises) makes no reference to it.
-
-5. **Parallel scenarios exist in the same period.** A separate, distinct AI procurement fraud scenario (mid-market manufacturer, Q2–Q3 2026, $3.2M loss via supply chain attack on vendor-validation agent) appears in some search results alongside the $5M scenario. Both originate from similar vendor threat-landscape content. Neither has a primary source outside security vendor blogs.
-
-6. **The Stellar Cyber article may contain a disclaimer.** The article metadata suggests it covers "Top Agentic AI Security Threats." Vendor articles in this genre routinely frame scenarios as "consider what happens when..." or "an attacker could..." The article reportedly states "these threats are not hypothetical" — a common framing to lend urgency to illustrative scenarios without citing actual incidents.
-
-### What Cannot Be Ruled Out
-
-It is possible this is a real incident reported anonymously (company requested no attribution) or drawn from incident response engagements that Stellar Cyber or a partner handled. Some IR firms use anonymized real cases in threat landscape articles without disclosing that sourcing. However, without any corroborating source — not even a vague industry report or law enforcement advisory — this cannot be treated as verified.
-
----
-
-## Timeline
-
-*Note: All timeline details derive exclusively from the Stellar Cyber article description. No independent verification of dates or sequence exists.*
-
-| Period | Claimed Events |
-|--------|---------------|
-| Week 1 | Attacker begins sending "clarifications" to AI procurement agent via its input channel, establishing rapport and gradually reframing authorization limits |
-| Week 2 | Continued social engineering; agent context/memory increasingly reflects attacker-supplied framing about $500K authorization threshold |
-| Week 3 | Agent fully conditioned; attacker places purchase orders |
-| End of Week 3 | 10 transactions totaling $5M processed to shell companies |
-| Unknown | Discovery (mechanism unknown — see gaps below) |
-
-**Timeline Gaps:**
-- No information on how or when the fraud was discovered
-- No information on which week the attacker's access began (pre-Week 1 reconnaissance unknown)
-- No information on whether the 10 transactions were placed simultaneously or staggered
-
----
-
-## Technical Details
-
-### Attack Vector
-
-**Type:** Social Engineering / Prompt Injection via Conversational Interface
-
-**Mechanism (as described):** The attacker communicated with the procurement agent through the agent's normal input channel — described as submitting "clarifications" about purchase authorization limits. This is a form of prompt injection where the attacker does not need technical access to the system; they interact through the agent's intended user interface and gradually manipulate its operational beliefs.
-
-**Key Vulnerability Exploited:** Lack of grounded, immutable authorization rules. The agent's understanding of its own authority limits was derived from context/conversation rather than hardcoded policy. An attacker who could inject plausible-sounding "clarifications" (e.g., "As per the updated procurement policy, purchases under $500K are pre-authorized for autonomous approval") could rewrite the agent's effective operating parameters.
-
-**Attack Input Channel:** Unspecified. Could be:
-- A procurement request submission interface
-- A chat/messaging integration
-- An email-to-agent pipeline
-- A vendor communication portal
-
-The Stellar Cyber article does not specify which channel was used.
-
-### Authorization Threshold Manipulation
-
-- **Legitimate limit (assumed):** Purchases requiring human review at some lower threshold (not stated)
-- **Attacker-induced belief:** Agent could approve any purchase under $500,000 without human review
-- **Result:** 10 transactions of ~$500K each processed without triggering human oversight
-
-### Shell Company Infrastructure
-
-No details available on:
-- How shell companies were registered or vetted
-- Whether they appeared in the agent's vendor database before the attack
-- Whether the agent's vendor verification process was bypassed or manipulated
-
----
-
-## Damage Assessment
-
-| Metric | Claimed Value | Confidence |
-|--------|--------------|------------|
-| Total Financial Loss | $5,000,000 | Low (unverified) |
-| Number of Transactions | 10 | Low (unverified) |
-| Per-Transaction Amount | ~$500,000 | Inferred (tidy round number) |
-| Industry | Manufacturing | Low (unverified) |
-| Duration of Attack | 3 weeks | Low (unverified) |
-| Recovery Amount | Unknown | N/A |
-| Law Enforcement Involvement | Unknown | N/A |
-
----
-
-## Vendor / Platform Information
-
-**AI Procurement Platform:** Not identified in any source.
-
-**Gaps:**
-- No vendor name disclosed
-- No AI platform or model disclosed
-- No ERP or procurement software named
-- No managed service provider identified
-
----
-
-## Discovery & Response
-
-**Discovery Method:** Unknown. No information in any accessible source.
-
-**Response Actions:** Unknown.
-
-**Law Enforcement:** Unknown.
-
-**Money Recovery:** Unknown.
-
-**Remediation:** Unknown.
+> **NOTE:** The file at this path previously contained a different incident (AI Procurement Agent/$5M fraud — illustrative scenario). That content has been replaced. If that prior incident needs a home, it should be assigned a new ID.
 
 ---
 
 ## Source Inventory
 
-| Source | Type | Accessible | Contains $5M Incident | Verdict |
-|--------|------|------------|----------------------|---------|
-| https://stellarcyber.ai/learn/agentic-ai-securiry-threats/ | Security vendor blog | Partially (JS-rendered, body not retrieved) | Likely yes (per search summaries) | Primary claimed source — unverifiable |
-| https://aisecurityinfo.com/ai-cybersecurity-fundamentals/ai-agent-security-risks-2026-the-enterprise-guide-to-autonomous-threat-protection/ | Security blog | No (JS-rendered) | Likely yes (per search summaries) | Secondary — appears to echo Stellar Cyber |
-| https://securityboulevard.com/2026/03/the-rise-of-agentic-fraud-how-ai-agents-are-reshaping-security/ | Security blog | No (403) | Unknown | Inaccessible |
-| https://securityboulevard.com/2026/03/the-financial-cost-of-agentic-ai-fraud/ | Security blog | No (403) | Unknown | Inaccessible |
-| https://www.arkoselabs.com/blog/the-financial-cost-of-agentic-ai-fraud/ | Security vendor blog | Yes | No | Does not contain this incident |
-| https://cloudsecurityalliance.org/artifacts/autonomous-but-not-controlled-ai-agent-incidents-now-common-in-enterprises | Industry report (CSA) | Yes | No | Does not contain this incident |
-| https://www.osohq.com/developers/ai-agents-gone-rogue | Incident registry | Yes | No | Does not contain this incident |
-| Web search (4 targeted queries) | Aggregated search | N/A | Only echoes from Stellar Cyber source | No independent corroboration found |
+| Source | URL | Type | Credibility | Notes |
+|--------|-----|------|-------------|-------|
+| PipeLab — State of MCP Security 2026 | https://pipelab.org/blog/state-of-mcp-security-2026/ | MCP security research aggregator | High | Names both CVEs; "widely cited reference-impl failure"; no CVSS scores listed |
+| NVD CVE-2025-53109 | https://nvd.nist.gov/vuln/detail/CVE-2025-53109 | Government CVE record | Authoritative | Published 2025-07-02; CWE-59; CVSS 4.0: 7.3 (GitHub CNA); NVD not yet enriched |
+| NVD CVE-2025-53110 | https://nvd.nist.gov/vuln/detail/CVE-2025-53110 | Government CVE record | Authoritative | Published 2025-07-02; CWE-22; CVSS 4.0: 7.3 (GitHub CNA); NVD not yet enriched |
+| GitHub Advisory GHSA-q66q-fx2p-7w4m (CVE-2025-53109) | https://github.com/modelcontextprotocol/servers/security/advisories/GHSA-q66q-fx2p-7w4m | Official security advisory | Authoritative | Published 2025-07-01; CVSS 4.0: 8.4; credits Elad Beber (Cymulate) |
+| GitHub Advisory GHSA-hc55-p739-j48w (CVE-2025-53110) | https://github.com/modelcontextprotocol/servers/security/advisories/GHSA-hc55-p739-j48w | Official security advisory | Authoritative | Published 2025-07-01; CVSS 4.0: 7.3; credits Elad Beber (Cymulate) |
+| Cymulate blog — "EscapeRoute" | https://cymulate.com/blog/cve-2025-53109-53110-escaperoute-anthropic/ | Disclosing researcher's blog | High (primary source bias) | Primary technical writeup; published 2025-07-02; author: Elad Beber; page body partially JS-rendered |
+| Embrace The Red — wunderwuzzi | https://embracethered.com/blog/posts/2025/anthropic-filesystem-mcp-server-bypass/ | Independent security researcher | High | Published 2025-08-03; independent rediscovery; part of "Month of AI Bugs 2025"; reported to Anthropic June 1, 2025 |
+| Hackaday — This Week In Security 2025-07-07 | https://hackaday.com/2025/07/07/this-week-in-security-anthropic-coinbase-and-oops-hunting/ | Independent tech journalism | High | Third-party confirmation; good plain-language technical summary of both flaws |
+| CybersecurityNews.com | https://cybersecuritynews.com/anthropics-mcp-server-vulnerability/ | Security journalism | Medium | Confirms affected platforms include Claude Desktop and Cursor |
+| GBHackers | https://gbhackers.com/anthropic-mcp-server-flaw/ | Security journalism | Medium | Confirms CVSS 8.4 for CVE-2025-53109 |
+| Authzed — Timeline of MCP Breaches | https://authzed.com/blog/timeline-mcp-breaches | Security analysis blog | High | Places incident in August 2025 timeline; credits Cymulate; root cause framing |
+| Endor Labs — Classic Vulns in AI Infra | https://www.endorlabs.com/learn/classic-vulnerabilities-meet-ai-infrastructure-why-mcp-needs-appsec | Security research | High | CWE framing; ecosystem context |
+| GitHub Commit d00c60d (symlink fix) | https://github.com/modelcontextprotocol/servers/commit/d00c60df9d74dba8a3bb13113f8904407cda594f | Source code | Authoritative | Authored by Jenn Newton; committed 2025-06-30 20:04 UTC; "Address symlink and path prefix issues" |
+| GitHub Commit cc99bda (merge) | https://github.com/modelcontextprotocol/servers/commit/cc99bdabdcad93a58877c5f3ab20e21d4394423d | Source code | Authoritative | Merged by Paul Carleton (@pcarleton); 2025-07-01; branch: security/fix-path-prefix-and-symlink |
 
-**No primary source (news article, legal filing, law enforcement notice, vendor disclosure, or industry report with citation) has been found beyond the Stellar Cyber blog post.**
+**Source quality summary:** Strong. Two authoritative GitHub Security Advisories from the affected repository, confirmed NVD entries, named patch commits with authorship, the disclosing researcher's blog post, and multiple independent journalism sources. Technical claims are consistent across all sources. Core gaps: Cymulate blog body was partially JS-rendered and could not be fully fetched; full PoC steps reconstructed from secondary sources.
 
 ---
 
-## Researcher Notes
+## Source Bias Flag
 
-### Confidence Level Summary
+**Primary source bias:** The Cymulate blog ("EscapeRoute") is authored by the disclosing researcher (Elad Beber) and published by his employer. This is the richest named technical source but serves Cymulate's marketing interests. All technical claims from it are corroborated by independent sources (Hackaday, wunderwuzzi).
 
-| Claim | Confidence |
-|-------|------------|
-| Incident is real and documented | Very Low |
-| Incident is an illustrative/hypothetical scenario | High |
-| Incident is a real anonymized case from IR engagement | Possible but unverifiable |
-| $5M figure is accurate | Very Low |
-| Manufacturing industry is accurate | Low |
-| 3-week timeline is accurate | Very Low |
-| 10 transactions / $500K each is accurate | Very Low |
-| Social engineering via "clarifications" is the attack vector | Unverifiable |
+**Quantitative claims to flag:**
+- No source provides independently corroborated deployment counts or affected-user counts for the filesystem MCP server. npm download figures were not retrieved.
+- "RCE" headlines used by SecurityOnline.info and CybersecurityNews.com are technically achievable (per Cymulate PoC) but require the server to run with elevated OS-level privileges. This is realistic in some enterprise deployments but not universal. The RCE framing overstates the base-case risk for standard user-privilege deployments.
+- CVSS score discrepancy: The GitHub advisory for CVE-2025-53109 lists 8.4 HIGH; the NVD record lists 7.3 HIGH. Both are from GitHub, Inc. as CNA, using different CVSS 4.0 vector calculations. The advisory score (8.4, AV:L/AC:L/AT:N vector) should be treated as more authoritative than the NVD-mirrored score (7.3, AV:N/AC:L/AT:P vector). Both exceed the "High" threshold.
 
-### Key Sourcing Gaps
+---
 
-1. The Stellar Cyber article body is not retrievable (client-side rendering blocks WebFetch). The full framing — whether presented as "real incident" or "illustrative scenario" — cannot be confirmed without the article text.
+## Key Facts
 
-2. No named company, no approximate geography, no legal proceedings, no law enforcement advisory, no insurance filing, no industry disclosure.
+| Field | Value |
+|-------|-------|
+| CVE-2025-53109 | Symlink path traversal — CWE-59 (Improper Link Resolution Before File Access) |
+| CVE-2025-53110 | Prefix-match path traversal — CWE-22 (Improper Limitation of Pathname to Restricted Directory) |
+| CVSS 4.0 (CVE-2025-53109) | 8.4 HIGH (GitHub advisory vector); 7.3 HIGH (NVD record) |
+| CVSS 4.0 (CVE-2025-53110) | 7.3 HIGH |
+| Affected package | `@modelcontextprotocol/server-filesystem` (npm) |
+| Affected versions | < 0.6.3 (semver) or < 2025.3.28 (date-versioned) |
+| Patched versions | 0.6.3 and 2025.7.01 |
+| date_occurred | Before 2025-03-28 (earliest affected version per advisory); vulnerability class existed in initial implementation — exact introduction commit not identified |
+| date_discovered | June 1, 2025 (wunderwuzzi's confirmed report date to Anthropic; Elad Beber reported independently around the same time — exact Beber date not confirmed) |
+| date_reported (first public disclosure) | July 1, 2025 (GitHub Security Advisories GHSA-q66q-fx2p-7w4m and GHSA-hc55-p739-j48w published) |
+| CVE publication date | July 2, 2025 (NVD) |
+| Cymulate blog published | July 2, 2025 |
+| Patch commit date | June 30–July 1, 2025 |
+| Primary discoverer (per advisory credit) | Elad Beber (Cymulate) |
+| Independent co-discoverer | wunderwuzzi/@wunderwuzzi23 (Embrace The Red) — reported June 1, 2025; published August 3, 2025 |
+| Confirmed exploitation in the wild | No evidence found |
 
-3. Search engine AI summaries appear to be synthesizing and presenting this scenario as "real" based on Stellar Cyber's language ("these threats are not hypothetical"), but that is Stellar Cyber's rhetorical framing about the threat category — not attribution of a specific incident.
+---
 
-4. A second, distinct procurement fraud scenario ($3.2M, Q2–Q3 2026, supply chain attack on vendor-validation agent) appears in parallel — possibly a different example from the same or a different vendor article. The two scenarios should not be conflated.
+## Vulnerability Mechanism
 
-### Recommendation
+### CVE-2025-53109 — Symlink Path Traversal (CWE-59)
 
-**DO NOT PUBLISH** as a verified incident. This scenario should be classified as:
+**What the server does:** The filesystem MCP server accepts a list of `allowedDirectories` at startup. Every tool call (read_file, write_file, list_directory, etc.) passes through a `validatePath()` function in `src/filesystem/index.ts` that checks whether the requested path falls within those allowed directories.
 
-> **Illustrative Example** — A narrative constructed by Stellar Cyber to illustrate prompt injection / social engineering risks against agentic procurement systems. The scenario is plausible and technically coherent, but no primary source exists to verify it as a real event.
+**The flaw:** The original `validatePath()` used Node.js's `path.normalize()` to canonicalize path strings, which correctly defeats classic `../` traversal sequences. However, it did not call `fs.realpath()` to resolve symbolic links before performing the directory-boundary check. The flow was:
 
-If AgentFail wishes to include this as a published entry, it should be clearly labeled as an "Illustrative Scenario" category (if such a category exists or is created), with explicit disclosure that the source is a vendor threat-landscape article and the incident is not independently verified.
+1. Check whether the path string (after normalize) starts with an allowed directory string — PASS
+2. Hand the path to the OS for actual file I/O — OS follows symlink to its target
 
-### Alternative Path
+If a symlink exists inside an allowed directory and points outside the allowed directories, the check passes because the symlink's own path is inside scope, but the I/O lands on the target, which is out of scope.
 
-If a future primary source emerges (news article, court filing, insurance industry report citing this case), this research document can be reopened and the triage overturned. Key distinguishing details to watch for: $5M manufacturing procurement fraud, AI agent, Q2–Q3 2026.
+Additionally, the original code contained error handling that allowed execution to continue after detecting a symlink — meaning the server would throw an error on detection but then proceed anyway. This made the protection non-functional even when triggered.
+
+**Exploitation:** An attacker or malicious prompt instructs the agent to create a symlink inside the allowed directory pointing to a sensitive path (e.g., `/etc/sudoers`, `~/.ssh/id_rsa`, `/etc/passwd`). Subsequent read/write calls through that symlink bypass all access controls. Cymulate demonstrated: if the server runs with elevated OS privileges, the attacker can write to `/etc/sudoers` or OS launch agent directories, achieving privilege escalation to RCE.
+
+### CVE-2025-53110 — Prefix-Match Path Traversal (CWE-22)
+
+**What the server does:** Same `validatePath()` function; tests whether a requested path is within an allowed directory.
+
+**The flaw:** The validation used JavaScript's `.startsWith()` string method against the allowed directory path string — without appending a path separator to the allowed directory before comparison. This means:
+
+- Allowed directory: `/private/tmp/allowed_dir`
+- Allowed check: `requestedPath.startsWith('/private/tmp/allowed_dir')`
+- Bypassed by: `/private/tmp/allowed_dir-other`, `/private/tmp/allowed_dirsibling`, `/private/tmp/allowed_dir/../secret`
+
+Any path whose string representation begins with the allowed directory prefix passes the check, regardless of whether the path is actually inside that directory.
+
+**From wunderwuzzi's analysis (Embrace The Red, 2025-08-03):** "The `validatePath` function in the filesystem MCP server's `index.ts` uses a `.startsWith()` comparison without verifying the path represents an actual directory boundary." A correct implementation requires `requestedPath.startsWith(allowedDir + path.sep)`.
+
+**Exploitation:** An agent or attacker constructs a path to a sibling directory whose name begins with the same string as an allowed directory. The path passes the prefix check and the server reads, writes, or lists files in the unintended sibling location. From Hackaday: "If the allowed path is `/home/user/Public` and there's a second folder, `/home/user/PublicNotAllowed`, the AI has access to both."
+
+**Fix applied:** Patch commit `d00c60d` (authored by Jenn Newton, committed 2025-06-30, merged by Paul Carleton 2025-07-01) introduced a new dedicated module `src/filesystem/path-validation.ts` (992 lines added, 20 removed). The fix adds proper symlink resolution via `fs.realpath()` before boundary checks, and corrects the prefix comparison to use path-separator-aware logic. A comprehensive test suite was added at `src/filesystem/__tests__/path-validation.test.ts`.
+
+---
+
+## Vendor Response
+
+| Date | Event |
+|------|-------|
+| ~Early June 2025 | Elad Beber (Cymulate) reports both vulnerabilities to Anthropic |
+| June 1, 2025 | wunderwuzzi reports the prefix-match flaw (CVE-2025-53110) to Anthropic; Anthropic acknowledges they were already tracking the issue |
+| June 30, 2025 | Patch authored by Jenn Newton (Anthropic), committed to `modelcontextprotocol/servers` repo (commit d00c60d) |
+| July 1, 2025 | Fix merged by Paul Carleton (@pcarleton); GitHub Security Advisories GHSA-q66q-fx2p-7w4m and GHSA-hc55-p739-j48w published; version 2025.7.01 / 0.6.3 released to npm |
+| July 2, 2025 | CVE-2025-53109 and CVE-2025-53110 published on NVD; Cymulate "EscapeRoute" blog post published by Elad Beber |
+| August 3, 2025 | wunderwuzzi publishes independent writeup on Embrace The Red ("Month of AI Bugs 2025") |
+
+**Vendor communication:** Anthropic's acknowledgement to wunderwuzzi on June 1 confirmed they were already aware of the issue before external disclosure — suggesting internal tracking predated both external reports. The fix was shipped within approximately 30 days of the first external report. Both advisories credit Elad Beber as the primary discoverer (Cymulate's disclosure appears to have been treated as the primary report). No public statement or blog post from Anthropic was found beyond the GitHub advisories themselves.
+
+---
+
+## Impact Assessment
+
+**Affected platforms:**
+- Claude Desktop (official Anthropic desktop app; filesystem MCP server is the primary bundled/recommended tool)
+- Cursor (popular AI-assisted IDE; users commonly configure the filesystem server)
+- Any MCP-compatible AI agent host that deploys `@modelcontextprotocol/server-filesystem` from npm
+- The package is a first-party reference implementation — downstream adopters who copied its code into derivative implementations are also vulnerable
+
+**What an attacker could access with a successful exploit:**
+- Any file readable by the OS process running the MCP server (bounded by OS-level process privileges)
+- SSH private keys (`~/.ssh/id_*`)
+- Environment files containing API keys and credentials (`.env`, shell rc files)
+- Application secrets and config files
+- Database files accessible to the process user
+- System configuration files (`/etc/hosts`, `/etc/passwd`)
+- With elevated process privileges: `/etc/sudoers`, OS launch agent directories
+
+**RCE condition:** Cymulate demonstrated RCE when the server runs with elevated OS privileges — achievable by writing to macOS Launch Agent paths or modifying `/etc/sudoers`. This is a real but conditional attack path. Standard user-privilege deployments face data exfiltration rather than direct code execution. The "RCE" headline used by some outlets overstates the baseline risk.
+
+**Attacker model in practice:** In agentic deployments, the most plausible attack path is indirect prompt injection: a malicious document, email, webpage, or data source that the AI agent reads triggers the exploitation sequence autonomously. The attacker does not need direct access to the agent host — they need only influence the content the agent reads.
+
+**Confirmed exploitation in the wild:** No evidence found across any source. The vulnerability was patched within approximately 30 days of the first external report, limiting the exposure window. Given the MCP ecosystem was early-stage in mid-2025, sophisticated attackers targeting this vector at scale is plausible but not documented.
+
+---
+
+## Relationship to AAGF-2026-025 (mcp-server-git, CVE-2025-68143/68144/68145)
+
+| Dimension | AAGF-2026-025 (git server) | AAGF-2026-027 (filesystem server) |
+|-----------|---------------------------|----------------------------------|
+| Affected server | `mcp-server-git` (Python, PyPI) | `@modelcontextprotocol/server-filesystem` (TypeScript, npm) |
+| CVEs | CVE-2025-68143, CVE-2025-68144, CVE-2025-68145 | CVE-2025-53109, CVE-2025-53110 |
+| Disclosing researcher | Yarden Porat (Cyata Security) | Elad Beber (Cymulate) |
+| Same researcher? | No — different firms (Cyata vs. Cymulate) |
+| Reporting timeframe overlap | Both reported to Anthropic June 2025 | Both reported to Anthropic June 2025 |
+| Patch/disclosure timeline | Patched December 2025, disclosed January 2026 | Patched July 2025, disclosed July 2025 |
+| Vendor | Both Anthropic first-party reference implementations in `modelcontextprotocol/servers` repo | Same |
+| Exploit chain interaction | The Cyata exploit chain for AAGF-2026-025 explicitly used the filesystem MCP server as a component — it writes a malicious `.git/config` via filesystem write tools. The filesystem CVEs would amplify that attack if the allowed-directory scope was a constraint on the write target. | Complementary attack surface |
+
+**Common thread:** Both incidents demonstrate that Anthropic's own first-party reference implementations shipped without adequate security review against classic vulnerability classes — path traversal and argument injection. Both were widely cited (including by PipeLab's 2026 MCP security report) as evidence that MCP reference code cannot be treated as secure by default. The co-occurrence of both reports in June 2025 from different researchers suggests MCP security received coordinated or parallel scrutiny at that time.
+
+**Brief overlap window:** The filesystem CVEs were reported June 2025 and patched July 1, 2025. The git CVEs were reported June 2025 and patched December 2025. There was a 5-month window (July–December 2025) during which the git vulnerabilities remained unpatched while the filesystem vulnerabilities were fixed. During this window, attackers who discovered the git flaws could no longer leverage the unpatched filesystem CVEs — but could still use the filesystem server as a write primitive in the git RCE chain under normal allowed-directory configurations.
+
+---
+
+## Classification Notes
+
+**Severity estimate:** High. CVSS 4.0: 8.4 (CVE-2025-53109) / 7.3 (CVE-2025-53110). RCE is conditional on elevated process privileges; data exfiltration is straightforward at standard privilege levels.
+
+**Triage criteria check:**
+- Real-world deployment: Yes — official Anthropic reference implementation, deployed by Claude Desktop and Cursor users
+- Autonomous agent involved: Yes — MCP server is designed for autonomous AI agent use; exploitation via indirect prompt injection requires no human interaction post-injection
+- Verifiable: Yes — two GitHub Security Advisories, NVD records, patch commits with named authors, multiple independent journalism sources
+- Meaningful impact: Yes — path traversal to full filesystem read/write; conditional RCE
+
+**Recommended categories:**
+- Tool/Plugin Vulnerability
+- Privilege Escalation / Sandbox Escape
+- Path Traversal
+- Reference Implementation Failure
+
+**MITRE ATLAS techniques:**
+- AML.T0010: ML Supply Chain Compromise (reference implementation as infection vector for derivative adopters)
+- AML.T0054: LLM Prompt Injection (attack delivery via indirect injection into agent-read content)
+
+**CWE classifications (confirmed from NVD/GitHub advisories):**
+- CVE-2025-53109: CWE-59 — Improper Link Resolution Before File Access (Link Following)
+- CVE-2025-53110: CWE-22 — Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
+
+---
+
+## Raw Notes / Quotes
+
+**From Hackaday — This Week In Security (2025-07-07):**
+> "If the allowed path is `/home/user/Public` and there's a second folder, `/home/user/PublicNotAllowed`, the AI has access to both."
+
+> "As long as the symlink itself resides in an allowed directory, 'the AI can use it.'"
+
+> "The server checks for symlinks and throws errors when they attempt to access restricted paths. However, error handling allows execution to continue."
+
+**From Embrace The Red — wunderwuzzi (2025-08-03):**
+> "The `validatePath` function in the filesystem MCP server's `index.ts` uses a `.startsWith()` comparison without verifying the path represents an actual directory boundary."
+
+> "Reported: June 1, 2025. Status: Anthropic acknowledged pre-existing awareness of the issue."
+
+> "Resolution: Fixed in subsequent rewrite supporting MCP's `roots` feature."
+
+> Part of the "Month of AI Bugs 2025" security research initiative.
+
+**From PipeLab — State of MCP Security 2026:**
+> "Two CVEs were assigned for path traversal vulnerabilities that allowed agents to break out of the configured allowed-directory scope."
+
+> "Widely cited as evidence that even reference implementations had not been reviewed against basic traversal defenses."
+
+> Classifies both under MCP02 (Privilege Escalation via Scope Creep).
+
+> Recommended mitigations: reject escaping symlinks during path operations; canonicalize paths before authorization checks; run MCP servers in a chroot or container filesystem.
+
+**From web search synthesis (Cymulate blog, partial content via search results):**
+> CVE-2025-53109: "By combining a symlink attack with the flawed directory check, an attacker can gain full read/write access to arbitrary files — including sensitive system files like /etc/sudoers."
+
+> CVE-2025-53110: "A naive prefix-matching check lets any path that simply begins with the approved directory bypass the filter, allowing unrestricted listing, reading and writing outside the intended sandbox."
+
+**GitHub commit message (d00c60d, Jenn Newton, 2025-06-30):**
+> "Address symlink and path prefix issues with allowed directories"
+> New file: `src/filesystem/path-validation.ts` — 992 lines added, 20 removed.
+
+**From Authzed — Timeline of MCP Breaches:**
+> Root cause: "poor sandbox implementation and insufficient directory-containment enforcement in the MCP server's file-tool interface."
+
+---
+
+## Completeness Assessment
+
+**Substance level:** Well above 300 words. All required fields populated.
+
+**Remaining gaps:**
+1. Full Cymulate "EscapeRoute" blog post body not retrieved (JS-rendered page; content reconstructed from secondary sources with high confidence).
+2. Exact private disclosure date for Cymulate/Beber to Anthropic not confirmed — only wunderwuzzi's June 1 date is explicit. Beber's date is "around the same time" based on advisory credit ordering.
+3. npm download counts for `@modelcontextprotocol/server-filesystem` not retrieved — no scale estimate possible.
+4. Whether Anthropic's official MCP documentation explicitly recommended the vulnerable server configuration (and thus propagated the vulnerability to documentation followers) was not confirmed.
+5. Whether the vulnerability existed in Anthropic-maintained documentation examples or starter templates was not confirmed.
+
+**Recommendation:** Proceed to draft. Sufficient and well-sourced material for a complete incident entry. Flag the RCE claim as conditional (elevated-privilege deployments only) in the final write-up. Consider coordinating publication note with AAGF-2026-025 to surface the "Anthropic reference implementation" pattern.

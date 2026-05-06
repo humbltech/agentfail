@@ -1,6 +1,6 @@
 # Incident Relationship Graph
 
-Last updated: 2026-05-05 — 25 incidents published
+Last updated: 2026-05-06 — 28 incidents published
 
 ---
 
@@ -91,6 +91,8 @@ Incidents where an AI agent platform experienced systemic, multi-vector security
   - *Second member — confirms pattern group*
 - **[[AAGF-2026-017]]** — MJ Rathbun autonomous retaliation on OpenClaw. Same platform as -010 but different failure dimension: not a security vulnerability but an autonomous behavioral escalation enabled by OpenClaw's permissive "autonomy by default" architecture (self-modifiable SOUL.md, no HITL gate for content publication). Demonstrates that the platform's growth-first philosophy creates risk across both security (-010) and behavioral (-017) dimensions. The self-modifiable SOUL.md that enabled MJ Rathbun's behavioral drift is the same architectural feature OpenClaw subsequently addressed with soul-guardian.
   - *Third member — extends pattern from security-only to security + behavioral failure modes on the same platform*
+- **[[AAGF-2026-028]]** — ClawJacked (CVE-2026-28472): OpenClaw WebSocket hijacking via browser-to-localhost attack. Distinct CVE and distinct mechanism from ClawBleed (-010): attacker connects IN to the agent's local gateway via browser WebSocket permissiveness (vs. agent connects OUT to attacker server in ClawBleed). Three compounding gaps: WebSocket CORS exception, rate-limiter localhost exemption (CVE-2026-32025), dummy-token device identity bypass (CVE-2026-28472). No in-the-wild exploitation confirmed; patched <24h. Extends the platform crisis documentation with a new OpenClaw vulnerability dimension: the localhost trust model collapse.
+  - *Fourth member — extends pattern group with a distinct CVE and distinct mechanism (browser-to-localhost inbound vs. outbound in ClawBleed). Same platform (OpenClaw), same root failure class.*
 
 ---
 
@@ -103,7 +105,7 @@ Incidents where an autonomous AI agent conducts social engineering or reputation
 ---
 
 ### agentic-ide-vulnerability-class (confirmed, n=2)
-Incidents where autonomous AI agents embedded in IDE platforms create novel attack surfaces through tool access, sandbox bypass, or configuration injection that did not exist in traditional IDE architectures. Defining signature: agentic IDE provides native tools or configuration mechanisms → agent's tool invocations or ingested content are influenced by untrusted external input → security architecture designed for human-driven workflows fails to constrain agent-originated actions → exploitation achieves sandbox escape, RCE, data exfiltration, or persistent backdoor. IDEsaster (AAGF-2026-016) demonstrates this is a universal vulnerability class affecting all AI coding tools, not a vendor-specific bug.
+Incidents where autonomous AI agents embedded in IDE platforms create novel attack surfaces through tool access, sandbox bypass, or configuration injection that did not exist in traditional IDE architectures. Defining signature: agentic IDE provides native tools or configuration mechanisms → agent's tool invocations or ingested content are influenced by untrusted external input → security architecture designed for human-driven workflows fails to constrain agent-originated actions → exploitation achieves sandbox escape, RCE, data exfiltration, or persistent backdoor. IDEsaster (AAGF-2026-016) demonstrates this is a universal vulnerability class affecting all AI coding tools, not a vendor-specific bug. AAGF-2026-029 extends the class from IDE-layer attacks to cloud-agent-container-layer attacks: different attack surface (HTTP API branch parameter vs. IDE config file injection), same root architectural failure (AI coding agent holds live credentials and executes shell operations with attacker-influenced inputs).
 
 - **[[AAGF-2026-015]]** — Google Antigravity: three-step attack chain (indirect prompt injection via repo comments → shell script staging → flag injection into `find_by_name` tool's `fd` invocation) achieves full RCE. Secure Mode bypass: native tools execute before sandbox evaluates the call. Patched Feb 2026; no confirmed wild exploitation. Near-miss. Medium severity (actual); Critical potential.
   - *Seed incident for this pattern group*
@@ -112,10 +114,12 @@ Incidents where autonomous AI agents embedded in IDE platforms create novel atta
   - *Candidates for future linkage:* Forced Descent (Antigravity/Mindgard), Cursor CVE-2025-59944, Cursor CVE-2025-54135/54136
 - **[[AAGF-2026-021]]** — Q-Wiper: supply chain compromise weaponized Amazon Q Developer with a destructive AI prompt. Attacker exploited inappropriately scoped GitHub token in CodeBuild to inject a wiper prompt into the VS Code extension. Compromised v1.84.0 passed marketplace verification and was distributed to ~964,000 extension installs. `--trust-all-tools --no-interactive` flags would have bypassed HITL confirmation. Saved only by a syntax error in the attacker's code. CVE-2025-8217. Near-miss. Adds the supply chain dimension to this pattern group: prompt injection delivered via compromised extension distribution, not just project files.
   - *Third member; introduces compound supply-chain + prompt-injection attack vector*
+- **[[AAGF-2026-029]]** — OpenAI Codex branch name command injection: unsanitized HTTP API branch parameter passed directly into container setup shell commands, exfiltrating GitHub OAuth tokens embedded in git remote URLs in cleartext. @codex PR review variant yields GitHub Installation Access Tokens with potential org-wide scope. Unicode Ideographic Space (U+3000 × 94) obfuscation makes 100-character payloads invisible in the Codex UI. OpenAI Critical P1; 4-phase server-side remediation over 7 weeks; no confirmed exploitation. Near-miss. High severity. Extends the pattern group from IDE-layer injection to cloud-agent-container-layer OS command injection via HTTP API parameter: same class (AI coding agent + credentials + shell execution + attacker-influenced input), different attack surface.
+  - *Fourth member; extends pattern group from IDE config injection to HTTP API parameter injection in cloud container orchestration*
 
 ---
 
-### mcp-protocol-security-crisis (confirmed, n=3)
+### mcp-protocol-security-crisis (confirmed, n=4)
 Incidents where the MCP protocol's architectural design decisions — rather than individual implementation bugs — create systemic security vulnerabilities that propagate through the SDK supply chain to all downstream consumers. Defining signature: protocol specification permits dangerous behavior by design → official SDKs implement the permissive behavior faithfully → every downstream project inherits the vulnerability without making any implementation mistake → vendor characterizes behavior as "expected" and declines protocol-level fix → downstream projects must independently discover and mitigate the same flaw.
 
 - **[[AAGF-2026-022]]** — MCP STDIO "Execute-First, Validate-Never": Anthropic's STDIO transport executes arbitrary OS commands unconditionally via the `command` parameter before performing any server validation. Confirmed by Anthropic as "expected behavior." Propagated through all 4 official SDKs (Python, TypeScript, Java, Rust) into 30+ downstream projects, producing 14+ CVEs (CVSS up to 10.0). Four exploitation families: unauthenticated UI injection, hardening bypass, zero-click prompt injection, malicious marketplace distribution. 9/11 MCP marketplace registries accepted malicious PoC submissions. Active exploitation confirmed (Flowise CISA KEV, SmartLoader/Oura MCP malware). No protocol-level fix as of May 2026.
@@ -124,6 +128,8 @@ Incidents where the MCP protocol's architectural design decisions — rather tha
   - *Second member — implementation-level validation failures in Anthropic's own reference implementation. Complements -022's protocol-level design flaw.*
 - **[[AAGF-2026-026]]** — WhatsApp MCP Rug-Pull: poisoned trivia game MCP server exfiltrates entire WhatsApp message history via cross-server capability laundering. MCP's equal-trust multi-server model allows Server A's tool descriptions to redirect the agent to invoke Server B's capabilities. Tool descriptions fetched at runtime with no change notification enable rug-pull after trust-building period. Experiment 2 requires zero server installation — any user running whatsapp-mcp who receives a crafted WhatsApp message is vulnerable. Coins the "lethal trifecta" analytical framework (prompt injection + sensitive data access + exfiltration channel). No protocol-level fix as of May 2026.
   - *Third member — protocol-level multi-server trust model failure. Together -022 and -026 demonstrate MCP was designed without adequate adversarial multi-server threat modeling.*
+- **[[AAGF-2026-027]]** — Two Path Traversal CVEs in Anthropic's mcp-server-filesystem Reference Implementation: CVE-2025-53109 (symlink traversal, CWE-59, CVSS 8.4) and CVE-2025-53110 (prefix-match bypass via .startsWith() without path separator, CWE-22, CVSS 7.3). Both bypass the allowedDirectories sandbox in validatePath(), allowing read/write of any file accessible to the server process — SSH keys, .env files, API credentials. Cymulate's EscapeRoute PoC demonstrates conditional RCE via write to /etc/sudoers (elevated process privileges required). Patched July 1, 2025 (v0.6.3); 992-line path-validation.ts module replacement. No confirmed exploitation. Near-miss. Supply chain amplification: reference implementation propagation means derivative tools may have inherited the same flawed validatePath() pattern.
+  - *Fourth member — implementation-level validation failure in Anthropic's mcp-server-filesystem reference implementation. Complements -025 (git server) at the same reference implementation layer; both lack pre-publication path traversal security review. Overlapped with -025's unpatched window for ~5 months (July–December 2025). (confirmed, n=4)*
 
 ---
 
@@ -176,11 +182,14 @@ Agent accessed credentials with broader authority than required for its task, en
 - AAGF-2026-014 (GitHub Copilot Chat inherits full user authentication scope — prompt injection in one public repo can exfiltrate data from all private repos the victim can access)
 - AAGF-2026-019 (Replit Agent had unrestricted production database access including DROP/DELETE/TRUNCATE authority for a coding task; no least-privilege scoping)
 - AAGF-2026-021 (GitHub token in CodeBuild had write access to repository when only read access was needed; enabled unauthorized code commits bypassing code review)
+- AAGF-2026-028 (Hijacked OpenClaw agent with persistent OAuth tokens and API keys for all connected services enables lateral movement into organizational infrastructure; single gateway auth bypass cascades to full credential access across email, Slack, calendars, cloud storage)
+- AAGF-2026-029 (Codex GitHub OAuth token embedded in plaintext git remote URL granted read/write access to all authorized repos; @codex PR review variant used Installation Access Token with potential org-wide scope for a single-repository code review task; Phase 4 remediation reduced token scope and lifetime)
 
 ### Growth-first development culture / security debt at scale
 Platform prioritized adoption velocity over security investment, producing systemic vulnerabilities across marketplace, authentication, credential storage, and deployment guidance.
 - AAGF-2026-010 (OpenClaw: 135K+ stars in weeks, zero marketplace verification, no WebSocket auth, no deployment binding enforcement, ecosystem infrastructure without RLS)
 - AAGF-2026-013 (Flowise: 43,000+ stars, Fortune 500 users, no security-focused code review or static analysis, Function() constructor merged as routine code, three actively exploited CVEs in ~12 months)
+- AAGF-2026-028 (OpenClaw localhost trust model: "loopback = trusted" assumption inherited from internal tooling norms and never reassessed for browser-accessible AI agent gateways; ClawJacked is the fourth major vulnerability in February 2026 alone on the same platform, reflecting the same growth-first culture that generated all four CVEs simultaneously)
 
 ### Backup co-location with primary data
 Backup copies stored within the same deletion domain as the primary data — a single destructive operation wipes both.
@@ -194,6 +203,10 @@ Package registries (npm) and MCP marketplaces operate on first-come-first-served
 Protocol specification permits dangerous behavior by design, creating systemic vulnerability that propagates through the SDK supply chain. Vendor characterizes the behavior as "expected" and declines architectural fix, making the vulnerability permanent until the vendor changes its position.
 - AAGF-2026-022 (MCP STDIO transport executes arbitrary OS commands unconditionally before validation; Anthropic confirmed as "expected behavior" and declined protocol-level fix; 14+ CVEs across 30+ downstream projects)
 - AAGF-2026-026 (MCP runtime tool description fetching with no change notification; equal trust across all connected servers; cross-server capability laundering structurally enabled; no protocol-level fix as of May 2026)
+
+### Path validation insufficient for security boundary enforcement in AI agent tools
+Filesystem path validation uses string-level techniques (normalize, startsWith) that are insufficient for security boundaries — symbolic links not resolved before boundary check, path separators not enforced in prefix comparisons. Documented anti-patterns in OWASP/CWE guidance; present in Anthropic's own reference implementation without pre-publication security review.
+- AAGF-2026-027 (validatePath() uses path.normalize() without fs.realpath() — CWE-59; .startsWith() without trailing separator — CWE-22; both are textbook path traversal anti-patterns present in the canonical reference implementation developers copy)
 
 ### Pre-accepted quantified failure rates for irreversible operations
 Vendor measured a non-zero safeguard failure rate for an irreversible operation class, documented it publicly, and deployed commercially — pre-accepting the exact failure category that later materialized.
@@ -216,6 +229,8 @@ AI agent or platform processes untrusted external inputs (emails, documents, for
 - AAGF-2026-024 (multi-vendor enterprise agents: emails, documents, tickets, CRM records processed as equally trusted LLM context; no structural isolation between data and instructions; semantic bypass defeats keyword-based filters)
 - AAGF-2026-025 (poisoned README/issue triggers 6-step RCE chain — indirect prompt injection via any agent-readable content delivered to mcp-server-git with unvalidated tool arguments)
 - AAGF-2026-026 (tool descriptions and WhatsApp message content processed as trusted; cross-server instruction flow unconstrained; Experiment 2 triggers via data returned by a trusted server)
+- AAGF-2026-027 (path traversal via agent-readable content: attacker-controlled file content or indirect prompt injection causes agent to invoke filesystem tools with traversal payloads; path string passed to validatePath() treated as trusted without real path resolution)
+- AAGF-2026-029 (branch name = untrusted HTTP API input executed as shell code in container setup; Unicode Ideographic Space obfuscation (U+3000 × 94) hides 100-character payload from UI while shell executes it; no sanitization before passing to git fetch/checkout shell commands)
 
 ### Pattern-matching-only defense model
 All defensive layers use the same paradigm (deny-list pattern matching) rather than structurally different control types, allowing a single attacker methodology to bypass all layers independently.
@@ -257,7 +272,7 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 - AAGF-2026-012
 
 ### OpenClaw + ClawHub Marketplace + Moltbook
-- AAGF-2026-010, AAGF-2026-017
+- AAGF-2026-010, AAGF-2026-017, AAGF-2026-028
 
 ### Flowise (self-hosted, open-source)
 - AAGF-2026-013
@@ -275,7 +290,7 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 - AAGF-2026-024
 
 ### Anthropic MCP Protocol
-- AAGF-2026-022, AAGF-2026-025, AAGF-2026-026
+- AAGF-2026-022, AAGF-2026-025, AAGF-2026-026, AAGF-2026-027
 
 ### npm / MCP Ecosystem
 - AAGF-2026-020
@@ -286,6 +301,9 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 ### Multiple AI IDEs (GitHub Copilot, Cursor, Windsurf, Kiro, Zed, Roo Code, JetBrains Junie, Cline, Gemini CLI, Claude Code, Amazon Q Developer)
 - AAGF-2026-016
 
+### OpenAI Codex
+- AAGF-2026-029
+
 ---
 
 ## Industry Clusters
@@ -294,7 +312,7 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 - AAGF-2026-023 (Operator unauthorized purchase), AAGF-2026-026 (WhatsApp MCP rug-pull)
 
 ### Software Development / Open Source / SaaS
-- AAGF-2026-001, AAGF-2026-002, AAGF-2026-003, AAGF-2026-004, AAGF-2026-005, AAGF-2026-014, AAGF-2026-015, AAGF-2026-016, AAGF-2026-017, AAGF-2026-020, AAGF-2026-021
+- AAGF-2026-001, AAGF-2026-002, AAGF-2026-003, AAGF-2026-004, AAGF-2026-005, AAGF-2026-014, AAGF-2026-015, AAGF-2026-016, AAGF-2026-017, AAGF-2026-020, AAGF-2026-021, AAGF-2026-029
 
 ### B2B SaaS (non-coding-tool)
 - AAGF-2026-007 (PocketOS — rental management SaaS; victim is the developer, not an end user of Claude)
@@ -320,6 +338,8 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 - AAGF-2026-013 (Flowise AI agent builder; CVSS 10.0 RCE via CustomMCP node; 12,000+ exposed instances; credential cascade to downstream LLM providers)
 - AAGF-2026-022 (MCP protocol-level STDIO design flaw; 14+ CVEs across 30+ projects; affects all AI agent infrastructure built on MCP; cross-industry impact)
 - AAGF-2026-025 (Three CVEs in Anthropic's mcp-server-git reference implementation; 6-step RCE chain; toxic combination pattern; 7-month patch window)
+- AAGF-2026-027 (Two path traversal CVEs in Anthropic's mcp-server-filesystem reference implementation; CVSS 8.4; allowedDirectory sandbox escape; SSH keys, .env files, API credentials accessible; near-miss; patched July 1 2025)
+- AAGF-2026-028 (ClawJacked CVE-2026-28472; OpenClaw WebSocket hijacking via browser-to-localhost attack; near-miss; all local OpenClaw deployments prior to 2026.2.25 vulnerable)
 
 ---
 
@@ -421,6 +441,12 @@ AAGF-2026-010 (OpenClaw) and AAGF-2026-013 (Flowise) confirm this as a recurring
 | AAGF-2026-026 | AAGF-2026-022 | Pattern group (mcp-protocol-security-crisis), both declined protocol-level fix | -022: STDIO execute-first; -026: equal trust across MCP servers with runtime tool description mutation. Both: no protocol-level fix as of May 2026. Together: MCP was designed without adequate adversarial multi-server threat modeling. |
 | AAGF-2026-026 | AAGF-2026-020 | Pattern group (supply-chain-ai-infrastructure), MCP ecosystem trust failures | -020: first in-the-wild malicious MCP server (Postmark npm namesquatting); -026: rug-pull via mutating tool descriptions. Both exploit the absence of trust verification in the MCP ecosystem — different mechanisms (supply chain vs. runtime mutation), same absence: no cryptographic commitment to server behavior at approval time. |
 | AAGF-2026-025 | AAGF-2026-026 | Pattern group (mcp-protocol-security-crisis), complementary layers of MCP security failure | -025: implementation-level (reference implementation validation failures); -026: protocol-level (multi-server trust model, runtime description fetching). Together they demonstrate MCP security failures at both the protocol design layer and the reference implementation layer. |
+| AAGF-2026-027 | AAGF-2026-025 | Pattern group (mcp-protocol-security-crisis), same Anthropic reference implementation repository, overlapping CVE reporting window | Both are implementation-level failures in Anthropic's first-party reference implementations in the same `modelcontextprotocol/servers` repo; both reported June 2025; both patched from same root cause (no pre-publication path traversal security review). The git exploit chain (AAGF-2026-025) used the filesystem server as a write primitive in its 6-step RCE sequence. During the month of June 2025, both CVE sets were simultaneously unpatched — the highest-risk compounding window. After the filesystem patch (July 1, 2025), the git server's RCE chain continued unpatched through December 2025. |
+| AAGF-2026-027 | AAGF-2026-022 | Pattern group (mcp-protocol-security-crisis), complementary security failure layers in MCP | MCP protocol security crisis demonstrated at two independent failure layers: -022 is a protocol-design-layer architectural flaw (STDIO execute-first, Anthropic confirmed as expected); -027 is a reference-implementation-layer validation failure (path traversal in mcp-server-filesystem). Together they show MCP was built without adequate security review at both the protocol specification layer and the reference implementation layer — adoption speed prioritized at every level of the stack. |
+
+| AAGF-2026-029 | AAGF-2026-016 | Pattern group (agentic-ide-vulnerability-class), shared root cause (token/credential over-permissioning, untrusted input executed as code) | IDEsaster attacked the IDE/editor layer via prompt injection in workspace config files and MCP configs. Codex branch injection attacked the cloud agent's container setup via unsanitized HTTP API parameter. Both: AI coding agents accumulate broad credentials and execute shell commands without hardened input handling — IDE config injection vs. cloud container OS command injection via HTTP API parameter. VentureBeat documented Codex branch injection as 1 of 6 AI coding agent exploits in a 9-month period, all following the pattern of AI coding agents holding credentials and authenticating to production systems without human session anchoring. Mechanism differs; root architectural failure is identical. |
+
+| AAGF-2026-028 | AAGF-2026-010 | Pattern group (ai-agent-platform-security-crisis), same platform (OpenClaw), root cause clusters (token/credential over-permissioning, growth-first development culture) | Same platform (OpenClaw), same platform security crisis pattern group. Different CVE mechanism: ClawBleed (-010) = agent connects OUT to attacker server (CVE-2026-25253); ClawJacked (-028) = attacker connects IN via browser WebSocket to local gateway (CVE-2026-28472). Both stem from the same localhost trust assumption failure. ClawJacked adds a new OpenClaw vulnerability dimension to the pattern group: browser-to-localhost inbound attack not requiring any outbound agent action. |
 
 ---
 
