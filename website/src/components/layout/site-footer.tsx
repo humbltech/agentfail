@@ -23,7 +23,7 @@ export function SiteFooter() {
         <span
           className="text-[var(--text-muted)]"
           style={{
-            fontFamily: "var(--font-bricolage)",
+            fontFamily: "var(--font-display)",
             fontSize: "18px",
           }}
         >

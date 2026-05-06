@@ -76,7 +76,7 @@ export function IncidentCard({ incident, className }: IncidentCardProps) {
     <Link
       href={`/incidents/${incident.slug}`}
       className={cn(
-        "group block rounded-[6px] border transition-all duration-150",
+        "group block rounded-sm border transition-all duration-150",
         "border-[var(--border-subtle)] bg-[var(--bg-surface)]",
         "hover:border-[var(--border-visible)] hover:bg-[var(--bg-raised)] hover:-translate-y-px",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
@@ -111,7 +111,7 @@ export function IncidentCard({ incident, className }: IncidentCardProps) {
       {/* ── Headline stat — visual anchor ────────────────────────────────── */}
       <p
         className={cn(
-          "font-[family-name:var(--font-bricolage)] text-[var(--accent)] mb-2",
+          "font-[family-name:var(--font-display)] text-[var(--accent)] mb-2",
           "text-2xl leading-tight",
         )}
       >

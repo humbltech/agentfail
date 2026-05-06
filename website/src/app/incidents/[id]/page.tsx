@@ -184,7 +184,7 @@ export default async function IncidentDetailPage({
 
         {/* ── Title ────────────────────────────────────────────────────────── */}
         <h1
-          className="font-[family-name:var(--font-bricolage)]"
+          className="font-[family-name:var(--font-display)]"
           style={{
             fontSize: "clamp(24px, 5vw, 36px)",
             fontWeight: 700,
@@ -298,7 +298,7 @@ export default async function IncidentDetailPage({
           <section aria-labelledby="sources-heading">
             <h2
               id="sources-heading"
-              className="font-[family-name:var(--font-bricolage)]"
+              className="font-[family-name:var(--font-display)]"
               style={{
                 fontSize: "20px",
                 fontWeight: 600,

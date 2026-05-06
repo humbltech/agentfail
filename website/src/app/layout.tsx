@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Bricolage_Grotesque, DM_Sans } from "next/font/google";
+import { Geist_Mono, JetBrains_Mono, DM_Sans } from "next/font/google";
 import "@/styles/globals.css";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${dmSans.variable} ${geistMono.variable} ${bricolage.variable} bg-[var(--bg-deep)] text-[var(--text-primary)] antialiased`}
+        className={`${dmSans.variable} ${geistMono.variable} ${jetbrainsMono.variable} bg-[var(--bg-deep)] text-[var(--text-primary)] antialiased`}
         style={{ fontFamily: "var(--font-dm-sans)" }}
       >
         <a

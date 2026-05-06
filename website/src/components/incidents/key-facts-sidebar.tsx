@@ -255,7 +255,7 @@ export function KeyFactsSidebar({ incident }: KeyFactsSidebarProps) {
             Headline
           </div>
           <p
-            className="font-[family-name:var(--font-bricolage)]"
+            className="font-[family-name:var(--font-display)]"
             style={{
               fontSize: "18px",
               color: "var(--accent)",

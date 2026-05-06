@@ -23,7 +23,7 @@ export function SiteHeader() {
           href="/"
           className="text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors duration-150"
           style={{
-            fontFamily: "var(--font-bricolage)",
+            fontFamily: "var(--font-display)",
             fontSize: "20px",
           }}
         >

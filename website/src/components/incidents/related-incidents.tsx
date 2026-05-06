@@ -35,7 +35,7 @@ export function RelatedIncidents({
       <h2
         id="related-incidents-heading"
         style={{
-          fontFamily: "var(--font-bricolage)",
+          fontFamily: "var(--font-display)",
           fontSize: "22px",
           color: "var(--text-primary)",
           marginBottom: "16px",

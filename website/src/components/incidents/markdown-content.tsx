@@ -21,7 +21,7 @@ export function MarkdownContent({ html, className }: MarkdownContentProps) {
         "prose prose-invert max-w-none",
         // Headings
         "prose-headings:text-[var(--text-primary)]",
-        "prose-headings:font-[family-name:var(--font-bricolage)]",
+        "prose-headings:font-[family-name:var(--font-display)]",
         // Paragraphs
         "prose-p:text-[var(--text-secondary)]",
         // Links
@@ -36,7 +36,7 @@ export function MarkdownContent({ html, className }: MarkdownContentProps) {
         "prose-code:font-mono prose-code:text-sm",
         // Code blocks
         "prose-pre:bg-[var(--bg-overlay)] prose-pre:border prose-pre:border-[var(--border-subtle)]",
-        "prose-pre:rounded-[6px]",
+        "prose-pre:rounded-sm",
         // Tables
         "prose-table:border-collapse",
         "prose-th:bg-[var(--bg-surface)] prose-th:text-[var(--text-primary)] prose-th:border prose-th:border-[var(--border-visible)]",

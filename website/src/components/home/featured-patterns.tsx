@@ -45,7 +45,7 @@ export function FeaturedPatterns({ patterns }: FeaturedPatternsProps) {
               key={pattern.slug}
               href={`/patterns/${pattern.slug}`}
               className={cn(
-                "group block rounded-[6px] border transition-all duration-150",
+                "group block rounded-sm border transition-all duration-150",
                 "border-[var(--border-subtle)] bg-[var(--bg-surface)]",
                 "hover:border-[var(--border-visible)] hover:bg-[var(--bg-raised)] hover:-translate-y-px",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",

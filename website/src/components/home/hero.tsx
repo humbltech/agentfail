@@ -22,7 +22,7 @@ export function Hero() {
         <h1
           id="hero-headline"
           className={[
-            "font-[family-name:var(--font-bricolage)]",
+            "font-[family-name:var(--font-display)]",
             "text-4xl sm:text-5xl lg:text-6xl",
             "text-[var(--text-primary)]",
             "leading-tight",
@@ -45,7 +45,7 @@ export function Hero() {
             href="/incidents"
             className={[
               "inline-flex items-center justify-center",
-              "rounded-[6px] font-semibold text-white",
+              "rounded-sm font-semibold text-white",
               "bg-[var(--accent)] hover:bg-[var(--accent-bright)]",
               "transition-colors duration-150",
               "min-h-[44px] px-6",
@@ -59,7 +59,7 @@ export function Hero() {
             href="/patterns"
             className={[
               "inline-flex items-center justify-center",
-              "rounded-[6px] font-semibold",
+              "rounded-sm font-semibold",
               "border border-[var(--border-visible)]",
               "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
               "hover:border-[var(--border-visible)]",
