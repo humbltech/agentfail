@@ -27,7 +27,7 @@ function StatItem({ value, label }: StatItemProps) {
   return (
     <div className="flex flex-col items-center text-center py-6 px-4">
       <span
-        className="font-[family-name:var(--font-instrument-serif)] text-[var(--accent)] text-4xl mb-1"
+        className="font-[family-name:var(--font-bricolage)] text-[var(--accent)] text-4xl mb-1"
       >
         {value}
       </span>

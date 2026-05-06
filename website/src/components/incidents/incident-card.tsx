@@ -111,7 +111,7 @@ export function IncidentCard({ incident, className }: IncidentCardProps) {
       {/* ── Headline stat — visual anchor ────────────────────────────────── */}
       <p
         className={cn(
-          "font-[family-name:var(--font-instrument-serif)] text-[var(--accent)] mb-2",
+          "font-[family-name:var(--font-bricolage)] text-[var(--accent)] mb-2",
           "text-2xl leading-tight",
         )}
       >

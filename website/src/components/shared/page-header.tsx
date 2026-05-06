@@ -65,7 +65,7 @@ export function PageHeader({
       {/* Title */}
       <h1
         className="text-4xl text-[var(--text-primary)] m-0"
-        style={{ fontFamily: "var(--font-instrument-serif)" }}
+        style={{ fontFamily: "var(--font-bricolage)" }}
       >
         {title}
       </h1>

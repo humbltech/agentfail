@@ -22,7 +22,7 @@ export function Hero() {
         <h1
           id="hero-headline"
           className={[
-            "font-[family-name:var(--font-instrument-serif)]",
+            "font-[family-name:var(--font-bricolage)]",
             "text-4xl sm:text-5xl lg:text-6xl",
             "text-[var(--text-primary)]",
             "leading-tight",

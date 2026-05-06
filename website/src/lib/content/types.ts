@@ -6,7 +6,10 @@ export type IncidentStatus =
   | "published"
   | "draft"
   | "reviewed"
-  | "fast-track";
+  | "fast-track"
+  | "internal";
+
+export type IncidentVisibility = "public" | "internal";
 
 export type VendorResponse =
   | "none"
@@ -132,6 +135,10 @@ export interface IncidentFrontmatter {
   sources: string[];
   researcher_notes: string;
   council_verdict: string;
+
+  // Visibility control
+  visibility: IncidentVisibility;
+  internal_notes: string;
 }
 
 // ─── Derived incident shapes ──────────────────────────────────────────────────

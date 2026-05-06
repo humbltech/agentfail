@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Geist_Mono, Bricolage_Grotesque, DM_Sans } from "next/font/google";
 import "@/styles/globals.css";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
 });
 
@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -34,7 +34,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} bg-[var(--bg-deep)] text-[var(--text-primary)] antialiased`}
+        className={`${dmSans.variable} ${geistMono.variable} ${bricolage.variable} bg-[var(--bg-deep)] text-[var(--text-primary)] antialiased`}
+        style={{ fontFamily: "var(--font-dm-sans)" }}
       >
         <a
           href="#main-content"
