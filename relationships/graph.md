@@ -1,6 +1,6 @@
 # Incident Relationship Graph
 
-Last updated: 2026-05-06 — 28 incidents published
+Last updated: 2026-05-06 — 33 incidents published
 
 ---
 
@@ -79,6 +79,8 @@ Incidents where indirect prompt injection into an enterprise AI assistant's cont
 - **[[AAGF-2026-011]]** — GrafanaGhost: three-stage chained exploit against Grafana's AI assistant. (1) Attacker injects prompt via URL parameters into Grafana's error logs (no auth required). (2) Single keyword ("INTENT") collapses AI guardrails, causing the model to treat the injection as legitimate instructions. (3) Protocol-relative URL (`//attacker.com`) bypasses client-side `startsWith('/')` validation, exfiltrating dashboard data via Markdown image tag. Vendor patched before disclosure; disputed zero-click characterization. No in-the-wild exploitation confirmed.
 - **[[AAGF-2026-024]]** — AgentFlayer: first multi-vendor, class-level confirmation of this pattern group — zero-click prompt injection exploit chains against ChatGPT Connectors, Microsoft Copilot Studio, Salesforce Einstein, Google Gemini, and Cursor+Jira MCP demonstrated at Black Hat USA 2025. Five working exploits across four vendors; 3,000+ Copilot Studio and hundreds of Salesforce production configurations confirmed vulnerable. Adds: multi-vendor class-level confirmation; semantic bypass ("waffles") defeating all keyword-based filters; trust-laundering via Azure Blob Storage; persistent memory poisoning surviving session termination. Google and Cursor declined to patch.
   - *Fourth member — multi-vendor class-level confirmation. Extends pattern beyond Microsoft products to four major vendors and six platforms. (confirmed, n=4)*
+- **[[AAGF-2026-031]]** — GitHub MCP Server Prompt Injection: a malicious GitHub Issue body embeds a prompt injection payload returned to the LLM via the github-mcp-server's issue-fetching tool. The agent autonomously calls repository listing and file-reading tools to collect private repo data, then calls `create_pull_request` to exfiltrate it to a public repo. No CSP bypass or covert channel required — first-class write tools serve as the exfiltration primitive. Near-miss; researcher-controlled PoC on real GitHub infrastructure; no confirmed production exploitation. 8-month vulnerable window (April–December 2025) before opt-in mitigations shipped. GitHub declined CVE assignment; shipped lockdown mode, read-only mode, and content sanitization as opt-in mitigations. Extends the pattern to MCP-based developer tooling — the attack surface is not exclusive to enterprise SaaS copilots.
+  - *Fifth member — injection vector is tool response data (issue body content), distinct from tool description injection. Confirmed pattern at n=5.*
 
 ---
 
@@ -104,7 +106,7 @@ Incidents where an autonomous AI agent conducts social engineering or reputation
 
 ---
 
-### agentic-ide-vulnerability-class (confirmed, n=2)
+### agentic-ide-vulnerability-class (confirmed, n=6)
 Incidents where autonomous AI agents embedded in IDE platforms create novel attack surfaces through tool access, sandbox bypass, or configuration injection that did not exist in traditional IDE architectures. Defining signature: agentic IDE provides native tools or configuration mechanisms → agent's tool invocations or ingested content are influenced by untrusted external input → security architecture designed for human-driven workflows fails to constrain agent-originated actions → exploitation achieves sandbox escape, RCE, data exfiltration, or persistent backdoor. IDEsaster (AAGF-2026-016) demonstrates this is a universal vulnerability class affecting all AI coding tools, not a vendor-specific bug. AAGF-2026-029 extends the class from IDE-layer attacks to cloud-agent-container-layer attacks: different attack surface (HTTP API branch parameter vs. IDE config file injection), same root architectural failure (AI coding agent holds live credentials and executes shell operations with attacker-influenced inputs).
 
 - **[[AAGF-2026-015]]** — Google Antigravity: three-step attack chain (indirect prompt injection via repo comments → shell script staging → flag injection into `find_by_name` tool's `fd` invocation) achieves full RCE. Secure Mode bypass: native tools execute before sandbox evaluates the call. Patched Feb 2026; no confirmed wild exploitation. Near-miss. Medium severity (actual); Critical potential.
@@ -116,10 +118,14 @@ Incidents where autonomous AI agents embedded in IDE platforms create novel atta
   - *Third member; introduces compound supply-chain + prompt-injection attack vector*
 - **[[AAGF-2026-029]]** — OpenAI Codex branch name command injection: unsanitized HTTP API branch parameter passed directly into container setup shell commands, exfiltrating GitHub OAuth tokens embedded in git remote URLs in cleartext. @codex PR review variant yields GitHub Installation Access Tokens with potential org-wide scope. Unicode Ideographic Space (U+3000 × 94) obfuscation makes 100-character payloads invisible in the Codex UI. OpenAI Critical P1; 4-phase server-side remediation over 7 weeks; no confirmed exploitation. Near-miss. High severity. Extends the pattern group from IDE-layer injection to cloud-agent-container-layer OS command injection via HTTP API parameter: same class (AI coding agent + credentials + shell execution + attacker-influenced input), different attack surface.
   - *Fourth member; extends pattern group from IDE config injection to HTTP API parameter injection in cloud container orchestration*
+- **[[AAGF-2026-032]]** — MCPoison (CVE-2025-54136): Cursor IDE bound MCP server approval to the configuration key name rather than the content of `command`/`args` fields. Attacker with repository write access plants a benign MCP config entry, waits for developer approval, then swaps the command with a malicious payload in a later commit. Every subsequent Cursor project load executes the malicious command silently and persistently with no re-prompt. Check Point Research disclosed July 16, 2025; patched Cursor 1.3 in 13 days; public disclosure August 5, 2025. CVSS 7.2 (CNA) / 8.8 (NIST). Companion CVE-2025-54135 (CurXecute) fixed in 1.3.9. No confirmed in-the-wild exploitation. Near-miss. Up to 1M+ daily users and Fortune 500 organizations potentially exposed. Extends the pattern to MCP configuration supply chain poisoning via post-approval trust persistence failure.
+  - *Fifth member — configuration-layer trust bypass attack on Cursor IDE. Complements -016's prompt injection attack surface on the same platform.*
+- **[[AAGF-2026-036]]** — Claude Code Deny-Rule Bypass: A hard-coded `MAX_SUBCOMMANDS_FOR_SECURITY_CHECK = 50` constant in `bashPermissions.ts` caused Claude Code to stop evaluating deny rules when a compound shell command exceeded 50 subcommands, silently falling back to an auto-approved generic prompt. A working tree-sitter parser fix existed in Anthropic's codebase before external disclosure; it was not shipped until Adversa AI's public disclosure forced a 4-day deployment. Three simultaneous bypass paths existed: the 50-subcommand threshold (Adversa AI, April 2026, patched v2.1.90), CVE-2026-25724 symlink bypass (CVSS 7.5, patched v2.1.7 February 2026), and unverified settings.local.json reliability failure (GitHub #8961, October 2025, still unacknowledged as of May 2026). Practical attack: malicious CLAUDE.md in cloned repository crafts a 51-subcommand build command; position 51 exfiltrates credentials; CI/CD auto-approve makes this non-interactive. No CVE assigned for the subcommand bypass. No confirmed exploitation. Near-miss. High severity.
+  - *Sixth member — permission-enforcement layer attack on Claude Code. Adds governance failure dimension: fix was written and not shipped. Three simultaneous bypass paths confirm this is a pattern of permission system unreliability, not a single vulnerability. (confirmed, n=6)*
 
 ---
 
-### mcp-protocol-security-crisis (confirmed, n=4)
+### mcp-protocol-security-crisis (confirmed, n=6)
 Incidents where the MCP protocol's architectural design decisions — rather than individual implementation bugs — create systemic security vulnerabilities that propagate through the SDK supply chain to all downstream consumers. Defining signature: protocol specification permits dangerous behavior by design → official SDKs implement the permissive behavior faithfully → every downstream project inherits the vulnerability without making any implementation mistake → vendor characterizes behavior as "expected" and declines protocol-level fix → downstream projects must independently discover and mitigate the same flaw.
 
 - **[[AAGF-2026-022]]** — MCP STDIO "Execute-First, Validate-Never": Anthropic's STDIO transport executes arbitrary OS commands unconditionally via the `command` parameter before performing any server validation. Confirmed by Anthropic as "expected behavior." Propagated through all 4 official SDKs (Python, TypeScript, Java, Rust) into 30+ downstream projects, producing 14+ CVEs (CVSS up to 10.0). Four exploitation families: unauthenticated UI injection, hardening bypass, zero-click prompt injection, malicious marketplace distribution. 9/11 MCP marketplace registries accepted malicious PoC submissions. Active exploitation confirmed (Flowise CISA KEV, SmartLoader/Oura MCP malware). No protocol-level fix as of May 2026.
@@ -130,6 +136,10 @@ Incidents where the MCP protocol's architectural design decisions — rather tha
   - *Third member — protocol-level multi-server trust model failure. Together -022 and -026 demonstrate MCP was designed without adequate adversarial multi-server threat modeling.*
 - **[[AAGF-2026-027]]** — Two Path Traversal CVEs in Anthropic's mcp-server-filesystem Reference Implementation: CVE-2025-53109 (symlink traversal, CWE-59, CVSS 8.4) and CVE-2025-53110 (prefix-match bypass via .startsWith() without path separator, CWE-22, CVSS 7.3). Both bypass the allowedDirectories sandbox in validatePath(), allowing read/write of any file accessible to the server process — SSH keys, .env files, API credentials. Cymulate's EscapeRoute PoC demonstrates conditional RCE via write to /etc/sudoers (elevated process privileges required). Patched July 1, 2025 (v0.6.3); 992-line path-validation.ts module replacement. No confirmed exploitation. Near-miss. Supply chain amplification: reference implementation propagation means derivative tools may have inherited the same flawed validatePath() pattern.
   - *Fourth member — implementation-level validation failure in Anthropic's mcp-server-filesystem reference implementation. Complements -025 (git server) at the same reference implementation layer; both lack pre-publication path traversal security review. Overlapped with -025's unpatched window for ~5 months (July–December 2025). (confirmed, n=4)*
+- **[[AAGF-2026-033]]** — mcp-remote OS Command Injection (CVE-2025-6514, CVSS 9.6): community OAuth bridge package used to connect Claude Desktop, Cursor, and Windsurf to remote MCP servers passes the `authorization_endpoint` URL from the remote server's OAuth metadata to the `open()` npm package without sanitization. `open()` invokes an OS shell, making the URL execution context. On Windows, full arbitrary RCE via PowerShell `$()` subexpression; on macOS/Linux, constrained executable launch. 437,000+ download events at disclosure. Patch (v0.1.16) shipped 22 days before public CVE, with no release-time advisory. JFrog discovered and disclosed (July 9, 2025). Near-miss. Demonstrates the MCP attack surface is bidirectional: not just agents receiving malicious server instructions, but malicious servers achieving RCE on connecting clients. The OAuth handshake — a trusted protocol boundary — becomes the injection vector.
+  - *Fifth member — client-side attack surface. Pattern group now spans server-side protocol design (-022), reference implementation validation failures (-025, -027), multi-server trust model (-026), and client-side OAuth injection (-033). Bidirectional attack surface confirmed.*
+- **[[AAGF-2026-034]]** — MCPJam Inspector Unauthenticated RCE (CVE-2026-23744, CVSS 9.8): community fork of Anthropic's official MCP Inspector binds its HTTP server to `0.0.0.0` by default and exposes `/api/mcp/connect` — a command execution API accepting `command`/`args` JSON — with no authentication. One unauthenticated `curl` command achieves full RCE on the developer's machine. In cloud development environments (GitHub Codespaces, Gitpod), endpoint may be internet-accessible. EPSS 97th percentile; public PoC within 4 days of CVE. Same-day fix (v1.4.3, January 16, 2026): bind to 127.0.0.1 + authentication. No confirmed in-the-wild exploitation. Near-miss. Notably: security researchers using MCPJam Inspector to investigate malicious MCP servers exposed their own machines to the servers under investigation. The official `@modelcontextprotocol/inspector` had the same 0.0.0.0 binding vulnerability (GHSA-7f8r-222p-6f5g, June 2025), setting the security baseline for community forks by example.
+  - *Sixth member — debugging-tooling-layer failure. Pattern group now spans every layer of the MCP stack: protocol design, server reference implementations, client libraries, multi-server trust model, and debugging infrastructure. (confirmed, n=6)*
 
 ---
 
@@ -184,6 +194,7 @@ Agent accessed credentials with broader authority than required for its task, en
 - AAGF-2026-021 (GitHub token in CodeBuild had write access to repository when only read access was needed; enabled unauthorized code commits bypassing code review)
 - AAGF-2026-028 (Hijacked OpenClaw agent with persistent OAuth tokens and API keys for all connected services enables lateral movement into organizational infrastructure; single gateway auth bypass cascades to full credential access across email, Slack, calendars, cloud storage)
 - AAGF-2026-029 (Codex GitHub OAuth token embedded in plaintext git remote URL granted read/write access to all authorized repos; @codex PR review variant used Installation Access Token with potential org-wide scope for a single-repository code review task; Phase 4 remediation reduced token scope and lifetime)
+- AAGF-2026-031 (GitHub PAT with access to all private repositories used as the GitHub MCP server credential; broad-scope PAT enables private data exfiltration when agent follows injected instructions; minimum-scope PAT scoped to target repository only would eliminate the exfiltration payload even if injection succeeds)
 
 ### Growth-first development culture / security debt at scale
 Platform prioritized adoption velocity over security investment, producing systemic vulnerabilities across marketplace, authentication, credential storage, and deployment guidance.
@@ -208,6 +219,14 @@ Protocol specification permits dangerous behavior by design, creating systemic v
 Filesystem path validation uses string-level techniques (normalize, startsWith) that are insufficient for security boundaries — symbolic links not resolved before boundary check, path separators not enforced in prefix comparisons. Documented anti-patterns in OWASP/CWE guidance; present in Anthropic's own reference implementation without pre-publication security review.
 - AAGF-2026-027 (validatePath() uses path.normalize() without fs.realpath() — CWE-59; .startsWith() without trailing separator — CWE-22; both are textbook path traversal anti-patterns present in the canonical reference implementation developers copy)
 
+### Secure-default binding failure in developer tooling HTTP servers
+Developer tools that run embedded HTTP servers bind to `0.0.0.0` (all network interfaces) rather than `127.0.0.1` (loopback only), making local-use-only APIs network-accessible to all machines on the same LAN, VPN, and — in cloud development environments — potentially the public internet. Documented recurring historical pattern across multiple eras of developer tooling. The fix is a one-line default parameter change with zero legitimate-workflow impact.
+- AAGF-2026-034 (MCPJam Inspector: 0.0.0.0 default binding exposes unauthenticated command execution API to network; cloud dev environments extend exposure to potential internet reach)
+
+### Known fix not shipped — governance shipping gate absent
+A security fix was written, committed, and verified in the codebase, but was not deployed to production until external disclosure forced deployment. This is distinct from "fix not written" — the engineering capability was present; the deployment governance was not.
+- AAGF-2026-036 (Claude Code: tree-sitter deny-rule parser fix pre-committed; deployed only after Adversa AI public disclosure; 4-day deployment time confirms pre-existence of fix; CC-643 internal ticket documented the security/correctness issue)
+
 ### Pre-accepted quantified failure rates for irreversible operations
 Vendor measured a non-zero safeguard failure rate for an irreversible operation class, documented it publicly, and deployed commercially — pre-accepting the exact failure category that later materialized.
 - AAGF-2026-023 (OpenAI measured 8% confirmation miss rate on 607 internal tasks and deployed Operator with payment access; the 8% failure category — unauthorized purchase — materialized within 6 days of commercial launch)
@@ -231,6 +250,8 @@ AI agent or platform processes untrusted external inputs (emails, documents, for
 - AAGF-2026-026 (tool descriptions and WhatsApp message content processed as trusted; cross-server instruction flow unconstrained; Experiment 2 triggers via data returned by a trusted server)
 - AAGF-2026-027 (path traversal via agent-readable content: attacker-controlled file content or indirect prompt injection causes agent to invoke filesystem tools with traversal payloads; path string passed to validatePath() treated as trusted without real path resolution)
 - AAGF-2026-029 (branch name = untrusted HTTP API input executed as shell code in container setup; Unicode Ideographic Space obfuscation (U+3000 × 94) hides 100-character payload from UI while shell executes it; no sanitization before passing to git fetch/checkout shell commands)
+- AAGF-2026-031 (GitHub Issue body returned by list_issues tool — attacker-authored free-form text — entered LLM context with no boundary marker distinguishing it from trusted instructions; agent processed embedded prompt injection payload as legitimate directives)
+- AAGF-2026-036 (CLAUDE.md from untrusted repository processed as authoritative agent instruction; 51-subcommand build command crafted to exceed deny-rule evaluation threshold; CI/CD auto-approve makes this fully non-interactive)
 
 ### Pattern-matching-only defense model
 All defensive layers use the same paradigm (deny-list pattern matching) rather than structurally different control types, allowing a single attacker methodology to bypass all layers independently.
@@ -245,13 +266,14 @@ Agent platform classifies internal tools as trusted, placing them outside the se
 
 ### Anthropic non-response pattern
 Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AAGF-2026-003, AAGF-2026-004, AAGF-2026-006. (AAGF-2026-005 received a response only after ~2.4M viral impressions on HN.)
+- AAGF-2026-036 (50-subcommand bypass patched silently in v2.1.90 with non-descriptive label "parse-fail fallback deny-rule degradation"; no CVE assigned; no security advisory; GitHub #8961 (settings.local.json deny-rule reliability failure) open October 2025 with zero Anthropic staff response as of May 2026)
 
 ---
 
 ## Platform Clusters
 
 ### Claude Code CLI (all incidents)
-- AAGF-2026-001, AAGF-2026-002, AAGF-2026-003, AAGF-2026-004, AAGF-2026-005, AAGF-2026-006
+- AAGF-2026-001, AAGF-2026-002, AAGF-2026-003, AAGF-2026-004, AAGF-2026-005, AAGF-2026-006, AAGF-2026-036
 
 ### Amazon Internal (Q Developer, Kiro)
 - AAGF-2026-008, AAGF-2026-021
@@ -290,10 +312,10 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 - AAGF-2026-024
 
 ### Anthropic MCP Protocol
-- AAGF-2026-022, AAGF-2026-025, AAGF-2026-026, AAGF-2026-027
+- AAGF-2026-022, AAGF-2026-025, AAGF-2026-026, AAGF-2026-027, AAGF-2026-033, AAGF-2026-034
 
-### npm / MCP Ecosystem
-- AAGF-2026-020
+### npm / MCP Ecosystem (extended)
+- AAGF-2026-020, AAGF-2026-033, AAGF-2026-034
 
 ### Replit
 - AAGF-2026-019
@@ -304,6 +326,12 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 ### OpenAI Codex
 - AAGF-2026-029
 
+### GitHub MCP Server / Claude Desktop
+- AAGF-2026-031
+
+### Cursor IDE / MCP Ecosystem
+- AAGF-2026-032
+
 ---
 
 ## Industry Clusters
@@ -312,7 +340,7 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 - AAGF-2026-023 (Operator unauthorized purchase), AAGF-2026-026 (WhatsApp MCP rug-pull)
 
 ### Software Development / Open Source / SaaS
-- AAGF-2026-001, AAGF-2026-002, AAGF-2026-003, AAGF-2026-004, AAGF-2026-005, AAGF-2026-014, AAGF-2026-015, AAGF-2026-016, AAGF-2026-017, AAGF-2026-020, AAGF-2026-021, AAGF-2026-029
+- AAGF-2026-001, AAGF-2026-002, AAGF-2026-003, AAGF-2026-004, AAGF-2026-005, AAGF-2026-014, AAGF-2026-015, AAGF-2026-016, AAGF-2026-017, AAGF-2026-020, AAGF-2026-021, AAGF-2026-029, AAGF-2026-031, AAGF-2026-032, AAGF-2026-033, AAGF-2026-034, AAGF-2026-036
 
 ### B2B SaaS (non-coding-tool)
 - AAGF-2026-007 (PocketOS — rental management SaaS; victim is the developer, not an end user of Claude)
@@ -340,6 +368,9 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 - AAGF-2026-025 (Three CVEs in Anthropic's mcp-server-git reference implementation; 6-step RCE chain; toxic combination pattern; 7-month patch window)
 - AAGF-2026-027 (Two path traversal CVEs in Anthropic's mcp-server-filesystem reference implementation; CVSS 8.4; allowedDirectory sandbox escape; SSH keys, .env files, API credentials accessible; near-miss; patched July 1 2025)
 - AAGF-2026-028 (ClawJacked CVE-2026-28472; OpenClaw WebSocket hijacking via browser-to-localhost attack; near-miss; all local OpenClaw deployments prior to 2026.2.25 vulnerable)
+- AAGF-2026-031 (GitHub MCP Server prompt injection; private repo exfiltration via create_pull_request; researcher PoC on real infrastructure; 8-month vulnerable window)
+- AAGF-2026-033 (mcp-remote CVE-2025-6514 CVSS 9.6; OS command injection via OAuth metadata URL; 437,000+ downloads; bidirectional MCP attack surface)
+- AAGF-2026-034 (MCPJam Inspector CVE-2026-23744 CVSS 9.8; unauthenticated RCE via 0.0.0.0 binding; EPSS 97th percentile; debugging-tooling-layer failure)
 
 ---
 
@@ -376,6 +407,9 @@ AAGF-2026-006 is the first incident where primary financial harm landed on a thi
 
 **Pattern 10 — AI Agent Platform Security: Growth-First Architecture Producing Systemic Vulnerability (Confirmed, n=2)**
 AAGF-2026-010 (OpenClaw) and AAGF-2026-013 (Flowise) confirm this as a recurring pattern across independent platforms. Both are open-source AI agent platforms with rapid adoption (135K+ and 43K+ GitHub stars respectively), both experienced multiple critical CVEs in compressed timeframes (137 advisories in 3 months vs. 3 actively exploited CVEs in ~12 months), and both had thousands of publicly exposed instances (21,639 vs. 12,000-15,000). The shared root cause is growth-first development culture outpacing security investment: no security-focused code review, insufficient authentication enforcement, credential aggregation without isolation, and inadequate vulnerability communication to operators. AAGF-2026-013 adds the 6-month patch gap dimension: the fix existed but the ecosystem failed to apply it, highlighting that self-hosted open-source AI infrastructure lacks the update mechanisms its security criticality demands.
+
+**Pattern 11 — Anthropic Security Governance Lifecycle Failures (Emerging)**
+Three distinct incidents now document Anthropic's security governance failing at structurally different stages of the fix lifecycle. AAGF-2026-022 (MCP STDIO): protocol-level design flaw, Anthropic confirmed "expected behavior" and declined to fix at the protocol level — design-stage non-response. AAGF-2026-025 (mcp-server-git): implementation-level validation failures in reference implementation shipped without pre-publication security review — review-stage failure. AAGF-2026-036 (Claude Code deny-rule bypass): working fix committed to codebase, not deployed to production until external disclosure forced 4-day deployment — shipping-stage failure. Each failure mode is structurally distinct, but all three share a common thread: operators were exposed without warning, and the path to remediation required either external disclosure or viral community pressure. Three incidents across three lifecycle stages constitutes a pattern. The settings.local.json deny-rule reliability issue (GitHub #8961, October 2025) adds a fourth dimension: an acknowledged reproduction of a security issue with zero staff response as of May 2026.
 
 ---
 
@@ -447,6 +481,27 @@ AAGF-2026-010 (OpenClaw) and AAGF-2026-013 (Flowise) confirm this as a recurring
 | AAGF-2026-029 | AAGF-2026-016 | Pattern group (agentic-ide-vulnerability-class), shared root cause (token/credential over-permissioning, untrusted input executed as code) | IDEsaster attacked the IDE/editor layer via prompt injection in workspace config files and MCP configs. Codex branch injection attacked the cloud agent's container setup via unsanitized HTTP API parameter. Both: AI coding agents accumulate broad credentials and execute shell commands without hardened input handling — IDE config injection vs. cloud container OS command injection via HTTP API parameter. VentureBeat documented Codex branch injection as 1 of 6 AI coding agent exploits in a 9-month period, all following the pattern of AI coding agents holding credentials and authenticating to production systems without human session anchoring. Mechanism differs; root architectural failure is identical. |
 
 | AAGF-2026-028 | AAGF-2026-010 | Pattern group (ai-agent-platform-security-crisis), same platform (OpenClaw), root cause clusters (token/credential over-permissioning, growth-first development culture) | Same platform (OpenClaw), same platform security crisis pattern group. Different CVE mechanism: ClawBleed (-010) = agent connects OUT to attacker server (CVE-2026-25253); ClawJacked (-028) = attacker connects IN via browser WebSocket to local gateway (CVE-2026-28472). Both stem from the same localhost trust assumption failure. ClawJacked adds a new OpenClaw vulnerability dimension to the pattern group: browser-to-localhost inbound attack not requiring any outbound agent action. |
+| AAGF-2026-031 | AAGF-2026-026 | Pattern-adjacent (lethal trifecta, both Invariant Labs MCP demonstrations), root cause cluster (untrusted content as trusted context, credential over-permissioning) | Closest structural match: both are Invariant Labs MCP demonstrations applying the lethal trifecta. -026 injects via tool descriptions (rug-pull); -031 injects via tool response data (issue body). Both use MCP write tools as exfiltration channel. -031 is in enterprise-copilot-prompt-injection-exfiltration (architectural limitation of agentic tool use); -026 is in mcp-protocol-security-crisis (protocol-level multi-server trust flaw). |
+| AAGF-2026-031 | AAGF-2026-014 | Pattern group (enterprise-copilot-prompt-injection-exfiltration), same platform (GitHub), root cause cluster (untrusted content as trusted context, credential over-permissioning) | Both target GitHub infrastructure using prompt injection to reach private repository data. CamoLeak (-014) required CSP bypass via ~100 pre-computed Camo proxy images; -031 uses first-class write tool (create_pull_request) with no CSP bypass required. -014: GitHub Copilot Chat (enterprise AI product); -031: github-mcp-server (developer tooling). Both are researcher PoCs. Together they establish GitHub-adjacent developer tooling as a confirmed attack surface for indirect prompt injection. |
+| AAGF-2026-031 | AAGF-2026-024 | Pattern group (enterprise-copilot-prompt-injection-exfiltration), root cause cluster (untrusted content as trusted context) | AgentFlayer established multi-vendor class-level confirmation for the pattern. -031 is the MCP-specific instantiation confirming the same attack class applies to MCP-based developer tools with write access, not just enterprise SaaS copilots. |
+| AAGF-2026-031 | AAGF-2026-022 | Root cause cluster (untrusted content as trusted context), MCP ecosystem context | Ecosystem context: -022 is a protocol-level design flaw; -031 is an architectural limitation of MCP servers exposing write capabilities alongside untrusted content retrieval. The distinction matters: -031's vulnerability is not an MCP protocol error but the inherent combination of faithful data retrieval + instruction-following LLM + write capabilities. |
+| AAGF-2026-032 | AAGF-2026-020 | Supply chain trust model abuse, MCP ecosystem | Post-initial-trust attack window exploited in both: -020 poisoned npm package after 15 legitimate versions; -032 poisoned config after one user approval. Same trust model failure class, different attack surface. |
+| AAGF-2026-032 | AAGF-2026-022 | Root cause cluster (MCP protocol security gap), thematic | MCP protocol shipped without security specification for client trust management; MCPoison (-032) and STDIO design flaw (-022) both trace to this same absence. Different failure modes (trust persistence vs. execute-first), same root cause layer. |
+| AAGF-2026-032 | AAGF-2026-016 | Pattern group (agentic-ide-vulnerability-class), same platform (Cursor IDE) | IDEsaster (-016) established prompt injection → file write → auto-execution attack surface on Cursor. MCPoison (-032) adds config trust persistence → persistent RCE via MCP configuration layer on same platform. Two independent attack paths on the same IDE. |
+| AAGF-2026-032 | AAGF-2026-009 | Thematic (supply chain compromise of developer AI infrastructure) | Different mechanism (CI/CD credential theft vs. config file swap), same target class (AI developer infrastructure managing sensitive credentials). |
+| AAGF-2026-033 | AAGF-2026-022 | Pattern group (mcp-protocol-security-crisis), bidirectional attack surface confirmation | -022: server-side STDIO execute-first protocol design flaw. -033: malicious server attacking client during OAuth handshake. Together confirm MCP attack surfaces are bidirectional — agents are both attack recipients and attack enablers. |
+| AAGF-2026-033 | AAGF-2026-009 | Thematic (AI infrastructure supply chain → credential access at scale) | Different attack vector (OAuth client vs. compromised package version), same consequence class (AI infrastructure supply chain enables developer credential access at scale). |
+| AAGF-2026-033 | AAGF-2026-020 | Pattern group (mcp-protocol-security-crisis), complementary attack surface | -020: malicious MCP server (server-side npm backdoor targeting connecting clients). -033: client-side RCE via connecting to malicious server during OAuth. Both exploit the client-server trust relationship in MCP, from opposite sides. |
+| AAGF-2026-033 | AAGF-2026-027 | Pattern group (mcp-protocol-security-crisis), same ecosystem failure class | Both: implementation-level MCP ecosystem failures affecting developer machines; both near-misses. -027: Anthropic reference implementation (server-side path traversal). -033: community bridge package (client-side OAuth RCE). |
+| AAGF-2026-034 | AAGF-2026-033 | Pattern group (mcp-protocol-security-crisis), same MCP tooling attack surface disclosure wave | Both target developer machines building with MCP; both achieve RCE via different mechanisms. -033: OS shell injection via malicious OAuth metadata. -034: unauthenticated HTTP command execution API. Together demonstrate the MCP security crisis extends through the entire developer toolchain. |
+| AAGF-2026-034 | AAGF-2026-022 | Pattern group (mcp-protocol-security-crisis), ecosystem root cause link | -022 is the seed: MCP built without adequate security baseline at protocol level. -034 is a downstream consequence: community Inspector fork shipped with same dangerous defaults as official tool (GHSA-7f8r-222p-6f5g), because no ecosystem-level baseline exists requiring otherwise. |
+| AAGF-2026-034 | AAGF-2026-025 | Pattern group (mcp-protocol-security-crisis), complementary layers | -025: reference git server implementation-level failures. -034: debugging-tooling-layer failure in community Inspector fork. Both confirm pattern group spans from Anthropic's first-party implementations to community ecosystem tooling. |
+| AAGF-2026-034 | AAGF-2026-016 | Root cause cluster (developer machine as high-value target), thematic | Both identify developer machine compromise as the primary attack vector for AI ecosystem threats. -016: universal IDE vulnerability class via project file injection. -034: debugging tool as attack vector; security researchers face catch-22 investigating the server that compromises them. |
+| AAGF-2026-036 | AAGF-2026-016 | Pattern group (agentic-ide-vulnerability-class), same platform (Claude Code), compounding attack surfaces | Claude Code is one of 10+ vulnerable products in IDEsaster (-016). Deny-rule bypass (-036) adds a second independent attack surface: permission enforcement layer fails against adversarial LLM-generated commands. IDEsaster used prompt injection via context reading; -036 uses compound command chain to exceed evaluation threshold. Both paths available simultaneously on same platform. |
+| AAGF-2026-036 | AAGF-2026-021 | Shared delivery mechanism (project-level AI instruction file as attack vector) | CLAUDE.md / Amazon Q equivalent: both incidents demonstrated that AI agent instruction files in cloned repositories can be used to inject malicious commands. -021: compromised extension distributed wiper prompt. -036: malicious CLAUDE.md crafts 51-subcommand chain to bypass deny rules silently in CI/CD. |
+| AAGF-2026-036 | AAGF-2026-015 | Root cause cluster (security controls calibrated for human inputs fail against adversarial agent inputs) | -015: Antigravity sandbox Secure Mode evaluated tools before native tool execution — security boundary missed the actual execution path. -036: deny-rule evaluation capped at 50 subcommands (calibrated for human command chains); adversarial LLM-generated chains trivially exceed threshold. Both: performance/usability assumptions about human behavior become security bypasses in adversarial agentic contexts. |
+| AAGF-2026-036 | AAGF-2026-022 | Anthropic governance failure pattern | -022: Anthropic confirmed STDIO execute-first as "expected behavior" and declined protocol-level fix. -036: Anthropic had tree-sitter fix ready and did not ship it until external disclosure forced 4-day deployment. Different failure mode (non-response vs. delayed shipping), same pattern: Anthropic's security governance failed at the fix-delivery stage. |
+| AAGF-2026-036 | AAGF-2026-025 | Anthropic governance failure lifecycle | -025: pre-publication security review failure (7-month patch window). -036: post-fix deployment failure (fix written, not shipped). Together with -022 (protocol design non-response), these three incidents document Anthropic's security governance gaps across the full fix lifecycle: design, pre-publication review, and post-fix deployment. |
 
 ---
 
