@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import type { Incident } from "@/lib/content/types";
 import { getAllIncidentCards, getAllIncidents, getIncidentBySlug } from "@/lib/content/incidents";
 import { SITE_META } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
@@ -350,7 +351,7 @@ export default async function IncidentDetailPage({
  * - SIDE EFFECTS: None
  * - INVARIANTS: Only shown on mobile (lg:hidden)
  */
-function MobileSummary({ incident }: { incident: Awaited<ReturnType<typeof getIncidentBySlug>> & object }) {
+function MobileSummary({ incident }: { incident: Incident }) {
   const chips: Array<{ label: string; value: string }> = [
     { label: "Impact", value: incident.financial_impact || "Unknown" },
     { label: "Speed", value: incident.damage_speed || "Unknown" },

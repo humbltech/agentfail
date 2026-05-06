@@ -34,13 +34,7 @@ export function RelatedIncidents({
     <section aria-labelledby="related-incidents-heading">
       <h2
         id="related-incidents-heading"
-        style={{
-          fontFamily: "var(--font-display)",
-          fontSize: "22px",
-          color: "var(--text-primary)",
-          marginBottom: "16px",
-          fontWeight: 600,
-        }}
+        className="font-[family-name:var(--font-display)] text-[22px] text-[var(--text-primary)] mb-4 font-semibold"
       >
         Related Incidents
       </h2>

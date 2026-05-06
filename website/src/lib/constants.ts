@@ -1,4 +1,4 @@
-import type { Severity } from "./content/types";
+import type { Severity, FrameworkRefs } from "./content/types";
 
 // ─── Severity display tokens ──────────────────────────────────────────────────
 
@@ -73,7 +73,7 @@ export const AGENT_TYPE_SLUGS: Record<string, string> = {
 
 // ─── Framework reference URL builders ────────────────────────────────────────
 
-export const FRAMEWORK_URLS: Record<string, (id: string) => string> = {
+export const FRAMEWORK_URLS: Record<keyof FrameworkRefs, (id: string) => string> = {
   mitre_atlas: (id) => `https://atlas.mitre.org/techniques/${id}`,
   owasp_llm: (id) =>
     `https://genai.owasp.org/llmrisk/${id.toLowerCase().replace(":", "-")}`,

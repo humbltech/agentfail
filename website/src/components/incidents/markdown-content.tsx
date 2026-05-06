@@ -47,8 +47,6 @@ export function MarkdownContent({ html, className }: MarkdownContentProps) {
         "prose-hr:border-[var(--border-subtle)]",
         // Lists
         "prose-li:text-[var(--text-secondary)]",
-        // H2 left border — via prose-h2 modifier
-        "[&_.prose-h2]:border-l-4 [&_.prose-h2]:border-[var(--accent)] [&_.prose-h2]:pl-3",
         className,
       )}
       dangerouslySetInnerHTML={{ __html: html }}
