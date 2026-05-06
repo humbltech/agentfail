@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:x.com)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(npm test:*)",
+      "Bash(npx eslint:*)",
+      "Bash(mkdir -p /Users/atinderpalsingh/projects/agentfail/website/src/app/patterns/[slug])",
+      "Bash(mkdir -p /Users/atinderpalsingh/projects/agentfail/website/src/app/categories/[slug])",
+      "Bash(mkdir -p /Users/atinderpalsingh/projects/agentfail/website/src/app/agent-types/[slug])",
+      "Bash(mkdir -p \"/Users/atinderpalsingh/projects/agentfail/website/src/app/patterns/[slug]\")",
+      "Bash(mkdir -p \"/Users/atinderpalsingh/projects/agentfail/website/src/app/categories/[slug]\")",
+      "Bash(mkdir -p \"/Users/atinderpalsingh/projects/agentfail/website/src/app/agent-types/[slug]\")",
+      "Bash(pnpm test:*)"
     ]
   }
 }
