@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { IncidentCard } from "@/lib/content/types";
 import type { VendorResponse } from "@/lib/content/types";
 import { SeverityBadge } from "@/components/incidents/severity-badge";
-import { cn, formatDate, getCategorySlug } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 // ─── Vendor response labels ───────────────────────────────────────────────────
 
@@ -31,10 +31,6 @@ function CategorySpan({ category }: { category: string }) {
   const parenIndex = category.indexOf("(");
   const displayName =
     parenIndex !== -1 ? category.slice(0, parenIndex).trim() : category;
-
-  // Keep slug computed to keep the value consistent with CategoryTag, even though
-  // we don't use it for linking here.
-  void getCategorySlug(category);
 
   return (
     <span
