@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import type { Incident } from "@/lib/content/types";
 import { getAllIncidentCards, getAllIncidents, getIncidentBySlug } from "@/lib/content/incidents";
 import { SITE_META } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
@@ -11,16 +10,25 @@ import { KeyFactsSidebar } from "@/components/incidents/key-facts-sidebar";
 import { FrameworkRefsCard } from "@/components/incidents/framework-refs";
 import { RelatedIncidents } from "@/components/incidents/related-incidents";
 import { MarkdownContent } from "@/components/incidents/markdown-content";
+import { HeroStatsBar } from "@/components/incidents/hero-stats-bar";
+import { KeyTakeawaysCard } from "@/components/incidents/key-takeaways-card";
+import { VisualTimeline } from "@/components/incidents/visual-timeline";
+import { CollapsibleSection } from "@/components/incidents/collapsible-section";
 import { JsonLd } from "@/components/shared/json-ld";
+
+// ─── Section filtering constants ─────────────────────────────────────────────
+
+const EXCLUDED_IDS = ["related-incidents", "references", "key-takeaways"];
+const OPEN_BY_DEFAULT = [
+  "what-happened",
+  "root-cause-analysis",
+  "how-it-could-have-been-prevented",
+  "how-it-was-could-be-fixed",
+];
 
 // ─── Static params ────────────────────────────────────────────────────────────
 
-/**
- * CONTRACT:
- * - WHAT: Pre-generates static routes for all published incidents at build time.
- * - OUTPUT: Array of { id } param objects — one per published incident
- * - SIDE EFFECTS: Filesystem reads via getAllIncidents (build-time only)
- */
+/** Pre-generates static routes for all published incidents at build time. */
 export async function generateStaticParams(): Promise<Array<{ id: string }>> {
   const incidents = await getAllIncidents();
   return incidents.map((incident) => ({ id: incident.id }));
@@ -28,13 +36,7 @@ export async function generateStaticParams(): Promise<Array<{ id: string }>> {
 
 // ─── Metadata ─────────────────────────────────────────────────────────────────
 
-/**
- * CONTRACT:
- * - WHAT: Generates per-incident metadata for SEO and OG.
- * - INPUT: params.id → slug string
- * - OUTPUT: Metadata object with title, description, OG tags
- * - ERRORS: Returns fallback metadata if incident not found (notFound() handles the page)
- */
+/** Generates per-incident metadata for SEO and OG. */
 export async function generateMetadata({
   params,
 }: {
@@ -71,17 +73,7 @@ export async function generateMetadata({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-/**
- * CONTRACT:
- * - WHAT: Renders the full detail page for a single published incident.
- * - INPUT: params.id — incident ID (e.g. "AAGF-2026-001")
- * - OUTPUT: Full incident layout: header, two-column body, related incidents, sources
- * - ERRORS: Calls notFound() when incident is null (renders 404)
- * - SIDE EFFECTS: Filesystem reads at build time (static generation)
- * - INVARIANTS:
- *   - Page is always statically generated (no dynamic data fetching)
- *   - Sidebar is sticky on desktop, stacked above content on mobile
- */
+/** Renders the full detail page for a single published incident. */
 export default async function IncidentDetailPage({
   params,
 }: {
@@ -96,6 +88,18 @@ export default async function IncidentDetailPage({
   if (!incident) {
     notFound();
   }
+
+  // Extract special sections
+  const execSummary = incident.sections.find((s) => s.id === "executive-summary");
+  const timeline = incident.sections.find((s) => s.id === "timeline");
+  const takeaways = incident.sections.find((s) => s.id === "key-takeaways");
+
+  const contentSections = incident.sections.filter(
+    (s) =>
+      !EXCLUDED_IDS.includes(s.id) &&
+      s.id !== "executive-summary" &&
+      s.id !== "timeline"
+  );
 
   // JSON-LD: Article schema
   const jsonLd = {
@@ -157,21 +161,18 @@ export default async function IncidentDetailPage({
           </ol>
         </nav>
 
-        {/* ── Top header row ───────────────────────────────────────────────── */}
+        {/* ── Severity + Date row ─────────────────────────────────────────── */}
         <div
           style={{
             display: "flex",
             alignItems: "flex-start",
             justifyContent: "space-between",
             gap: "16px",
-            marginBottom: "12px",
+            marginBottom: "16px",
             flexWrap: "wrap",
           }}
         >
-          {/* Left: severity badge */}
           <SeverityBadge severity={incident.severity} />
-
-          {/* Right: date */}
           <span
             style={{
               fontSize: "13px",
@@ -235,15 +236,64 @@ export default async function IncidentDetailPage({
           style={{
             height: "2px",
             background: "var(--accent)",
-            marginBottom: "36px",
+            marginBottom: "32px",
             borderRadius: "1px",
           }}
         />
 
-        {/* ── Mobile: sidebar facts above content ───────────────────────────── */}
-        <div className="lg:hidden" style={{ marginBottom: "32px" }}>
-          <MobileSummary incident={incident} />
+        {/* ── Hero Stats Bar ────────────────────────────────────────────────── */}
+        <div style={{ marginBottom: "32px" }}>
+          <HeroStatsBar incident={incident} />
         </div>
+
+        {/* ── Headline stat + Operator TL;DR card ───────────────────────────── */}
+        {(incident.headline_stat || incident.operator_tldr) && (
+          <div
+            style={{
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border-subtle)",
+              borderRadius: "6px",
+              padding: "24px",
+              marginBottom: "32px",
+            }}
+          >
+            {incident.headline_stat && (
+              <p
+                className="font-[family-name:var(--font-display)]"
+                style={{
+                  fontSize: "22px",
+                  color: "var(--accent)",
+                  lineHeight: "1.3",
+                  margin: 0,
+                  fontWeight: 600,
+                  marginBottom: incident.operator_tldr ? "8px" : "0",
+                }}
+              >
+                {incident.headline_stat}
+              </p>
+            )}
+            {incident.operator_tldr && (
+              <p
+                style={{
+                  fontSize: "14px",
+                  color: "var(--text-secondary)",
+                  fontStyle: "italic",
+                  lineHeight: "1.5",
+                  margin: 0,
+                }}
+              >
+                {incident.operator_tldr}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* ── Key Takeaways Card ────────────────────────────────────────────── */}
+        {takeaways && (
+          <div style={{ marginBottom: "32px" }}>
+            <KeyTakeawaysCard html={takeaways.html} />
+          </div>
+        )}
 
         {/* ── Two-column layout ─────────────────────────────────────────────── */}
         <div
@@ -254,9 +304,47 @@ export default async function IncidentDetailPage({
           }}
           className="lg:[grid-template-columns:minmax(0,2fr)_320px]"
         >
-          {/* LEFT: Main markdown content */}
+          {/* LEFT: Sectioned content */}
           <div style={{ minWidth: 0 }}>
-            <MarkdownContent html={incident.contentHtml} />
+
+            {/* Executive Summary — always visible, no collapse */}
+            {execSummary && (
+              <section style={{ marginBottom: "24px" }}>
+                <h2
+                  className="font-[family-name:var(--font-display)]"
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: 600,
+                    color: "var(--text-primary)",
+                    borderLeft: "4px solid var(--accent)",
+                    paddingLeft: "12px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  Executive Summary
+                </h2>
+                <MarkdownContent html={execSummary.html} />
+              </section>
+            )}
+
+            {/* Timeline — collapsible with visual rendering */}
+            {timeline && (
+              <CollapsibleSection title="Timeline" id="timeline" defaultOpen={true}>
+                <VisualTimeline html={timeline.html} />
+              </CollapsibleSection>
+            )}
+
+            {/* Remaining content sections — collapsible */}
+            {contentSections.map((section) => (
+              <CollapsibleSection
+                key={section.id}
+                title={section.title}
+                id={section.id}
+                defaultOpen={OPEN_BY_DEFAULT.includes(section.id)}
+              >
+                <MarkdownContent html={section.html} />
+              </CollapsibleSection>
+            ))}
           </div>
 
           {/* RIGHT: Sticky sidebar (desktop only) */}
@@ -337,70 +425,5 @@ export default async function IncidentDetailPage({
         )}
       </div>
     </>
-  );
-}
-
-// ─── MobileSummary ────────────────────────────────────────────────────────────
-
-/**
- * CONTRACT:
- * - WHAT: Compact horizontal summary of key facts for mobile screens.
- * - INPUT: Full Incident object
- * - OUTPUT: A scrollable row of key fact chips
- * - ERRORS: None
- * - SIDE EFFECTS: None
- * - INVARIANTS: Only shown on mobile (lg:hidden)
- */
-function MobileSummary({ incident }: { incident: Incident }) {
-  const chips: Array<{ label: string; value: string }> = [
-    { label: "Impact", value: incident.financial_impact || "Unknown" },
-    { label: "Speed", value: incident.damage_speed || "Unknown" },
-    { label: "Recovery", value: incident.recovery_time || "Unknown" },
-  ];
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        gap: "12px",
-        overflowX: "auto",
-        paddingBottom: "4px",
-      }}
-    >
-      {chips.map(({ label, value }) => (
-        <div
-          key={label}
-          style={{
-            background: "var(--bg-surface)",
-            border: "1px solid var(--border-subtle)",
-            borderRadius: "6px",
-            padding: "10px 14px",
-            flexShrink: 0,
-          }}
-        >
-          <div
-            style={{
-              fontSize: "10px",
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-              marginBottom: "2px",
-            }}
-          >
-            {label}
-          </div>
-          <div
-            style={{
-              fontSize: "13px",
-              fontWeight: 600,
-              color: "var(--text-primary)",
-            }}
-          >
-            {value}
-          </div>
-        </div>
-      ))}
-    </div>
   );
 }

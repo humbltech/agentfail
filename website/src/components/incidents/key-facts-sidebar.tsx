@@ -1,8 +1,6 @@
 import type { Incident, VendorResponse } from "@/lib/content/types";
 import { formatUSD } from "@/lib/utils";
 
-// ─── Vendor response display ──────────────────────────────────────────────────
-
 const VENDOR_RESPONSE_LABELS: Record<VendorResponse, string> = {
   none: "No response",
   acknowledged: "Acknowledged",
@@ -21,8 +19,6 @@ const VENDOR_RESPONSE_DOT_COLORS: Record<VendorResponse, string> = {
   disputed_then_refund_issued: "var(--severity-medium)",
 } satisfies Record<VendorResponse, string>;
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
 interface FactRowProps {
   label: string;
   value: string;
@@ -30,14 +26,7 @@ interface FactRowProps {
   mono?: boolean;
 }
 
-/**
- * CONTRACT:
- * - WHAT: Renders a single label/value pair with optional mono font and color overrides.
- * - INPUTS: label, value, optional valueStyle, optional mono flag
- * - OUTPUTS: A <div> pair with consistent spacing and a separator below
- * - ERRORS: None
- * - SIDE EFFECTS: None
- */
+/** Renders a single label/value pair. */
 function FactRow({ label, value, valueStyle, mono }: FactRowProps) {
   return (
     <div>
@@ -68,24 +57,11 @@ function FactRow({ label, value, valueStyle, mono }: FactRowProps) {
   );
 }
 
-// ─── KeyFactsSidebar ──────────────────────────────────────────────────────────
-
 interface KeyFactsSidebarProps {
   incident: Incident;
 }
 
-/**
- * CONTRACT:
- * - WHAT: Sticky sidebar showing key quantitative facts and framing for an incident.
- * - INPUTS: Full Incident object
- * - OUTPUTS: A styled card with fact rows, headline stat, and operator TL;DR
- * - ERRORS: None — all nullable fields have fallback rendering
- * - SIDE EFFECTS: None
- * - INVARIANTS:
- *   - financial_impact_usd null → "Unknown"
- *   - full_recovery_achieved "no" → red text
- *   - All values are derived from the incident object, never hardcoded
- */
+/** Sticky sidebar showing key quantitative facts in a 2-column grid. */
 export function KeyFactsSidebar({ incident }: KeyFactsSidebarProps) {
   const vendorLabel = VENDOR_RESPONSE_LABELS[incident.vendor_response];
   const vendorDotColor = VENDOR_RESPONSE_DOT_COLORS[incident.vendor_response];
@@ -129,9 +105,6 @@ export function KeyFactsSidebar({ incident }: KeyFactsSidebarProps) {
         border: "1px solid var(--border-subtle)",
         borderRadius: "6px",
         padding: "24px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "0",
       }}
     >
       {/* Section label */}
@@ -148,31 +121,37 @@ export function KeyFactsSidebar({ incident }: KeyFactsSidebarProps) {
         Key Facts
       </div>
 
-      {/* Fact rows */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      {/* 2-column grid of fact rows */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "12px",
+        }}
+      >
+        {/* Row 1: Financial Impact | Damage Speed */}
         <FactRow
           label="Financial Impact"
           value={formatUSD(incident.financial_impact_usd)}
           mono
         />
-
         <FactRow
           label="Damage Speed"
           value={incident.damage_speed || "Unknown"}
         />
 
+        {/* Row 2: Damage Window | Recovery */}
         <FactRow
           label="Total Damage Window"
           value={incident.total_damage_window || "Unknown"}
         />
-
         <FactRow
           label="Recovery"
           value={recoveryValue}
           valueStyle={recoveryValueStyle}
         />
 
-        {/* Vendor response — with colored dot */}
+        {/* Row 3: Vendor Response | Containment */}
         <div>
           <div
             style={{
@@ -210,7 +189,6 @@ export function KeyFactsSidebar({ incident }: KeyFactsSidebarProps) {
             {vendorLabel}
           </div>
         </div>
-
         <FactRow
           label="Containment"
           value={
@@ -219,84 +197,17 @@ export function KeyFactsSidebar({ incident }: KeyFactsSidebarProps) {
           }
         />
 
-        <FactRow
-          label="Public Attention"
-          value={
-            publicAttentionLabels[incident.public_attention] ??
-            incident.public_attention
-          }
-        />
+        {/* Row 4: Public Attention (full width) */}
+        <div style={{ gridColumn: "1 / -1" }}>
+          <FactRow
+            label="Public Attention"
+            value={
+              publicAttentionLabels[incident.public_attention] ??
+              incident.public_attention
+            }
+          />
+        </div>
       </div>
-
-      {/* Divider */}
-      <div
-        style={{
-          height: "1px",
-          background: "var(--border-subtle)",
-          margin: "20px 0",
-        }}
-        role="separator"
-        aria-hidden="true"
-      />
-
-      {/* Headline stat */}
-      {incident.headline_stat && (
-        <div style={{ marginBottom: "16px" }}>
-          <div
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-              marginBottom: "6px",
-            }}
-          >
-            Headline
-          </div>
-          <p
-            className="font-[family-name:var(--font-display)]"
-            style={{
-              fontSize: "18px",
-              color: "var(--accent)",
-              lineHeight: "1.3",
-              margin: 0,
-              fontWeight: 600,
-            }}
-          >
-            {incident.headline_stat}
-          </p>
-        </div>
-      )}
-
-      {/* Operator TL;DR */}
-      {incident.operator_tldr && (
-        <div>
-          <div
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-              marginBottom: "6px",
-            }}
-          >
-            Operator Action
-          </div>
-          <p
-            style={{
-              fontSize: "13px",
-              color: "var(--text-secondary)",
-              fontStyle: "italic",
-              lineHeight: "1.5",
-              margin: 0,
-            }}
-          >
-            {incident.operator_tldr}
-          </p>
-        </div>
-      )}
     </aside>
   );
 }

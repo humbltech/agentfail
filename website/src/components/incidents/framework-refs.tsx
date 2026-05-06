@@ -2,8 +2,6 @@ import { ExternalLink } from "lucide-react";
 import type { FrameworkRefs } from "@/lib/content/types";
 import { FRAMEWORK_URLS } from "@/lib/constants";
 
-// ─── Display labels for each framework ───────────────────────────────────────
-
 const FRAMEWORK_LABELS: Record<keyof FrameworkRefs, string> = {
   mitre_atlas: "MITRE ATLAS",
   owasp_llm: "OWASP LLM Top 10",
@@ -11,23 +9,13 @@ const FRAMEWORK_LABELS: Record<keyof FrameworkRefs, string> = {
   ttps_ai: "TTPs.AI",
 } satisfies Record<keyof FrameworkRefs, string>;
 
-// ─── FrameworkSection ─────────────────────────────────────────────────────────
-
 interface FrameworkSectionProps {
   label: string;
   ids: string[];
   urlBuilder: (id: string) => string;
 }
 
-/**
- * CONTRACT:
- * - WHAT: Renders a labelled section of framework reference links.
- * - INPUTS: label (display name), ids (ref IDs), urlBuilder (maps ID → URL)
- * - OUTPUTS: A section with a label heading and a list of external links
- * - ERRORS: None
- * - SIDE EFFECTS: None
- * - INVARIANTS: Only rendered when ids.length > 0
- */
+/** Renders a labelled section of framework reference pills. */
 function FrameworkSection({ label, ids, urlBuilder }: FrameworkSectionProps) {
   if (ids.length === 0) return null;
 
@@ -40,68 +28,38 @@ function FrameworkSection({ label, ids, urlBuilder }: FrameworkSectionProps) {
           letterSpacing: "0.1em",
           textTransform: "uppercase",
           color: "var(--text-muted)",
-          marginBottom: "6px",
+          marginBottom: "8px",
         }}
       >
         {label}
       </div>
-      <ul
-        style={{
-          listStyle: "none",
-          margin: 0,
-          padding: 0,
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-        }}
-      >
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
         {ids.map((id) => (
-          <li key={id}>
-            <a
-              href={urlBuilder(id)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="link-accent-mono"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                fontSize: "13px",
-                fontFamily: "var(--font-geist-mono)",
-              }}
-            >
-              {id}
-              <ExternalLink
-                size={11}
-                aria-hidden="true"
-                style={{ flexShrink: 0 }}
-              />
-            </a>
-          </li>
+          <a
+            key={id}
+            href={urlBuilder(id)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="framework-pill inline-flex items-center gap-1"
+          >
+            {id}
+            <ExternalLink
+              size={10}
+              aria-hidden="true"
+              style={{ flexShrink: 0 }}
+            />
+          </a>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
-
-// ─── FrameworkRefs ────────────────────────────────────────────────────────────
 
 interface FrameworkRefsProps {
   refs: FrameworkRefs;
 }
 
-/**
- * CONTRACT:
- * - WHAT: Renders all non-empty framework reference sections for an incident.
- * - INPUTS: FrameworkRefs object with arrays for each framework
- * - OUTPUTS: A styled card with sections grouped by framework; empty sections omitted
- * - ERRORS: None
- * - SIDE EFFECTS: None
- * - INVARIANTS:
- *   - If all arrays are empty, returns null (no card rendered)
- *   - Only sections with at least one ID are shown
- *   - All links open in a new tab with noopener noreferrer
- */
+/** Renders framework reference sections as horizontal pill tags. */
 export function FrameworkRefsCard({ refs }: FrameworkRefsProps) {
   const hasAny =
     refs.mitre_atlas.length > 0 ||

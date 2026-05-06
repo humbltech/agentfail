@@ -86,6 +86,9 @@ const mockIncident: Incident = {
   // Visibility
   visibility: "public",
   internal_notes: "",
+
+  // Sections
+  sections: [],
 };
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -109,16 +112,14 @@ describe("KeyFactsSidebar", () => {
     expect(screen.getByText("No response")).toBeInTheDocument();
   });
 
-  it("renders the headline_stat", () => {
+  it("renders containment method", () => {
     render(<KeyFactsSidebar incident={mockIncident} />);
-    expect(screen.getByText("$6,000 in 26 hours")).toBeInTheDocument();
+    expect(screen.getByText("Usage limit hit")).toBeInTheDocument();
   });
 
-  it("renders the operator_tldr", () => {
+  it("renders public attention", () => {
     render(<KeyFactsSidebar incident={mockIncident} />);
-    expect(
-      screen.getByText("Set a spending cap before running unattended workflows.")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Viral")).toBeInTheDocument();
   });
 
   it("shows 'Unknown' for null financial_impact_usd", () => {
