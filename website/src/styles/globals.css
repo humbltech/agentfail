@@ -146,3 +146,49 @@
     @apply font-sans;
   }
 }
+
+/* ─── Incident markdown prose overrides ─────────────────────────────────── */
+
+.prose h2 {
+  border-left: 4px solid var(--accent);
+  padding-left: 12px;
+}
+
+/* ─── Reusable link hover classes ────────────────────────────────────────── */
+
+.link-muted {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 150ms;
+}
+.link-muted:hover {
+  color: var(--text-secondary);
+}
+
+.link-accent {
+  color: var(--accent);
+  text-decoration: none;
+  word-break: break-all;
+  transition: color 150ms;
+}
+.link-accent:hover {
+  color: var(--accent-bright);
+  text-decoration: underline;
+}
+
+.link-accent-mono {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 150ms;
+}
+.link-accent-mono:hover {
+  color: var(--accent-bright);
+}
+
+.incident-related-card {
+  transition: border-color 150ms, background 150ms;
+}
+.incident-related-card:hover {
+  border-color: var(--border-visible) !important;
+  background: var(--bg-raised) !important;
+}
