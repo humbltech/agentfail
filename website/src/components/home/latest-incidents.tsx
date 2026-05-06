@@ -37,7 +37,7 @@ export function LatestIncidents({ incidents }: LatestIncidentsProps) {
           </h2>
           <Link
             href="/incidents"
-            className="text-sm text-[var(--accent)] hover:text-[var(--accent-bright)] transition-colors duration-150"
+            className="text-sm text-[var(--accent)] hover:text-[var(--accent-bright)] transition-colors duration-150 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             View all →
           </Link>

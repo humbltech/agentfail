@@ -47,7 +47,7 @@ export function HeaderNav({ onLinkClick, vertical = false }: HeaderNavProps) {
                 aria-current={isActive ? "page" : undefined}
                 onClick={onLinkClick}
                 className={cn(
-                  "transition-colors duration-150",
+                  "transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-sm",
                   vertical
                     ? cn(
                         "block text-base py-2 px-3 rounded-[4px]",

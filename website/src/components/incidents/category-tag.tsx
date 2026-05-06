@@ -30,6 +30,7 @@ export function CategoryTag({ category, className }: CategoryTagProps) {
         "inline-block rounded-[4px] transition-colors duration-150",
         "bg-[var(--bg-overlay)] text-[var(--text-secondary)]",
         "hover:text-[var(--text-primary)] hover:bg-[var(--bg-raised)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
         className
       )}
       style={{

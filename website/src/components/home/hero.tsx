@@ -49,6 +49,7 @@ export function Hero() {
               "bg-[var(--accent)] hover:bg-[var(--accent-bright)]",
               "transition-colors duration-150",
               "min-h-[44px] px-6",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-deep)]",
             ].join(" ")}
           >
             Browse Incidents →
@@ -65,6 +66,7 @@ export function Hero() {
               "hover:border-[var(--border-visible)]",
               "transition-colors duration-150",
               "min-h-[44px] px-6",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
             ].join(" ")}
           >
             View Patterns →

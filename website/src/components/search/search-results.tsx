@@ -86,12 +86,12 @@ export function SearchResults({ incidents }: SearchResultsProps) {
             defaultValue={query}
             placeholder="Search incidents, patterns, platforms…"
             autoComplete="off"
-            className="w-full rounded-sm border border-[var(--border-visible)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] transition-colors duration-150"
+            className="w-full rounded-sm border border-[var(--border-visible)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] px-4 py-3 pr-12 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:border-[var(--accent)] transition-colors duration-150"
           />
           <button
             type="submit"
             aria-label="Submit search"
-            className="absolute right-0 top-0 h-full min-w-[44px] flex items-center justify-center px-3 text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors duration-150"
+            className="absolute right-0 top-0 h-full min-w-[44px] flex items-center justify-center px-3 text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-sm"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

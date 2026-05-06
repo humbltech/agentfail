@@ -22,7 +22,7 @@ export function SiteHeader() {
         {/* Wordmark */}
         <Link
           href="/"
-          className="text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors duration-150"
+          className="text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors duration-150 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           style={{
             fontFamily: "var(--font-display)",
             fontSize: "20px",

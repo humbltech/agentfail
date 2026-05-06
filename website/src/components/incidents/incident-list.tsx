@@ -379,7 +379,7 @@ function IncidentListInner({
             <button
               type="button"
               onClick={handleClearAll}
-              className="text-xs text-[var(--accent)] hover:text-[var(--accent-bright)] transition-colors underline underline-offset-2"
+              className="text-xs text-[var(--accent)] hover:text-[var(--accent-bright)] transition-colors underline underline-offset-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               Clear all
             </button>
@@ -390,7 +390,7 @@ function IncidentListInner({
       {/* Two-column layout */}
       <div className="flex gap-8">
         {/* Desktop filter sidebar */}
-        <aside className="hidden md:block w-60 shrink-0">
+        <aside className="hidden md:block w-60 shrink-0" aria-label="Filter incidents">
           <IncidentFilters
             categories={categories}
             platforms={platforms}

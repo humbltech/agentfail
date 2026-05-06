@@ -58,7 +58,7 @@ export function IncidentSearch({ query, onQueryChange }: IncidentSearchProps) {
           "w-full rounded-sm border bg-[var(--bg-surface)] text-[var(--text-primary)]",
           "border-[var(--border-subtle)] placeholder:text-[var(--text-muted)]",
           "pl-9 pr-9 py-2.5 text-sm outline-none",
-          "focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)]",
+          "focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:border-[var(--accent)]",
           "transition-colors",
           "[&::-webkit-search-cancel-button]:hidden",
         )}

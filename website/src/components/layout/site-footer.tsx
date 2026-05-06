@@ -41,7 +41,7 @@ export function SiteFooter() {
             <li>
               <Link
                 href="/incidents"
-                className="hover:text-[var(--text-secondary)] transition-colors duration-150"
+                className="hover:text-[var(--text-secondary)] transition-colors duration-150 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 Incidents
               </Link>
@@ -50,7 +50,7 @@ export function SiteFooter() {
             <li>
               <Link
                 href="/patterns"
-                className="hover:text-[var(--text-secondary)] transition-colors duration-150"
+                className="hover:text-[var(--text-secondary)] transition-colors duration-150 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 Patterns
               </Link>
@@ -59,7 +59,7 @@ export function SiteFooter() {
             <li>
               <Link
                 href="/categories"
-                className="hover:text-[var(--text-secondary)] transition-colors duration-150"
+                className="hover:text-[var(--text-secondary)] transition-colors duration-150 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 Categories
               </Link>
@@ -68,7 +68,7 @@ export function SiteFooter() {
             <li>
               <Link
                 href="/about"
-                className="hover:text-[var(--text-secondary)] transition-colors duration-150"
+                className="hover:text-[var(--text-secondary)] transition-colors duration-150 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 About
               </Link>
@@ -79,7 +79,7 @@ export function SiteFooter() {
                 href="https://github.com/agentfail/agentfail"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[var(--text-secondary)] transition-colors duration-150"
+                className="hover:text-[var(--text-secondary)] transition-colors duration-150 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 GitHub
               </a>

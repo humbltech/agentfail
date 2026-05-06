@@ -138,7 +138,7 @@ export default async function IncidentDetailPage({
             }}
           >
             <li>
-              <Link href="/incidents" className="link-muted">
+              <Link href="/incidents" className="link-muted rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
                 Incidents
               </Link>
             </li>
@@ -325,7 +325,7 @@ export default async function IncidentDetailPage({
                     href={source}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="link-accent"
+                    className="link-accent rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                     style={{ fontSize: "13px" }}
                   >
                     {source}

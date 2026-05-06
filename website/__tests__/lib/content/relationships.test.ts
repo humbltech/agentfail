@@ -9,9 +9,9 @@ import {
 const RELATIONSHIPS_PATH = path.resolve(__dirname, "../../../../relationships");
 
 describe("getPatternGroups", () => {
-  it("returns 4 groups", () => {
+  it("returns 5 groups", () => {
     const groups = getPatternGroups(RELATIONSHIPS_PATH);
-    expect(groups).toHaveLength(4);
+    expect(groups).toHaveLength(5);
   });
 
   it("every group has slug, name, description, and incidentIds", () => {

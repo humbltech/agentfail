@@ -47,7 +47,7 @@ export function IncidentSort({ sort, onSortChange }: IncidentSortProps) {
         className={cn(
           "rounded-sm border bg-[var(--bg-surface)] text-[var(--text-secondary)]",
           "border-[var(--border-subtle)] text-sm px-3 py-2 outline-none cursor-pointer",
-          "focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)]",
+          "focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:border-[var(--accent)]",
           "transition-colors min-h-[44px]",
         )}
         aria-label="Sort incidents by"

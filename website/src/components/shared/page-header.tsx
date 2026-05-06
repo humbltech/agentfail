@@ -46,7 +46,7 @@ export function PageHeader({
                   {!isLast && crumb.href ? (
                     <Link
                       href={crumb.href}
-                      className="hover:text-[var(--text-secondary)] transition-colors duration-150"
+                      className="hover:text-[var(--text-secondary)] transition-colors duration-150 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                     >
                       {crumb.label}
                     </Link>
