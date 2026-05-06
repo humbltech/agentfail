@@ -1,62 +1,62 @@
-## Coder Self-Review: Task 6 — Layout Shell and Shared Components
+## Coder Self-Review: Tasks 13 & 14 — Search Page, About, Sitemap, Robots, 404
 **Language:** TypeScript / Next.js
 **Date:** 2026-05-05
 
 ### Programmatic Pre-Flight
-- [x] `tsc --noEmit` — zero errors (verified via `pnpm build` type check)
-- [x] `eslint --max-warnings 0` — zero warnings (verified via `pnpm build` lint)
-- [x] Tests pass — 107 tests across 6 files, all green
+- [x] `tsc --noEmit` — zero errors (build passes)
+- [x] `pnpm build` — zero errors, 47 static pages generated
+- [x] No test suite in project — N/A
 
 ### Shared Quality Gates
-- [x] SOLID: SRP — each component has one responsibility (badge renders severity, tag renders category, header renders nav, etc.)
-- [x] SOLID: DI — no concrete deps instantiated inside business logic; all dependencies via imports
-- [x] Edge cases: null/undefined inputs handled — optional props (`description`, `breadcrumbs`, `action`, `className`) all guarded
-- [x] Edge cases: empty/zero inputs handled — breadcrumbs length > 0 check before rendering nav, action check before rendering button
-- [x] Edge cases: concurrent call safety considered — all components are pure/functional, no shared mutable state
-- [x] Edge cases: partial failure state is consistent — N/A (pure render components)
-- [x] Temporal: no read-before-write staleness — N/A (no async ops)
-- [x] Temporal: critical side effects before fallible secondary ops — N/A
-- [x] Error handling: no swallowed exceptions, typed AppError used — N/A (pure render, no async)
-- [x] Testability: business logic testable without DB/network — all components are pure render
+- [x] SOLID: SRP — SearchResults handles only search UX; page component only orchestrates
+- [x] SOLID: DI — no concrete deps instantiated inside business logic
+- [x] Edge cases: empty query renders all incidents (not empty state)
+- [x] Edge cases: zero results shows EmptyState with Browse link
+- [x] Edge cases: concurrent call safety N/A — pure client-side filtering
+- [x] Edge cases: partial failure state N/A — build-time data, no runtime fetch
+- [x] Temporal: Fuse instance memoized — only recreated when incidents prop changes
+- [x] Error handling: no swallowed exceptions
+- [x] Testability: Fuse.js search logic is pure useMemo — testable without network
 
 ### TypeScript-Specific Gates
-- [x] No `any` — not even casts or `unknown` bridges
-- [x] No `!` assertions without null-check immediately above
-- [x] No `@ts-ignore` without comment naming the exact type system limitation
-- [x] Zod schemas at every external boundary — N/A (no API boundaries in these components)
-- [x] TypeScript types derived via `z.infer<>` — N/A (using existing typed interfaces from types.ts)
-- [x] Discriminated unions exhaustive — `satisfies` used in SEVERITY_COLORS in constants.ts
-- [x] `strict: true` — tsconfig unchanged, all code passes strict checks
-- [x] Server Components used by default — `SiteHeader`, `SiteFooter`, `PageHeader`, `EmptyState`, `JsonLd`, `SeverityBadge`, `CategoryTag` are all server components
-- [x] `'use client'` justified for each file — `HeaderNav` (usePathname), `MobileNav` (useState for sheet open state)
-- [x] No data fetching in Client Components when Server Component works — no data fetching in any component
-- [x] No business logic in page/layout components — extracted to utility functions
-- [x] Server Actions used for mutations — N/A (no mutations)
-- [x] Static vs dynamic rendering decision is deliberate — all components are server-renderable; no dynamic flags needed
-- [x] No `useEffect` for derived state — no useEffect used at all
-- [x] No browser-state-default trap — no window/navigator access; MobileNav useState(false) is appropriate as the sheet starts closed (this is UI state, not browser state detection)
-- [x] Touch targets: all interactive elements >= 44x44px — hamburger button has `min-h-[44px] min-w-[44px]`, nav links and action button meet minimums
-- [x] No inline styles — inline styles used ONLY for dynamic CSS variable references (color tokens) where Tailwind cannot resolve at build time (documented exception per spec)
-- [x] RLS policy confirmed for all new/modified Supabase tables — N/A (no database changes)
-- [x] No `SELECT *` — N/A
-- [x] No N+1 — N/A
-- [x] Multiple `supabase.from()` calls — N/A
-- [x] PII fields identified and not logged — N/A
-- [x] i18n: hardcoded strings present — NOTE: per spec, i18n is deferred for this project (AgentFail is a public static database, not a multi-locale SaaS). Strings are in English only. Flagged as N/A for this project.
-- [x] Theme: no hardcoded hex/rgb/hsl/named colors — all colors use `var(--css-variable)` tokens or inline style with CSS variable strings
-- [x] Theme: inline `style` with color values — only used with `var(--css-variable)` references, never raw values
+- [x] No `any` — all types explicit
+- [x] No `!` assertions — `searchParams.get("q") ?? ""` handles null
+- [x] No `@ts-ignore` anywhere in new files
+- [x] Zod schemas N/A — no external API boundaries or form submissions in these pages
+- [x] TypeScript types derived from content layer (IncidentCard)
+- [x] Discriminated unions N/A — no new union types added
+- [x] `strict: true` — not weakened
+- [x] Server Components used by default — `search/page.tsx` is Server Component; `search-results.tsx` is Client Component justified by `useSearchParams`, `useEffect`, `useMemo`
+- [x] No data fetching in Client Components — all data fetched in Server Component and passed as props
+- [x] No business logic in page/layout components — Fuse.js logic in SearchResults component
+- [x] Server Actions N/A — no mutations
+- [x] Static rendering deliberate — `output: "export"` requires `force-static` on sitemap/robots, added
+- [x] No `useEffect` for derived state — `useMemo` used for Fuse results; only `useEffect` is for auto-focus (legitimate DOM side effect)
+- [x] No browser-state-default trap — no `window.*` state initialization
+- [x] Touch targets — search submit button `min-w-[44px] min-h-[44px]`, nav links `min-h-[44px]`
+- [x] No inline styles — Tailwind classes only; CSS var references via `text-[var(--...)]` pattern
+- [x] RLS N/A — static site, no Supabase
+- [x] No `SELECT *` N/A
+- [x] No N+1 N/A
+- [x] PII N/A
+- [x] i18n: AgentFail is English-only public static database; no `t()` infrastructure exists in the codebase; consistent with all other pages
+- [x] Theme: all colors via CSS custom properties `var(--...)` — no hex/rgb/hsl in new files
 
 ### Project-Specific Gates (AgentFail)
-- [x] No tenant/organization scoping needed — public database, no multi-tenancy
-- [x] All CSS color references use design token variables from globals.css
-- [x] No new environment variables added
-- [x] No AppError hierarchy needed — pure render components
+- [x] All CSS colors via design tokens (`var(--bg-deep)`, `var(--accent)`, etc.)
+- [x] Font display via `font-[family-name:var(--font-display)]` — consistent with existing pages
+- [x] Container class `mx-auto max-w-7xl px-4 sm:px-6 lg:px-8` — consistent
+- [x] `rounded-sm` for cards — consistent with IncidentCard
+- [x] `useSearchParams` wrapped in Suspense boundary in page.tsx
+- [x] `export const dynamic = "force-static"` added to both `sitemap.ts` and `robots.ts`
+- [x] Header search icon connected to `/search` route
+- [x] `SITE_META` from `@/lib/constants` used in sitemap, robots, about metadata
 
 ### Issues Found During Self-Review
-1. **`asChild` prop incompatibility**: shadcn `SheetTrigger` generated for Radix UI, but project uses Base UI (`@base-ui/react`). The `asChild` pattern doesn't exist in Base UI — uses `render` prop instead. Fixed by removing `asChild` and rendering the trigger content directly inside `SheetTrigger` which itself renders as a `<button>`.
-2. **MobileNavLinks intermediate component**: Removed the unnecessary `MobileNavLinks` wrapper component in favor of directly rendering `<HeaderNav>` in `MobileNav` with `onLinkClick` and `vertical` props.
+1. `Fuse.IFuseOptions` namespace access failed with TypeScript — fixed by importing `IFuseOptions` directly as named import from fuse.js.
+2. `sitemap.ts` and `robots.ts` both needed `export const dynamic = "force-static"` for `output: "export"` compatibility — added to both files after build error surfaced the requirement.
 
 ### Self-Certification
 All items above are marked [x] (pass) or N/A with a reason.
 I have found no defects I am unwilling to defend to an adversarial reviewer.
-Signed: claude-sonnet-4-6 at 2026-05-05T13:21:00Z
+Signed: claude-sonnet-4-6 at 2026-05-05T00:00:00Z
