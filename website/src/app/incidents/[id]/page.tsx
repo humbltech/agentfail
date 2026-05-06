@@ -287,6 +287,26 @@ export default async function IncidentDetailPage({
           </div>
         )}
 
+        {/* ── Executive Summary — full width, always visible ──────────────── */}
+        {execSummary && (
+          <section style={{ marginBottom: "36px", paddingBottom: "36px", borderBottom: "1px solid var(--border-subtle)" }}>
+            <h2
+              className="font-[family-name:var(--font-display)]"
+              style={{
+                fontSize: "20px",
+                fontWeight: 600,
+                color: "var(--text-primary)",
+                borderLeft: "4px solid var(--accent)",
+                paddingLeft: "12px",
+                marginBottom: "20px",
+              }}
+            >
+              Executive Summary
+            </h2>
+            <MarkdownContent html={execSummary.html} />
+          </section>
+        )}
+
         {/* ── Key Takeaways Card ────────────────────────────────────────────── */}
         {takeaways && (
           <div style={{ marginBottom: "40px" }}>
@@ -305,26 +325,6 @@ export default async function IncidentDetailPage({
         >
           {/* LEFT: Sectioned content */}
           <div style={{ minWidth: 0 }}>
-
-            {/* Executive Summary — always visible, no collapse */}
-            {execSummary && (
-              <section style={{ marginBottom: "32px", paddingBottom: "32px", borderBottom: "1px solid var(--border-subtle)" }}>
-                <h2
-                  className="font-[family-name:var(--font-display)]"
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: 600,
-                    color: "var(--text-primary)",
-                    borderLeft: "4px solid var(--accent)",
-                    paddingLeft: "12px",
-                    marginBottom: "20px",
-                  }}
-                >
-                  Executive Summary
-                </h2>
-                <MarkdownContent html={execSummary.html} />
-              </section>
-            )}
 
             {/* Timeline — collapsible with visual rendering */}
             {timeline && (

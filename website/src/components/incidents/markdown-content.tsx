@@ -21,7 +21,7 @@ export function MarkdownContent({ html, className }: MarkdownContentProps) {
         "prose prose-invert max-w-none",
         // Typography spacing — generous breathing room
         "prose-p:leading-[1.8] prose-p:mb-5",
-        "prose-li:leading-[1.7] prose-li:mb-1",
+        "prose-li:leading-[1.7] prose-li:mb-4",
         "prose-headings:mt-8 prose-headings:mb-4",
         // Headings
         "prose-headings:text-[var(--text-primary)]",

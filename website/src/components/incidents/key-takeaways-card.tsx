@@ -13,7 +13,7 @@ export function KeyTakeawaysCard({ html }: KeyTakeawaysCardProps) {
       style={{
         background: "var(--accent-dim)",
         borderLeft: "4px solid var(--accent)",
-        padding: "24px 28px",
+        padding: "28px 32px",
         borderRadius: "6px",
       }}
     >
@@ -24,12 +24,15 @@ export function KeyTakeawaysCard({ html }: KeyTakeawaysCardProps) {
           letterSpacing: "0.06em",
           textTransform: "uppercase",
           color: "var(--text-muted)",
-          marginBottom: "12px",
+          marginBottom: "20px",
         }}
       >
         Key Takeaways
       </div>
-      <MarkdownContent html={html} />
+      <MarkdownContent
+        html={html}
+        className="prose-li:mb-6 prose-ol:space-y-2 prose-p:mb-3"
+      />
     </div>
   );
 }
