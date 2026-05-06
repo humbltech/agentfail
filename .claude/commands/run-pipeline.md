@@ -53,7 +53,8 @@ Spawn an **isolated subagent** (Agent tool) with these instructions:
 - Identify the specific technical mechanism of failure
 
 **What the subagent extracts (with source attribution for every claim):**
-- **Dates**: date_occurred, date_discovered, date_reported (three separate values)
+- **Dates**: date_occurred, date_discovered, date_reported (three separate values — `date_reported` = date of **first public disclosure**, NOT the date of vendor notification or HackerOne/bug-bounty report)
+- **Source bias flag**: If the primary source is the disclosing researcher or a security vendor, explicitly note this and flag any quantitative claims (user counts, exposure counts, affected deployment counts) that lack independent corroboration from a third-party source
 - **Damage**: direct financial, operational, data exposure, reputational, damage speed, damage duration, recovery details, business scope, business criticality
 - **Technical detail**: agent framework/platform/version, tools/permissions/integrations, exact mechanism of failure, code/config snippets
 - **Vendor response**: acknowledged? fixed? refunded? timeline of response or non-response
@@ -80,6 +81,8 @@ Spawn an **isolated subagent** with these instructions:
 
 **What the subagent does:**
 - Fill the YAML frontmatter completely — every field populated or explicitly null. Use the TEMPLATE.md as the schema reference.
+- **`date_reported` must be the date of first public disclosure** (first credible public source: news article, CVE publication, researcher blog post, GitHub Advisory). It is NOT the date the vulnerability was reported to the vendor or submitted via HackerOne/bug bounty. If both dates exist, use the public disclosure date.
+- **Category names must match the taxonomy exactly** — no spaces around slashes. Use `"Prompt Injection/Jailbreak Exploitation"` not `"Prompt Injection / Jailbreak Exploitation"`. Valid categories are in taxonomy/categories.md; copy them verbatim.
 - Write each report section in full:
   - **Timeline**: chronological table with specific timestamps
   - **What Happened**: detailed narrative for practitioners
