@@ -21,13 +21,11 @@ import { SITE_META } from "@/lib/constants";
  *   - Static rendering — no cookies, no headers, no runtime dynamic data
  */
 export default async function HomePage() {
-  const [incidents, stats, patterns] = await Promise.all([
+  const [incidents, stats] = await Promise.all([
     getAllIncidentCards(),
     getStats(),
-    // getPatternGroups is synchronous but wrapped in Promise.all for consistency;
-    // Promise.resolve handles the sync return value seamlessly.
-    Promise.resolve(getPatternGroups()),
   ]);
+  const patterns = getPatternGroups();
 
   const jsonLd = {
     "@context": "https://schema.org",

@@ -49,8 +49,8 @@ export function FeaturedPatterns({ patterns }: FeaturedPatternsProps) {
                 "border-[var(--border-subtle)] bg-[var(--bg-surface)]",
                 "hover:border-[var(--border-visible)] hover:bg-[var(--bg-raised)] hover:-translate-y-px",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
+                "p-6",
               )}
-              style={{ padding: "24px" }}
             >
               {/* Pattern name + count */}
               <div className="flex items-start justify-between gap-4 mb-2">

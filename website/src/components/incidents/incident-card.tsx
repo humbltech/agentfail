@@ -37,8 +37,8 @@ function CategorySpan({ category }: { category: string }) {
       className={cn(
         "inline-block rounded-[4px]",
         "bg-[var(--bg-overlay)] text-[var(--text-secondary)]",
+        "py-0.5 px-2 text-xs",
       )}
-      style={{ padding: "2px 8px", fontSize: "12px" }}
     >
       {displayName}
     </span>
@@ -80,42 +80,40 @@ export function IncidentCard({ incident, className }: IncidentCardProps) {
         "border-[var(--border-subtle)] bg-[var(--bg-surface)]",
         "hover:border-[var(--border-visible)] hover:bg-[var(--bg-raised)] hover:-translate-y-px",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
+        "p-6",
         className,
       )}
-      style={{ padding: "24px" }}
     >
       {/* ── Top row: severity badge | date | incident ID ─────────────────── */}
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-3 min-w-0">
           <SeverityBadge severity={incident.severity} />
           <span
-            className="text-[var(--text-muted)] shrink-0"
-            style={{ fontSize: "12px" }}
+            className="text-xs text-[var(--text-muted)] shrink-0"
           >
             {formatDate(incident.date_occurred)}
           </span>
         </div>
         <span
-          className="text-[var(--text-muted)] font-mono shrink-0"
-          style={{ fontSize: "12px" }}
+          className="text-xs text-[var(--text-muted)] font-mono shrink-0"
         >
           {incident.id}
         </span>
       </div>
 
       {/* ── Title ────────────────────────────────────────────────────────── */}
-      <h2
+      <h3
         className="text-lg font-semibold text-[var(--text-primary)] line-clamp-2 mb-2 leading-snug"
       >
         {incident.title}
-      </h2>
+      </h3>
 
       {/* ── Headline stat — visual anchor ────────────────────────────────── */}
       <p
         className={cn(
           "font-[family-name:var(--font-instrument-serif)] text-[var(--accent)] mb-2",
+          "text-2xl leading-tight",
         )}
-        style={{ fontSize: "24px", lineHeight: "1.2" }}
       >
         {incident.headline_stat}
       </p>
@@ -135,8 +133,7 @@ export function IncidentCard({ incident, className }: IncidentCardProps) {
           ))}
           {extraCount > 0 && (
             <span
-              className="inline-block rounded-[4px] bg-[var(--bg-overlay)] text-[var(--text-muted)]"
-              style={{ padding: "2px 8px", fontSize: "12px" }}
+              className="inline-block rounded-[4px] bg-[var(--bg-overlay)] text-[var(--text-muted)] py-0.5 px-2 text-xs"
             >
               +{extraCount} more
             </span>
@@ -146,8 +143,7 @@ export function IncidentCard({ incident, className }: IncidentCardProps) {
 
       {/* ── Meta row: platform | vendor response ─────────────────────────── */}
       <div
-        className="flex items-center gap-4 text-[var(--text-muted)]"
-        style={{ fontSize: "12px" }}
+        className="flex items-center gap-4 text-xs text-[var(--text-muted)]"
       >
         <span>
           <span className="text-[var(--text-muted)]">Platform: </span>

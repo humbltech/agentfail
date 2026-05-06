@@ -19,6 +19,8 @@ interface LatestIncidentsProps {
  *   - Section is a no-op if incidents is empty (no empty-state shown here — homepage always has data)
  */
 export function LatestIncidents({ incidents }: LatestIncidentsProps) {
+  if (incidents.length === 0) return null;
+
   return (
     <section
       className="py-16"
