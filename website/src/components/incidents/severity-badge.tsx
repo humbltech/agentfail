@@ -17,12 +17,15 @@ interface SeverityBadgeProps {
  * - INVARIANTS: Dot and text always use the same severity color token
  */
 export function SeverityBadge({ severity, className }: SeverityBadgeProps) {
+  const DEFAULT_COLORS = { text: "var(--text-muted)", bg: "var(--bg-overlay)" };
+  const colors = SEVERITY_COLORS[severity] ?? DEFAULT_COLORS;
+
   return (
     <span
       className={cn("inline-flex items-center gap-1.5 rounded-[4px]", className)}
       style={{
-        color: SEVERITY_COLORS[severity].text,
-        backgroundColor: SEVERITY_COLORS[severity].bg,
+        color: colors.text,
+        backgroundColor: colors.bg,
         padding: "4px 10px",
         fontSize: "12px",
         fontWeight: 600,
@@ -37,11 +40,11 @@ export function SeverityBadge({ severity, className }: SeverityBadgeProps) {
           width: "6px",
           height: "6px",
           borderRadius: "50%",
-          backgroundColor: SEVERITY_COLORS[severity].text,
+          backgroundColor: colors.text,
           flexShrink: 0,
         }}
       />
-      {severity}
+      {severity ?? "Unknown"}
     </span>
   );
 }
