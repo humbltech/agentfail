@@ -151,6 +151,8 @@ export interface Incident extends IncidentFrontmatter {
   content: string;
   /** Rendered HTML string from the markdown body */
   contentHtml: string;
+  /** Markdown body split into individual H2 sections */
+  sections: IncidentSection[];
 }
 
 /** Lightweight subset used in list/card views — never includes full markdown. */

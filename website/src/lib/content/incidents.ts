@@ -17,7 +17,7 @@ import path from "path";
 import matter from "gray-matter";
 
 import type { Incident, IncidentCard, IncidentFrontmatter } from "@/lib/content/types";
-import { renderMarkdown } from "@/lib/content/markdown";
+import { renderMarkdown, splitIntoSections } from "@/lib/content/markdown";
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
@@ -108,12 +108,16 @@ function toIncidentCard(data: IncidentFrontmatter): IncidentCard {
  * - Invariants: slug === data.id
  */
 async function toIncident(data: IncidentFrontmatter, content: string): Promise<Incident> {
-  const contentHtml = await renderMarkdown(content);
+  const [contentHtml, sections] = await Promise.all([
+    renderMarkdown(content),
+    splitIntoSections(content),
+  ]);
   return {
     ...(data as IncidentFrontmatter),
     slug: data.id,
     content,
     contentHtml,
+    sections,
   };
 }
 
