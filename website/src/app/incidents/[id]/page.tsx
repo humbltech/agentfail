@@ -18,12 +18,13 @@ import { JsonLd } from "@/components/shared/json-ld";
 
 // ─── Section filtering constants ─────────────────────────────────────────────
 
-const EXCLUDED_IDS = ["related-incidents", "references", "key-takeaways"];
-const OPEN_BY_DEFAULT = [
-  "what-happened",
+// Only these sections are shown on the public page.
+// Other sections (Technical Analysis, Impact Assessment, Solutions Analysis,
+// Council Review, What Happened, How It Was Fixed) stay in the markdown
+// but are not rendered — they're deep-dive content for a future "Full Analysis" page.
+const VISIBLE_SECTION_IDS = [
   "root-cause-analysis",
   "how-it-could-have-been-prevented",
-  "how-it-was-could-be-fixed",
 ];
 
 // ─── Static params ────────────────────────────────────────────────────────────
@@ -94,11 +95,9 @@ export default async function IncidentDetailPage({
   const timeline = incident.sections.find((s) => s.id === "timeline");
   const takeaways = incident.sections.find((s) => s.id === "key-takeaways");
 
+  // Only render the curated set of sections
   const contentSections = incident.sections.filter(
-    (s) =>
-      !EXCLUDED_IDS.includes(s.id) &&
-      s.id !== "executive-summary" &&
-      s.id !== "timeline"
+    (s) => VISIBLE_SECTION_IDS.includes(s.id)
   );
 
   // JSON-LD: Article schema
@@ -124,7 +123,7 @@ export default async function IncidentDetailPage({
     <>
       <JsonLd data={jsonLd} />
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
 
         {/* ── Breadcrumb ──────────────────────────────────────────────────── */}
         <nav aria-label="Breadcrumb" style={{ marginBottom: "20px" }}>
@@ -236,13 +235,13 @@ export default async function IncidentDetailPage({
           style={{
             height: "2px",
             background: "var(--accent)",
-            marginBottom: "32px",
+            marginBottom: "36px",
             borderRadius: "1px",
           }}
         />
 
         {/* ── Hero Stats Bar ────────────────────────────────────────────────── */}
-        <div style={{ marginBottom: "32px" }}>
+        <div style={{ marginBottom: "36px" }}>
           <HeroStatsBar incident={incident} />
         </div>
 
@@ -253,8 +252,8 @@ export default async function IncidentDetailPage({
               background: "var(--bg-surface)",
               border: "1px solid var(--border-subtle)",
               borderRadius: "6px",
-              padding: "24px",
-              marginBottom: "32px",
+              padding: "28px",
+              marginBottom: "36px",
             }}
           >
             {incident.headline_stat && (
@@ -266,7 +265,7 @@ export default async function IncidentDetailPage({
                   lineHeight: "1.3",
                   margin: 0,
                   fontWeight: 600,
-                  marginBottom: incident.operator_tldr ? "8px" : "0",
+                  marginBottom: incident.operator_tldr ? "12px" : "0",
                 }}
               >
                 {incident.headline_stat}
@@ -290,7 +289,7 @@ export default async function IncidentDetailPage({
 
         {/* ── Key Takeaways Card ────────────────────────────────────────────── */}
         {takeaways && (
-          <div style={{ marginBottom: "32px" }}>
+          <div style={{ marginBottom: "40px" }}>
             <KeyTakeawaysCard html={takeaways.html} />
           </div>
         )}
@@ -309,7 +308,7 @@ export default async function IncidentDetailPage({
 
             {/* Executive Summary — always visible, no collapse */}
             {execSummary && (
-              <section style={{ marginBottom: "24px" }}>
+              <section style={{ marginBottom: "32px", paddingBottom: "32px", borderBottom: "1px solid var(--border-subtle)" }}>
                 <h2
                   className="font-[family-name:var(--font-display)]"
                   style={{
@@ -318,7 +317,7 @@ export default async function IncidentDetailPage({
                     color: "var(--text-primary)",
                     borderLeft: "4px solid var(--accent)",
                     paddingLeft: "12px",
-                    marginBottom: "16px",
+                    marginBottom: "20px",
                   }}
                 >
                   Executive Summary
@@ -334,13 +333,13 @@ export default async function IncidentDetailPage({
               </CollapsibleSection>
             )}
 
-            {/* Remaining content sections — collapsible */}
+            {/* Remaining curated sections */}
             {contentSections.map((section) => (
               <CollapsibleSection
                 key={section.id}
                 title={section.title}
                 id={section.id}
-                defaultOpen={OPEN_BY_DEFAULT.includes(section.id)}
+                defaultOpen={true}
               >
                 <MarkdownContent html={section.html} />
               </CollapsibleSection>

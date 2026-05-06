@@ -13,7 +13,7 @@ export function KeyTakeawaysCard({ html }: KeyTakeawaysCardProps) {
       style={{
         background: "var(--accent-dim)",
         borderLeft: "4px solid var(--accent)",
-        padding: "20px 24px",
+        padding: "24px 28px",
         borderRadius: "6px",
       }}
     >

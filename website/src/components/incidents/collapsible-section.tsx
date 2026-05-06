@@ -17,7 +17,7 @@ export function CollapsibleSection({
   children,
 }: CollapsibleSectionProps) {
   return (
-    <details id={id} open={defaultOpen} className="group" style={{ paddingTop: "24px", paddingBottom: "24px" }}>
+    <details id={id} open={defaultOpen} className="group" style={{ paddingTop: "32px", paddingBottom: "32px" }}>
       <summary
         className="list-none"
         style={{
@@ -48,7 +48,7 @@ export function CollapsibleSection({
           {title}
         </h2>
       </summary>
-      <div style={{ marginTop: "16px" }}>{children}</div>
+      <div style={{ marginTop: "20px" }}>{children}</div>
     </details>
   );
 }
