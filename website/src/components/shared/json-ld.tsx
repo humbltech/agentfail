@@ -12,10 +12,11 @@ interface JsonLdProps {
  * - INVARIANTS: Script type is always "application/ld+json"
  */
 export function JsonLd({ data }: JsonLdProps) {
+  const json = JSON.stringify(data).replace(/<\/script>/gi, "<\\/script>");
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: json }}
     />
   );
 }

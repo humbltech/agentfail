@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { getCategorySlug } from "@/lib/utils";
-import { cn } from "@/lib/utils";
+import { cn, getCategorySlug } from "@/lib/utils";
 
 interface CategoryTagProps {
   category: string;

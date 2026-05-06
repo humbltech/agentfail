@@ -28,7 +28,6 @@ export function MobileNav() {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger
           aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
           className="flex items-center justify-center min-h-[44px] min-w-[44px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors duration-150 bg-transparent border-0 cursor-pointer"
         >
           {open ? (
