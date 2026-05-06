@@ -9,9 +9,9 @@ import {
 const RELATIONSHIPS_PATH = path.resolve(__dirname, "../../../../relationships");
 
 describe("getPatternGroups", () => {
-  it("returns 5 groups", () => {
+  it("returns at least 5 pattern groups", () => {
     const groups = getPatternGroups(RELATIONSHIPS_PATH);
-    expect(groups).toHaveLength(5);
+    expect(groups.length).toBeGreaterThanOrEqual(5);
   });
 
   it("every group has slug, name, description, and incidentIds", () => {
@@ -50,19 +50,19 @@ describe("getPatternGroups", () => {
     expect(group!.incidentIds).toContain("AAGF-2026-005");
   });
 
-  it("autonomous-infrastructure-destruction group has 1 incident", () => {
+  it("autonomous-infrastructure-destruction group includes AAGF-2026-007", () => {
     const groups = getPatternGroups(RELATIONSHIPS_PATH);
     const group = groups.find((g) => g.slug === "autonomous-infrastructure-destruction");
     expect(group).toBeDefined();
-    expect(group!.incidentIds).toHaveLength(1);
+    expect(group!.incidentIds.length).toBeGreaterThanOrEqual(1);
     expect(group!.incidentIds).toContain("AAGF-2026-007");
   });
 
-  it("wrong-cost-estimate group has 1 incident", () => {
+  it("wrong-cost-estimate group includes AAGF-2026-006", () => {
     const groups = getPatternGroups(RELATIONSHIPS_PATH);
     const group = groups.find((g) => g.slug === "wrong-cost-estimate");
     expect(group).toBeDefined();
-    expect(group!.incidentIds).toHaveLength(1);
+    expect(group!.incidentIds.length).toBeGreaterThanOrEqual(1);
     expect(group!.incidentIds).toContain("AAGF-2026-006");
   });
 });

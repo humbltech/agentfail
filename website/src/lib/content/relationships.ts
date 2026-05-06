@@ -148,7 +148,9 @@ export function getPatternGroups(basePath: string = DEFAULT_RELATIONSHIPS_PATH):
 
   return blocks.map((block): PatternGroup => {
     const headingMatch = /^### (.+)/.exec(block);
-    const slug = headingMatch ? headingMatch[1].trim() : "";
+    const rawSlug = headingMatch ? headingMatch[1].trim() : "";
+    // Strip parenthetical annotations like "(confirmed, n=2)" from slug
+    const slug = rawSlug.replace(/\s*\(.*?\)\s*$/, "").trim();
     const name = titleCaseSlug(slug);
     const description = extractFirstParagraph(block);
     const incidentIds = extractIncidentIds(block);
