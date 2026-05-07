@@ -1,6 +1,6 @@
 # Incident Relationship Graph
 
-Last updated: 2026-05-06 — 34 incidents published
+Last updated: 2026-05-06 — 35 incidents published
 
 ---
 
@@ -97,6 +97,7 @@ Incidents where an AI agent platform experienced systemic, multi-vector security
   - *Fourth member — extends pattern group with a distinct CVE and distinct mechanism (browser-to-localhost inbound vs. outbound in ClawBleed). Same platform (OpenClaw), same root failure class.*
 - **[[AAGF-2026-037]]** — Moltbook Platform Breach: the AI agent social network built specifically for OpenClaw launched with hardcoded Supabase credentials in client JavaScript and no Row-Level Security on any database table. 1.5 million AI agent credential triples, 35,000 user emails, and 4,060 private messages (some containing plaintext API keys) were publicly accessible for 3 days before Wiz discovered and disclosed the exposure. Simultaneous reverse prompt injection campaign (506 injections detected in first 72 hours) operated as an independent attack plane that would persist even with correct RLS. Vibe-coded platform with zero pre-launch security review — the same pattern documented at DeepSeek and Base44. Patched in 3.5 hours; no user breach notification documented. Near-miss: no confirmed malicious access.
   - *Fifth member — standalone detailed report for the Moltbook breach already referenced in AAGF-2026-010. Adds vibe-coding-era infrastructure misconfiguration as a distinct failure mechanism within the pattern group.*
+  - *Cross-reference: AAGF-2026-038 (Sears Home Services) shares a structurally parallel storage misconfiguration failure mode — both are AI system storage backends deployed without access controls, discovered by external researchers, remediated within 24 hours with no public acknowledgment. However, each belongs to a distinct pattern group: AAGF-2026-037 is relational database RLS misconfiguration with credential exposure (ai-agent-platform-security-crisis); AAGF-2026-038 is cloud object storage misconfiguration with AI interaction data exposure and no credentials at risk (ai-chatbot-data-storage-breach).*
 
 ---
 
@@ -142,6 +143,14 @@ Incidents where the MCP protocol's architectural design decisions — rather tha
   - *Fifth member — client-side attack surface. Pattern group now spans server-side protocol design (-022), reference implementation validation failures (-025, -027), multi-server trust model (-026), and client-side OAuth injection (-033). Bidirectional attack surface confirmed.*
 - **[[AAGF-2026-034]]** — MCPJam Inspector Unauthenticated RCE (CVE-2026-23744, CVSS 9.8): community fork of Anthropic's official MCP Inspector binds its HTTP server to `0.0.0.0` by default and exposes `/api/mcp/connect` — a command execution API accepting `command`/`args` JSON — with no authentication. One unauthenticated `curl` command achieves full RCE on the developer's machine. In cloud development environments (GitHub Codespaces, Gitpod), endpoint may be internet-accessible. EPSS 97th percentile; public PoC within 4 days of CVE. Same-day fix (v1.4.3, January 16, 2026): bind to 127.0.0.1 + authentication. No confirmed in-the-wild exploitation. Near-miss. Notably: security researchers using MCPJam Inspector to investigate malicious MCP servers exposed their own machines to the servers under investigation. The official `@modelcontextprotocol/inspector` had the same 0.0.0.0 binding vulnerability (GHSA-7f8r-222p-6f5g, June 2025), setting the security baseline for community forks by example.
   - *Sixth member — debugging-tooling-layer failure. Pattern group now spans every layer of the MCP stack: protocol design, server reference implementations, client libraries, multi-server trust model, and debugging infrastructure. (confirmed, n=6)*
+
+---
+
+### ai-chatbot-data-storage-breach (provisional, n=1)
+Incidents where an AI customer service system's backend storage for interaction data was deployed without access controls, publicly exposing the complete corpus of AI-generated conversations, voice recordings, and related customer data. Distinct from ai-agent-platform-security-crisis (which covers relational database RLS misconfigurations and credential exposure). Defining signature: AI system deployed, interaction data collection begins immediately, storage layer never audited → public exposure accumulates over months or years until external discovery.
+
+- **[[AAGF-2026-038]]** — Sears Home Services Samantha AI chatbot + KAIros platform: three cloud storage buckets containing 3.7M records (4.3TB) — 2.1M chat transcripts, 1.4M voice recordings (some up to 4 hours), 207K scheduling logs — publicly accessible without authentication for an unknown duration dating to 2024. Discovered by Jeremiah Fowler via Shodan scan on 2026-02-03; remediated within 24 hours with no public acknowledgment. Voice recordings up to 4 hours suggest call-end detection failure or metadata artifact. Exposed conversation corpus reveals Samantha's full decision logic at production scale.
+  *Seed incident for this pattern group (provisional)*
 
 ---
 
@@ -508,6 +517,7 @@ Three distinct incidents now document Anthropic's security governance failing at
 | AAGF-2026-036 | AAGF-2026-025 | Anthropic governance failure lifecycle | -025: pre-publication security review failure (7-month patch window). -036: post-fix deployment failure (fix written, not shipped). Together with -022 (protocol design non-response), these three incidents document Anthropic's security governance gaps across the full fix lifecycle: design, pre-publication review, and post-fix deployment. |
 | AAGF-2026-037 | AAGF-2026-010 | Pattern group (ai-agent-platform-security-crisis), same platform (OpenClaw/Moltbook), direct incident connection | AAGF-2026-037 is the standalone detailed report for the Moltbook database breach already referenced in AAGF-2026-010's description. Causally connected: OpenClaw agents' machine-level capabilities (shell, file, browser) were directly reachable through the Moltbook platform credential exposure. Moltbook was built specifically as a social network for OpenClaw. |
 | AAGF-2026-037 | AAGF-2026-013 | Pattern group (ai-agent-platform-security-crisis), root cause cluster (growth-first development culture) | Both: rapid-growth AI agent platforms with zero pre-launch security review, multi-vector failure class (database + protocol in Flowise; credentials + prompt injection in Moltbook), credential cascade risk to downstream operators. |
+| AAGF-2026-038 | AAGF-2026-037 | Structurally parallel storage misconfiguration failure mode; distinct pattern groups | Both expose AI-system data through storage backends deployed without access controls. Both discovered by external security researchers via responsible disclosure. Both remediated within 24 hours with no public acknowledgment to affected users. Core governance gap is identical: AI system deployed, storage security unreviewed. Critical distinctions: AAGF-2026-037 is relational database (Supabase/PostgreSQL) RLS misconfiguration exposing AI agent credentials and user PII (ai-agent-platform-security-crisis); AAGF-2026-038 is cloud object storage misconfiguration exposing AI interaction data — chat transcripts, voice recordings, scheduling logs — with no credentials at risk (ai-chatbot-data-storage-breach). The parallel structure seeds the ai-chatbot-data-storage-breach provisional pattern group; AAGF-2026-037 is the closest existing incident but belongs to a structurally distinct group. |
 
 ---
 
