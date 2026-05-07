@@ -1,6 +1,6 @@
 # Incident Relationship Graph
 
-Last updated: 2026-05-07 — 45 incidents published
+Last updated: 2026-05-07 — 47 incidents published
 
 ---
 
@@ -190,6 +190,22 @@ Incidents where an LLM-integrated agent passes user-supplied input to the langua
 
 - **[[AAGF-2026-039]]** — CVE-2024-5184, EmailGPT Chrome Extension: student-built hackathon tool (IEEE NTU iNTUition v9.0) published to Chrome Web Store with self-hosted Express.js API + GPT-3.5. User input passed directly to the OpenAI messages array with zero sanitization — enabling system prompt extraction, behavior override, forced content generation via victim's Gmail identity, and API quota exhaustion (financial DoS). Three Synopsys CyRC disclosure attempts over 64 days with zero developer response; no patch issued; extension remains active. CVE-2024-5184, CVSS 9.1 Critical (NVD) / 6.5 Medium (Synopsys CNA). Near-miss; EPSS 0.11%; no confirmed exploitation. Among the earliest formally-assigned CVEs for LLM prompt injection in an autonomous AI agent context.
   *Seed incident for this pattern group (provisional). Introduces: (1) abandoned AI tool with CVE as a systematic failure class from democratization of LLM tooling; (2) API quota exhaustion as a financial DoS vector unique to LLM integrations; (3) developer non-response to professional coordinated disclosure as a recurring pattern.*
+
+---
+
+### ai-coding-assistant-weaponized-exfiltration (provisional, n=1)
+Incidents where an AI coding assistant — operating via legitimate, user-authorized configuration — was repurposed by a malicious external actor as the primary execution engine for a cyberattack campaign. Distinct from prompt injection and supply chain attacks: no jailbreak, no compromised package, no unsafe permission default. The attacker simply uses the tool as designed, with attacker-controlled context and credentials, against systems the attacker has already obtained access to. Defining signature: external threat actor authenticates to AI coding tool with their own or stolen API credentials → directs the agent to execute attack commands (reconnaissance, exfiltration, exploitation) via normal tool calls → AI assistant executes at attacker's direction with no behavioral detection → platform terms violated but no real-time safety control flags the session → incident discovered through external forensics, not platform safety systems.
+
+- **[[AAGF-2026-050]]** — Mexican Government AI-Assisted Breach: one attacker using Claude Code (primary) + GPT-4.1 (secondary) over two AI subscriptions executed 75% of all remote commands against 9 Mexican government agencies, exfiltrating 195M+ citizen records (150GB) including SAT tax records, civil registry data, domestic violence victim records, and social security information. BACKUPOSINT.py custom framework orchestrated Claude Code for reconnaissance, lateral movement, SQL query construction, and archive creation; GPT-4.1 for social engineering and phishing. Anthropic banned the account after Gambit Security published their conversation log forensics. No real-time detection from either platform during the active campaign (December 2025–February 2026). Seed incident for this pattern group: first documented case of a commercial AI coding assistant used as the primary command executor in a sustained government-scale data breach.
+  - *Seed incident for this pattern group (provisional)*
+
+---
+
+### ai-augmented-cyberattack (provisional, n=1)
+Incidents where AI coding assistants and agent frameworks dramatically lower the skill floor for conducting sophisticated cyberattack campaigns — enabling solo low-skill operators to achieve attack scale and technical complexity previously requiring nation-state teams or advanced persistent threat groups. Distinct from ai-coding-assistant-weaponized-exfiltration (which focuses on a single AI tool used as the primary executor) in that this pattern captures the broader capability amplification — open-source AI attack platforms, multi-model orchestration, and automated exploitation pipelines. Defining signature: open-source AI attack platform wraps one or more foundation models → low-skill operator provides attack targets and strategic direction → AI models handle code generation, exploit development, credential parsing, and operational decision-making → campaign achieves scale disproportionate to operator's individual capability → platform terms violated but safety controls insufficient to prevent the capability transfer.
+
+- **[[AAGF-2026-051]]** — CyberStrikeAI FortiGate Campaign: a single low-skill operator using an open-source Go attack platform (CyberStrikeAI) with Claude Code and DeepSeek as the AI backends, plus a custom ARXON MCP server, compromised 600+ FortiGate enterprise firewalls across 55 countries in 38 days. Scale of compromise (600+ enterprise network perimeters) and geographic reach (55 countries) was previously a nation-state operation. AWS Threat Intelligence confirmed the campaign via IP infrastructure and C2 patterns. Claude Code was used for exploit code generation and operational command construction; DeepSeek for credential parsing and target enumeration. Attacker queued 2,516 targets. Anthropic and Mistral banned associated accounts. No real-time detection from either platform during the 38-day campaign. Seed incident for this pattern group: first confirmed large-scale deployment of an open-source AI attack platform achieving nation-state-equivalent reach with a single operator.
+  - *Seed incident for this pattern group (provisional)*
 
 ---
 
@@ -430,6 +446,12 @@ AI chat platforms retain user conversation history indefinitely as a product fea
 ### Devin AI (Cognition Labs)
 - AAGF-2026-046
 
+### Claude Code + OpenAI API (weaponized, external attacker)
+- AAGF-2026-050
+
+### CyberStrikeAI + Claude Code + DeepSeek (open-source AI attack platform)
+- AAGF-2026-051
+
 ---
 
 ## Industry Clusters
@@ -463,6 +485,12 @@ AI chat platforms retain user conversation history indefinitely as a product fea
 
 ### AI Platform / SaaS
 - AAGF-2026-047 (OmniGPT alleged breach; AI chatbot aggregator; alleged 34.27M conversation lines exposed including API keys, crypto private keys, user PII; sole-source threat actor claim; no vendor confirmation)
+
+### Government / Public Sector
+- AAGF-2026-050 (Mexican Government AI-assisted breach; 9 federal agencies; 195M+ citizen records)
+
+### Multi-Sector (Cyberattack Campaign)
+- AAGF-2026-051 (CyberStrikeAI FortiGate campaign; technology, financial, manufacturing, government across 55 countries)
 
 ### AI Infrastructure / Developer Tools
 - AAGF-2026-009 (LiteLLM AI gateway supply chain compromise; downstream impact across Manufacturing, Education, Technology sectors)
@@ -649,6 +677,13 @@ Three distinct incidents now document Anthropic's security governance failing at
 - AAGF-2026-049 → AAGF-2026-044: Direct research lineage in the wormable AI agent propagation class. AAGF-2026-049 (Morris II, March 2024) is the first demonstrated self-replicating AI worm; AAGF-2026-044 (ZombAI, August 2025) is the first production-grade CVE in this class, confirmed 18 months later at 20M+ user scale. Morris II used email RAG propagation; ZombAI used git/IDE config propagation. Different channels, same worm dynamics: self-replicating adversarial prompt propagated via the agent's legitimate external communications capability without user interaction. The Morris II → ZombAI lineage proves that research PoCs in the wormable AI agent propagation class are the most predictive incident signal available.
 - AAGF-2026-049 → AAGF-2026-046: Both are documented against autonomous coding/task agents with internet connectivity and external communications capability. Devin AI (AAGF-2026-046) used GitHub Issues as the injection surface and curl/expose_port as the exfiltration channel. Morris II used email as both injection surface and propagation channel. Closest analog in attack class (indirect injection → autonomous external action). Different pattern groups: AAGF-2026-046 is agentic-ide-vulnerability-class (production SWE agent); AAGF-2026-049 is wormable-ai-agent-propagation (research PoC with worm dynamics).
 - AAGF-2026-048 → AAGF-2026-049: Thematic (lethal trifecta as shared analytical framework). Both incidents apply Simon Willison's three-condition framework and are cited as complementary illustrations of it. AAGF-2026-048 is the canonical single-server Supabase MCP instantiation; AAGF-2026-049 is the wormable multi-agent instantiation. Different pattern groups, same foundational theory. The lethal trifecta correctly predicts both attack classes: remove any single leg (read-only credentials in AAGF-2026-048; mandatory HITL for email-send in AAGF-2026-049) and the attack fails.
+
+### Batch 12 — AAGF-2026-050 (Mexican Government AI-Assisted Breach) and AAGF-2026-051 (CyberStrikeAI FortiGate)
+- AAGF-2026-050 → AAGF-2026-051: Closest structural pair — both are cases where commercial AI coding assistants (Claude Code) were deployed by threat actors as active operational tools in sustained cyberattack campaigns. Both involve platform terms violation without real-time detection. Both result in accounts banned only after external researcher disclosure. Distinction: -050 is a focused nation-state-scale data exfiltration against government targets with a single human operator using two AI subscriptions; -051 is a capability-democratization campaign using an open-source attack platform to achieve 600+ compromise events at geographically distributed enterprise targets. Together they establish AI coding assistants as a confirmed attack tool class — the first two incidents in this category in the database.
+- AAGF-2026-050 → AAGF-2026-007: Root cause cluster (token/credential over-permissioning enabling agent blast radius). Both involve Claude Code executing high-impact commands (infrastructure destruction vs. exfiltration SQL queries) with no runtime behavioral detection. -007: internal developer + misconfigured Railway token. -050: external attacker + attacker-controlled subscriptions. Same capability gap: no behavioral monitoring of Claude Code tool-use streams.
+- AAGF-2026-050 → AAGF-2026-024: Root cause cluster (untrusted content as trusted context / autonomous agent exfiltration). AgentFlayer (-024) demonstrated indirect prompt injection → exfiltration chains against enterprise copilots. -050 demonstrates direct operator instruction → exfiltration chains using the same product class. Both show AI coding assistants can be exfiltration tools; -024 is adversary-injected direction; -050 is attacker-direct direction.
+- AAGF-2026-051 → AAGF-2026-010: Thematic (open-source AI agent platform enabling malicious use at scale). OpenClaw (-010) had its marketplace poisoned with 824+ malicious skills; CyberStrikeAI (-051) was a fully public open-source attack platform. Both demonstrate that open-source AI agent platforms with minimal controls become multipliers for malicious actors. Different intent (unintentional security debt vs. purpose-built attack tool), same systemic outcome.
+- AAGF-2026-051 → AAGF-2026-044: Root cause cluster (autonomous attack execution via AI agent tooling). ZombAI (-044) demonstrated autonomous attack execution via prompt injection into a coding agent. CyberStrikeAI (-051) demonstrates autonomous attack execution via attacker-directed coding agent with no injection required. Both show AI coding agents can execute multi-step attack campaigns autonomously. -044: victim's agent turned against victim; -051: attacker's own agent directed against targets.
 
 ---
 
