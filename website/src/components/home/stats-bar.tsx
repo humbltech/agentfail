@@ -13,6 +13,7 @@ interface StatsBarProps {
     incidentsThisYear: number;
     incidentsLastYear: number;
     nearMissThisYear: number;
+    compositeDamageThisYear: number;
     earliestYear: number;
   };
 }
@@ -125,12 +126,20 @@ export function StatsBar({ stats }: StatsBarProps) {
               </span>
               <StarTooltip nearMissCount={stats.nearMissCount} />
             </div>
-            <span className="text-xs text-[var(--text-muted)]">
+            <span className="text-xs text-[var(--text-muted)] mb-1">
               Estimated Damage Averted
               {sinceYear !== null && (
                 <> since {sinceYear}</>
               )}
             </span>
+            {stats.compositeDamageThisYear > 0 && (
+              <span className="text-[11px] text-[var(--text-muted)]">
+                <span style={{ color: "var(--text-secondary)" }}>
+                  ~{formatUSDCompact(stats.compositeDamageThisYear)}
+                </span>
+                {" in "}{currentYear}
+              </span>
+            )}
           </div>
 
           {/* ── Col 3: Near-Miss Incidents ────────────────────────────── */}

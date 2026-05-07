@@ -290,6 +290,7 @@ export async function getStats(basePath?: string): Promise<{
   incidentsThisYear: number;
   incidentsLastYear: number;
   nearMissThisYear: number;
+  compositeDamageThisYear: number;
   earliestYear: number;
 }> {
   const resolvedPath = basePath ?? defaultBasePath();
@@ -325,6 +326,10 @@ export async function getStats(basePath?: string): Promise<{
       data.actual_vs_potential === "near-miss" &&
       data.date_occurred?.startsWith(String(currentYear)),
   ).length;
+  const compositeDamageThisYear = parsed.reduce((sum, { data }) => {
+    if (!data.date_occurred?.startsWith(String(currentYear))) return sum;
+    return sum + (data.damage_estimate?.composite_damage_usd ?? 0);
+  }, 0);
   const earliestYear = parsed.reduce((min, { data }) => {
     const y = data.date_occurred ? parseInt(data.date_occurred.slice(0, 4), 10) : currentYear;
     return isNaN(y) ? min : Math.min(min, y);
@@ -341,6 +346,7 @@ export async function getStats(basePath?: string): Promise<{
     incidentsThisYear,
     incidentsLastYear,
     nearMissThisYear,
+    compositeDamageThisYear,
     earliestYear,
   };
 }
