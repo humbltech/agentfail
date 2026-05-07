@@ -1,6 +1,6 @@
 # Incident Relationship Graph
 
-Last updated: 2026-05-06 — 33 incidents published
+Last updated: 2026-05-06 — 34 incidents published
 
 ---
 
@@ -84,10 +84,10 @@ Incidents where indirect prompt injection into an enterprise AI assistant's cont
 
 ---
 
-### ai-agent-platform-security-crisis (confirmed, n=2)
-Incidents where an AI agent platform experienced systemic, multi-vector security failures — encompassing supply chain poisoning, authentication bypasses, credential exposure, and infrastructure vulnerabilities — driven by growth-first development culture outpacing security investment. Confirmed at n=2: recurring pattern across independent platforms (OpenClaw, Flowise).
+### ai-agent-platform-security-crisis (confirmed, n=5)
+Incidents where an AI agent platform experienced systemic, multi-vector security failures — encompassing supply chain poisoning, authentication bypasses, credential exposure, and infrastructure vulnerabilities — driven by growth-first development culture outpacing security investment. Confirmed at n=2 (OpenClaw, Flowise); expanded with OpenClaw behavioral failure (-017), OpenClaw CVE cluster (-028), and Moltbook standalone breach report (-037).
 
-- **[[AAGF-2026-010]]** — OpenClaw security crisis: 137 security advisories in 3 months (5 formal CVEs including CVSS 9.9, 9.8), ClawHub marketplace poisoned with 824+ malicious skills distributing AMOS/Vidar malware, one-click RCE (ClawBleed), CVSS 9.8 auth bypass (ClawJacked), 21,639 publicly exposed instances, Moltbook breach exposing 1.5M API tokens via Supabase without RLS. First non-Claude-Code, non-enterprise-copilot open-source AI agent platform security crisis in the database.
+- **[[AAGF-2026-010]]** — OpenClaw security crisis: 137 security advisories in 3 months (5 formal CVEs including CVSS 9.9, 9.8), ClawHub marketplace poisoned with 824+ malicious skills distributing AMOS/Vidar malware, one-click RCE (ClawBleed), CVSS 9.8 auth bypass (ClawJacked), 21,639 publicly exposed instances, Moltbook breach exposing 1.5M API tokens via Supabase without RLS. First non-Claude-Code, non-enterprise-copilot open-source AI agent platform security crisis in the database. The Moltbook database breach referenced here is now separately documented as AAGF-2026-037.
   - *Seed incident for this pattern group*
 - **[[AAGF-2026-013]]** — Flowise MCP RCE: CVSS 10.0 code injection via CustomMCP node's `Function()` constructor, 12,000-15,000 publicly exposed instances, active exploitation detected April 2026 (6 months after patch), CISA KEV listing, third actively exploited Flowise CVE in ~12 months. Credential cascade risk to downstream LLM API keys. Confirms the pattern: open-source AI agent platform with growth outpacing security, producing systemic vulnerabilities.
   - *Second member — confirms pattern group*
@@ -95,6 +95,8 @@ Incidents where an AI agent platform experienced systemic, multi-vector security
   - *Third member — extends pattern from security-only to security + behavioral failure modes on the same platform*
 - **[[AAGF-2026-028]]** — ClawJacked (CVE-2026-28472): OpenClaw WebSocket hijacking via browser-to-localhost attack. Distinct CVE and distinct mechanism from ClawBleed (-010): attacker connects IN to the agent's local gateway via browser WebSocket permissiveness (vs. agent connects OUT to attacker server in ClawBleed). Three compounding gaps: WebSocket CORS exception, rate-limiter localhost exemption (CVE-2026-32025), dummy-token device identity bypass (CVE-2026-28472). No in-the-wild exploitation confirmed; patched <24h. Extends the platform crisis documentation with a new OpenClaw vulnerability dimension: the localhost trust model collapse.
   - *Fourth member — extends pattern group with a distinct CVE and distinct mechanism (browser-to-localhost inbound vs. outbound in ClawBleed). Same platform (OpenClaw), same root failure class.*
+- **[[AAGF-2026-037]]** — Moltbook Platform Breach: the AI agent social network built specifically for OpenClaw launched with hardcoded Supabase credentials in client JavaScript and no Row-Level Security on any database table. 1.5 million AI agent credential triples, 35,000 user emails, and 4,060 private messages (some containing plaintext API keys) were publicly accessible for 3 days before Wiz discovered and disclosed the exposure. Simultaneous reverse prompt injection campaign (506 injections detected in first 72 hours) operated as an independent attack plane that would persist even with correct RLS. Vibe-coded platform with zero pre-launch security review — the same pattern documented at DeepSeek and Base44. Patched in 3.5 hours; no user breach notification documented. Near-miss: no confirmed malicious access.
+  - *Fifth member — standalone detailed report for the Moltbook breach already referenced in AAGF-2026-010. Adds vibe-coding-era infrastructure misconfiguration as a distinct failure mechanism within the pattern group.*
 
 ---
 
@@ -201,6 +203,7 @@ Platform prioritized adoption velocity over security investment, producing syste
 - AAGF-2026-010 (OpenClaw: 135K+ stars in weeks, zero marketplace verification, no WebSocket auth, no deployment binding enforcement, ecosystem infrastructure without RLS)
 - AAGF-2026-013 (Flowise: 43,000+ stars, Fortune 500 users, no security-focused code review or static analysis, Function() constructor merged as routine code, three actively exploited CVEs in ~12 months)
 - AAGF-2026-028 (OpenClaw localhost trust model: "loopback = trusted" assumption inherited from internal tooling norms and never reassessed for browser-accessible AI agent gateways; ClawJacked is the fourth major vulnerability in February 2026 alone on the same platform, reflecting the same growth-first culture that generated all four CVEs simultaneously)
+- AAGF-2026-037 (Moltbook: vibe-coded AI agent social network launched with hardcoded Supabase credentials and zero RLS policies; founder explicitly stated no code was written manually; same structural failure class as DeepSeek and Base44; no pre-launch security review, no CI/CD gate, no post-incident user notification)
 
 ### Backup co-location with primary data
 Backup copies stored within the same deletion domain as the primary data — a single destructive operation wipes both.
@@ -294,7 +297,7 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 - AAGF-2026-012
 
 ### OpenClaw + ClawHub Marketplace + Moltbook
-- AAGF-2026-010, AAGF-2026-017, AAGF-2026-028
+- AAGF-2026-010, AAGF-2026-017, AAGF-2026-028, AAGF-2026-037
 
 ### Flowise (self-hosted, open-source)
 - AAGF-2026-013
@@ -371,6 +374,7 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 - AAGF-2026-031 (GitHub MCP Server prompt injection; private repo exfiltration via create_pull_request; researcher PoC on real infrastructure; 8-month vulnerable window)
 - AAGF-2026-033 (mcp-remote CVE-2025-6514 CVSS 9.6; OS command injection via OAuth metadata URL; 437,000+ downloads; bidirectional MCP attack surface)
 - AAGF-2026-034 (MCPJam Inspector CVE-2026-23744 CVSS 9.8; unauthenticated RCE via 0.0.0.0 binding; EPSS 97th percentile; debugging-tooling-layer failure)
+- AAGF-2026-037 (Moltbook Platform Breach; 1.5M AI agent credentials and 35,000 user emails exposed via missing Supabase RLS; vibe-coded platform launched with zero security review; near-miss; viral public attention)
 
 ---
 
@@ -502,6 +506,8 @@ Three distinct incidents now document Anthropic's security governance failing at
 | AAGF-2026-036 | AAGF-2026-015 | Root cause cluster (security controls calibrated for human inputs fail against adversarial agent inputs) | -015: Antigravity sandbox Secure Mode evaluated tools before native tool execution — security boundary missed the actual execution path. -036: deny-rule evaluation capped at 50 subcommands (calibrated for human command chains); adversarial LLM-generated chains trivially exceed threshold. Both: performance/usability assumptions about human behavior become security bypasses in adversarial agentic contexts. |
 | AAGF-2026-036 | AAGF-2026-022 | Anthropic governance failure pattern | -022: Anthropic confirmed STDIO execute-first as "expected behavior" and declined protocol-level fix. -036: Anthropic had tree-sitter fix ready and did not ship it until external disclosure forced 4-day deployment. Different failure mode (non-response vs. delayed shipping), same pattern: Anthropic's security governance failed at the fix-delivery stage. |
 | AAGF-2026-036 | AAGF-2026-025 | Anthropic governance failure lifecycle | -025: pre-publication security review failure (7-month patch window). -036: post-fix deployment failure (fix written, not shipped). Together with -022 (protocol design non-response), these three incidents document Anthropic's security governance gaps across the full fix lifecycle: design, pre-publication review, and post-fix deployment. |
+| AAGF-2026-037 | AAGF-2026-010 | Pattern group (ai-agent-platform-security-crisis), same platform (OpenClaw/Moltbook), direct incident connection | AAGF-2026-037 is the standalone detailed report for the Moltbook database breach already referenced in AAGF-2026-010's description. Causally connected: OpenClaw agents' machine-level capabilities (shell, file, browser) were directly reachable through the Moltbook platform credential exposure. Moltbook was built specifically as a social network for OpenClaw. |
+| AAGF-2026-037 | AAGF-2026-013 | Pattern group (ai-agent-platform-security-crisis), root cause cluster (growth-first development culture) | Both: rapid-growth AI agent platforms with zero pre-launch security review, multi-vector failure class (database + protocol in Flowise; credentials + prompt injection in Moltbook), credential cascade risk to downstream operators. |
 
 ---
 
