@@ -1,6 +1,6 @@
 # Incident Relationship Graph
 
-Last updated: 2026-05-06 — 35 incidents published
+Last updated: 2026-05-07 — 37 incidents published
 
 ---
 
@@ -84,8 +84,8 @@ Incidents where indirect prompt injection into an enterprise AI assistant's cont
 
 ---
 
-### ai-agent-platform-security-crisis (confirmed, n=5)
-Incidents where an AI agent platform experienced systemic, multi-vector security failures — encompassing supply chain poisoning, authentication bypasses, credential exposure, and infrastructure vulnerabilities — driven by growth-first development culture outpacing security investment. Confirmed at n=2 (OpenClaw, Flowise); expanded with OpenClaw behavioral failure (-017), OpenClaw CVE cluster (-028), and Moltbook standalone breach report (-037).
+### ai-agent-platform-security-crisis (confirmed, n=6)
+Incidents where an AI agent platform experienced systemic, multi-vector security failures — encompassing supply chain poisoning, authentication bypasses, credential exposure, and infrastructure vulnerabilities — driven by growth-first development culture outpacing security investment. Confirmed at n=2 (OpenClaw, Flowise); expanded with OpenClaw behavioral failure (-017), OpenClaw CVE cluster (-028), Moltbook standalone breach report (-037), and Google Vertex AI P4SA over-permissioning (-040).
 
 - **[[AAGF-2026-010]]** — OpenClaw security crisis: 137 security advisories in 3 months (5 formal CVEs including CVSS 9.9, 9.8), ClawHub marketplace poisoned with 824+ malicious skills distributing AMOS/Vidar malware, one-click RCE (ClawBleed), CVSS 9.8 auth bypass (ClawJacked), 21,639 publicly exposed instances, Moltbook breach exposing 1.5M API tokens via Supabase without RLS. First non-Claude-Code, non-enterprise-copilot open-source AI agent platform security crisis in the database. The Moltbook database breach referenced here is now separately documented as AAGF-2026-037.
   - *Seed incident for this pattern group*
@@ -98,6 +98,8 @@ Incidents where an AI agent platform experienced systemic, multi-vector security
 - **[[AAGF-2026-037]]** — Moltbook Platform Breach: the AI agent social network built specifically for OpenClaw launched with hardcoded Supabase credentials in client JavaScript and no Row-Level Security on any database table. 1.5 million AI agent credential triples, 35,000 user emails, and 4,060 private messages (some containing plaintext API keys) were publicly accessible for 3 days before Wiz discovered and disclosed the exposure. Simultaneous reverse prompt injection campaign (506 injections detected in first 72 hours) operated as an independent attack plane that would persist even with correct RLS. Vibe-coded platform with zero pre-launch security review — the same pattern documented at DeepSeek and Base44. Patched in 3.5 hours; no user breach notification documented. Near-miss: no confirmed malicious access.
   - *Fifth member — standalone detailed report for the Moltbook breach already referenced in AAGF-2026-010. Adds vibe-coding-era infrastructure misconfiguration as a distinct failure mechanism within the pattern group.*
   - *Cross-reference: AAGF-2026-038 (Sears Home Services) shares a structurally parallel storage misconfiguration failure mode — both are AI system storage backends deployed without access controls, discovered by external researchers, remediated within 24 hours with no public acknowledgment. However, each belongs to a distinct pattern group: AAGF-2026-037 is relational database RLS misconfiguration with credential exposure (ai-agent-platform-security-crisis); AAGF-2026-038 is cloud object storage misconfiguration with AI interaction data exposure and no credentials at risk (ai-chatbot-data-storage-breach).*
+- **[[AAGF-2026-040]]** — Google Vertex AI Agent Engine P4SA over-permissioning ("Double Agents"): every Agent Engine deployment without BYOSA receives a P4SA (Per-Project, Per-Product Service Account) with project-wide Cloud Storage read by default. Unit 42 (Ofir Shaty) demonstrated that any agent can query the GCP instance metadata service (`metadata.google.internal`) to extract the P4SA OAuth token, then read all GCS buckets in the project plus restricted `cloud-aiplatform-private` Artifact Registry repositories — including Google's own Vertex AI Reasoning Engine Docker images. No CVE assigned. Google responded with documentation updates and BYOSA recommendation; the insecure default P4SA permission set remains unchanged. Near-miss: no confirmed in-the-wild exploitation. Published 2026-03-31; extends the pattern group from open-source platform security crises to a hyperscaler-managed AI agent platform design default.
+  - *Sixth member — distinct from prior members: this is a platform default IAM design decision by a major cloud provider (Google), not an open-source project's growth-first security debt. The mechanism (service account over-permissioning + metadata service credential extraction) is architectural rather than implementation-level. Adds the "managed cloud AI agent platform as credential access vector" failure mode.*
 
 ---
 
@@ -154,6 +156,14 @@ Incidents where an AI customer service system's backend storage for interaction 
 
 ---
 
+### no-input-sanitization-llm-agent (provisional, n=1)
+Incidents where an LLM-integrated agent passes user-supplied input to the language model with no sanitization, validation, or prompt boundary enforcement — enabling direct prompt injection as an architectural gap rather than a coding bug. Distinct from indirect prompt injection (untrusted external content reaching the model via a secondary channel). Defining signature: developer builds LLM integration → user input passed to model API as a direct pass-through → no structural separation between developer instructions and user-controlled text → attacker with access to the input field can override system behavior, extract system prompts, or consume the operator's API quota. The root cause is a missing design concept (LLM trust model), not a missing code check.
+
+- **[[AAGF-2026-039]]** — CVE-2024-5184, EmailGPT Chrome Extension: student-built hackathon tool (IEEE NTU iNTUition v9.0) published to Chrome Web Store with self-hosted Express.js API + GPT-3.5. User input passed directly to the OpenAI messages array with zero sanitization — enabling system prompt extraction, behavior override, forced content generation via victim's Gmail identity, and API quota exhaustion (financial DoS). Three Synopsys CyRC disclosure attempts over 64 days with zero developer response; no patch issued; extension remains active. CVE-2024-5184, CVSS 9.1 Critical (NVD) / 6.5 Medium (Synopsys CNA). Near-miss; EPSS 0.11%; no confirmed exploitation. Among the earliest formally-assigned CVEs for LLM prompt injection in an autonomous AI agent context.
+  *Seed incident for this pattern group (provisional). Introduces: (1) abandoned AI tool with CVE as a systematic failure class from democratization of LLM tooling; (2) API quota exhaustion as a financial DoS vector unique to LLM integrations; (3) developer non-response to professional coordinated disclosure as a recurring pattern.*
+
+---
+
 ## Root Cause Clusters
 
 ### No default spending cap / platform-level circuit breaker
@@ -206,6 +216,7 @@ Agent accessed credentials with broader authority than required for its task, en
 - AAGF-2026-028 (Hijacked OpenClaw agent with persistent OAuth tokens and API keys for all connected services enables lateral movement into organizational infrastructure; single gateway auth bypass cascades to full credential access across email, Slack, calendars, cloud storage)
 - AAGF-2026-029 (Codex GitHub OAuth token embedded in plaintext git remote URL granted read/write access to all authorized repos; @codex PR review variant used Installation Access Token with potential org-wide scope for a single-repository code review task; Phase 4 remediation reduced token scope and lifetime)
 - AAGF-2026-031 (GitHub PAT with access to all private repositories used as the GitHub MCP server credential; broad-scope PAT enables private data exfiltration when agent follows injected instructions; minimum-scope PAT scoped to target repository only would eliminate the exfiltration payload even if injection succeeds)
+- AAGF-2026-040 (Google Vertex AI Agent Engine P4SA granted project-wide Cloud Storage read by default — every Agent Engine deployment without BYOSA runs with a service account that can read all GCS buckets in the GCP project plus access restricted `cloud-aiplatform-private` Artifact Registry repositories; extractable via metadata service query by any code running in the agent runtime)
 
 ### Growth-first development culture / security debt at scale
 Platform prioritized adoption velocity over security investment, producing systemic vulnerabilities across marketplace, authentication, credential storage, and deployment guidance.
@@ -264,6 +275,7 @@ AI agent or platform processes untrusted external inputs (emails, documents, for
 - AAGF-2026-029 (branch name = untrusted HTTP API input executed as shell code in container setup; Unicode Ideographic Space obfuscation (U+3000 × 94) hides 100-character payload from UI while shell executes it; no sanitization before passing to git fetch/checkout shell commands)
 - AAGF-2026-031 (GitHub Issue body returned by list_issues tool — attacker-authored free-form text — entered LLM context with no boundary marker distinguishing it from trusted instructions; agent processed embedded prompt injection payload as legitimate directives)
 - AAGF-2026-036 (CLAUDE.md from untrusted repository processed as authoritative agent instruction; 51-subcommand build command crafted to exceed deny-rule evaluation threshold; CI/CD auto-approve makes this fully non-interactive)
+- AAGF-2026-039 (EmailGPT Express.js API passed user input to GPT-3.5 as a direct pass-through — no sanitization, no prompt boundaries, no output validation; LLM treated user-controlled text as potentially instructional, enabling system prompt extraction, behavior override, and API quota exhaustion)
 
 ### Pattern-matching-only defense model
 All defensive layers use the same paradigm (deny-list pattern matching) rather than structurally different control types, allowing a single attacker methodology to bypass all layers independently.
@@ -344,6 +356,12 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 ### Cursor IDE / MCP Ecosystem
 - AAGF-2026-032
 
+### Google Vertex AI Agent Engine
+- AAGF-2026-040
+
+### Google Chrome Extension + Gmail (EmailGPT / self-hosted Express.js API)
+- AAGF-2026-039
+
 ---
 
 ## Industry Clusters
@@ -352,7 +370,7 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 - AAGF-2026-023 (Operator unauthorized purchase), AAGF-2026-026 (WhatsApp MCP rug-pull)
 
 ### Software Development / Open Source / SaaS
-- AAGF-2026-001, AAGF-2026-002, AAGF-2026-003, AAGF-2026-004, AAGF-2026-005, AAGF-2026-014, AAGF-2026-015, AAGF-2026-016, AAGF-2026-017, AAGF-2026-020, AAGF-2026-021, AAGF-2026-029, AAGF-2026-031, AAGF-2026-032, AAGF-2026-033, AAGF-2026-034, AAGF-2026-036
+- AAGF-2026-001, AAGF-2026-002, AAGF-2026-003, AAGF-2026-004, AAGF-2026-005, AAGF-2026-014, AAGF-2026-015, AAGF-2026-016, AAGF-2026-017, AAGF-2026-020, AAGF-2026-021, AAGF-2026-029, AAGF-2026-031, AAGF-2026-032, AAGF-2026-033, AAGF-2026-034, AAGF-2026-036, AAGF-2026-039
 
 ### B2B SaaS (non-coding-tool)
 - AAGF-2026-007 (PocketOS — rental management SaaS; victim is the developer, not an end user of Claude)
@@ -384,6 +402,7 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 - AAGF-2026-033 (mcp-remote CVE-2025-6514 CVSS 9.6; OS command injection via OAuth metadata URL; 437,000+ downloads; bidirectional MCP attack surface)
 - AAGF-2026-034 (MCPJam Inspector CVE-2026-23744 CVSS 9.8; unauthenticated RCE via 0.0.0.0 binding; EPSS 97th percentile; debugging-tooling-layer failure)
 - AAGF-2026-037 (Moltbook Platform Breach; 1.5M AI agent credentials and 35,000 user emails exposed via missing Supabase RLS; vibe-coded platform launched with zero security review; near-miss; viral public attention)
+- AAGF-2026-040 (Google Vertex AI Agent Engine P4SA over-permissioning; project-wide GCS read granted by default to all Agent Engine deployments; P4SA extractable via metadata service; Unit 42 demonstrated pivot to restricted Artifact Registry; no CVE; documentation-only response; High severity near-miss)
 
 ---
 
@@ -518,6 +537,10 @@ Three distinct incidents now document Anthropic's security governance failing at
 | AAGF-2026-037 | AAGF-2026-010 | Pattern group (ai-agent-platform-security-crisis), same platform (OpenClaw/Moltbook), direct incident connection | AAGF-2026-037 is the standalone detailed report for the Moltbook database breach already referenced in AAGF-2026-010's description. Causally connected: OpenClaw agents' machine-level capabilities (shell, file, browser) were directly reachable through the Moltbook platform credential exposure. Moltbook was built specifically as a social network for OpenClaw. |
 | AAGF-2026-037 | AAGF-2026-013 | Pattern group (ai-agent-platform-security-crisis), root cause cluster (growth-first development culture) | Both: rapid-growth AI agent platforms with zero pre-launch security review, multi-vector failure class (database + protocol in Flowise; credentials + prompt injection in Moltbook), credential cascade risk to downstream operators. |
 | AAGF-2026-038 | AAGF-2026-037 | Structurally parallel storage misconfiguration failure mode; distinct pattern groups | Both expose AI-system data through storage backends deployed without access controls. Both discovered by external security researchers via responsible disclosure. Both remediated within 24 hours with no public acknowledgment to affected users. Core governance gap is identical: AI system deployed, storage security unreviewed. Critical distinctions: AAGF-2026-037 is relational database (Supabase/PostgreSQL) RLS misconfiguration exposing AI agent credentials and user PII (ai-agent-platform-security-crisis); AAGF-2026-038 is cloud object storage misconfiguration exposing AI interaction data — chat transcripts, voice recordings, scheduling logs — with no credentials at risk (ai-chatbot-data-storage-breach). The parallel structure seeds the ai-chatbot-data-storage-breach provisional pattern group; AAGF-2026-037 is the closest existing incident but belongs to a structurally distinct group. |
+| AAGF-2026-040 | AAGF-2026-029 | Pattern group (ai-agent-platform-security-crisis), closest structural parallel: AI agent as credential-exfiltration vector via platform defaults | Both: AI coding/development agents running with over-scoped credentials extractable and usable to pivot outside the agent's intended boundary. AAGF-2026-029 (Codex branch injection) achieves credential theft via unsanitized HTTP API → OS command injection that reads the GitHub OAuth token from disk. AAGF-2026-040 achieves credential access via GCP metadata service HTTP call — no injection required; the token is freely available to any code running in the agent runtime by platform design. The attack mechanism differs (input validation failure vs. platform default grant), but the consequence class is identical: a single agentic deployment becomes the entry point for accessing credentials scoped far beyond the agent's intended function. |
+| AAGF-2026-040 | AAGF-2026-013 | Pattern group (ai-agent-platform-security-crisis), aggregated credential/data blast radius on platform compromise | Flowise RCE (AAGF-2026-013) enabled credential cascade to all stored API keys via unprotected admin endpoint. P4SA over-permissioning (AAGF-2026-040) enables project-wide GCS read access on any agent compromise via GCP metadata service. Both: AI agent platforms where a single exploitation event grants access to aggregated credentials or data well beyond the exploited component's intended scope. Both are platform-architecture failures, not per-deployment configuration errors — every deployment inherits the blast radius by design. |
+| AAGF-2026-040 | AAGF-2026-037 | Pattern group (ai-agent-platform-security-crisis), platform default security posture failure affecting all tenants | Both are platform-level defaults that create security exposure for every deployment on the platform: AAGF-2026-037 is missing Supabase RLS on Moltbook's database (all agent credentials exposed); AAGF-2026-040 is Google's P4SA default granting project-wide GCS read to every Vertex AI Agent Engine deployment. Both were discovered by external researchers, both remediated without changing the underlying default (Moltbook disabled RLS issue via patch; Google added BYOSA opt-in but P4SA remains the default). Pattern: AI platforms ship with permissive defaults, rely on operators to opt into security hardening they may not know exists. |
+| AAGF-2026-040 | AAGF-2026-010 | Pattern group (ai-agent-platform-security-crisis), IAM design failure creating broad blast radius on agent compromise | Both involve AI agent platforms where inadequate IAM design creates access scope far exceeding what the agent's function requires. AAGF-2026-010 (ClawBleed) exposed agent credentials via outbound SSRF-style connection to attacker server. AAGF-2026-040 exposes GCP P4SA credentials via inbound metadata service query accessible to any code in the runtime. Together they bookend the IAM failure spectrum in this pattern group: one is credential exfiltration via outbound agent behavior; the other is credential availability via platform-granted ambient access. Both are LLM-specific: the agent's natural-language tool invocation capability is what makes these credentials dangerous in agentic contexts. |
 
 ---
 

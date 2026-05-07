@@ -1,0 +1,566 @@
+---
+id: "AAGF-2026-040"
+title: "Double Agents: Google Vertex AI P4SA Default Grants Project-Wide Storage Read to Every Agent Engine Deployment"
+status: "reviewed"
+date_occurred: "2025-01-01"          # Approximate — P4SA design in place from Agent Engine GA (late 2024/early 2025)
+date_discovered: "2026-03-31"        # Unit 42 / Ofir Shaty public disclosure date
+date_reported: "2026-03-31"          # Simultaneous publication and disclosure (no prior coordinated private disclosure period documented)
+date_curated: "2026-05-06"
+date_council_reviewed: "2026-05-07"
+
+# Classification
+category: ["Unauthorized Data Access", "Autonomous Escalation"]
+severity: "High"
+agent_type: ["AI development platforms"]
+agent_name: "Vertex AI Agent Engine (P4SA)"
+platform: "Google Vertex AI Agent Engine"
+industry: "Cloud Infrastructure / AI Platform"
+
+# Damage classification
+actual_vs_potential: "near-miss"
+potential_damage: "Every Google Cloud project using Vertex AI Agent Engine without BYOSA (Bring Your Own Service Account) is exposed to project-wide Cloud Storage read access via the platform-issued P4SA (Per-Project, Per-Product Service Account). An attacker who deploys or compromises any agent on the platform can exfiltrate the P4SA credential from the GCP metadata service and read all Cloud Storage buckets in the GCP project — including databases, backups, model artifacts, logs, and any other data stored in GCS. Unit 42 demonstrated extraction of Google's own internal restricted Artifact Registry images (including the Vertex AI Reasoning Engine Docker source), proving the pivot reaches infrastructure that Google itself never intended to be customer-accessible. At scale: every Agent Engine customer with sensitive GCS data, across all industries using GCP."
+intervention: "Unit 42 researcher Ofir Shaty (Palo Alto Networks) discovered and publicly disclosed the vulnerability on 2026-03-31. Google responded with documentation updates recommending BYOSA as an opt-in mitigation and modified the ADK deployment workflow. No patch was released; the insecure default P4SA permission set remains unchanged for deployments that have not adopted BYOSA."
+
+# Impact
+financial_impact: "Not quantified — no confirmed in-the-wild exploitation; potential impact spans enterprise data exfiltration, IP theft, and supply chain compromise depending on what customer data resides in GCS buckets within affected projects"
+financial_impact_usd: null
+refund_status: "unknown"
+refund_amount_usd: null
+affected_parties:
+  count: null                        # Google has not disclosed Agent Engine deployment count or BYOSA adoption rate
+  scale: "widespread"                # All Vertex AI Agent Engine deployments without BYOSA are affected by default
+  data_types_exposed: ["credentials", "source_code", "PII", "financial"]  # P4SA itself is a credential; GCS contents vary by customer but can include all data types
+
+# Damage Timing
+damage_speed: "instantaneous"        # Metadata service query returns credentials in milliseconds; GCS read follows immediately
+damage_duration: "unknown"           # Vulnerability existed from Agent Engine GA; still present as a default at time of disclosure
+total_damage_window: "unknown"       # From Agent Engine GA (~late 2024) onward; no remediation of the default permission
+
+# Recovery
+recovery_time: "not required"        # Mitigation is opt-in BYOSA; no data confirmed exfiltrated; no confirmed exploitation
+recovery_labor_hours: null
+recovery_cost_usd: null
+recovery_cost_notes: "Customer remediation requires auditing existing Agent Engine deployments and implementing BYOSA; complexity scales with deployment count. Google's documentation update does not automatically remediate existing deployments."
+full_recovery_achieved: "unknown"    # Insecure default remains; recovery status depends on each customer's BYOSA adoption
+
+# Business Impact
+business_scope: "multi-org"          # All organizations using Vertex AI Agent Engine without BYOSA
+business_criticality: "high"
+business_criticality_notes: "Unrestricted read access to all GCS buckets in a GCP project can expose databases, model training data, backups, application secrets, customer PII, and financial records — depending entirely on what the affected organization stores in GCS. In highly regulated industries (healthcare, finance, government), this represents a potential compliance-breaking data breach."
+systems_affected: ["cloud-storage", "artifact-registry", "credentials", "ai-platform-infrastructure"]
+
+# Vendor Response
+vendor_response: "acknowledged"      # Documentation update + BYOSA recommendation; no patch; insecure default unchanged
+vendor_response_time: "<24h"         # Google's documentation was updated concurrent with or before the public disclosure on 2026-03-31
+
+damage_estimate:
+  confirmed_loss_usd: null
+  recovery_cost_usd: null
+  averted_damage_usd: 5000000
+  averted_range_low: 500000
+  averted_range_high: 50000000
+  composite_damage_usd: 5000000
+  confidence: "low"
+  probability_weight: 0.05
+  methodology: "Near-miss upper bound estimate. No confirmed exploitation. Range reflects breadth of GCS data exposure (customer-specific) multiplied by enterprise GCP deployment scale. Lower bound assumes limited/isolated GCS contents; upper bound assumes regulated-industry deployment with PII/financial data. Google's own restricted Artifact Registry access (demonstrated) is treated as a floor, not the primary customer risk."
+  methodology_detail:
+    per_unit_cost_usd: null
+    unit_count: null
+    unit_type: "affected Agent Engine deployment"
+    multiplier: null
+    benchmark_source: "IBM Cost of a Data Breach 2024 ($4.88M average enterprise breach); scaled for cloud storage read-only scope vs. full breach"
+  estimation_date: "2026-05-06"
+  human_override: false
+  notes: "Damage estimate is highly speculative given zero confirmed exploitation. The primary risk is potential, not realized. The near-miss classification and high severity reflect the architectural scope (all Agent Engine deployments by default) rather than confirmed losses."
+
+headline_stat: "Google Vertex AI's default service account grants every AI agent project-wide Cloud Storage read — Unit 42 used it to extract Google's own internal infrastructure code from a restricted Artifact Registry"
+operator_tldr: "If your team runs workloads on Vertex AI Agent Engine and has not implemented BYOSA, your agents run with a service account that can read every Cloud Storage bucket in your GCP project. A compromised or malicious agent — or any code your agent executes — can query the GCP metadata service to obtain these credentials without any user action or elevated permission request. Audit your Agent Engine deployments, implement BYOSA immediately, and lock down GCS bucket IAM policies to enforce least privilege independent of the platform default."
+containment_method: "third_party"    # Unit 42 external research team discovered and disclosed
+public_attention: "high"             # The Hacker News, SecurityWeek, Dark Reading, VentureBeat, 10+ outlets
+
+framework_refs:
+  mitre_atlas:
+    - "AML.T0057 - LLM Data Leakage"
+    - "AML.T0085 - Data from AI Services"
+    - "AML.T0085.001 - AI Agent Tools"
+    - "AML.T0086 - Exfiltration via AI Agent Tool Invocation"
+    - "AML.T0053 - AI Agent Tool Invocation"
+    - "AML.T0012 - Valid Accounts"
+    - "AML.T0055 - Unsecured Credentials"
+    - "AML.T0083 - Credentials from AI Agent Configuration"
+    - "AML.T0105 - Escape to Host"
+  owasp_llm:
+    - "LLM02:2025 - Sensitive Information Disclosure"
+    - "LLM06:2025 - Excessive Agency"
+  owasp_agentic:
+    - "ASI03:2026 - Agent Identity and Privilege Abuse"
+    - "ASI10:2026 - Rogue Agents"
+  ttps_ai:
+    - "2.7 - Privilege Escalation"
+    - "2.9 - Credential Access"
+    - "2.12 - Collection"
+    - "2.15 - Exfiltration"
+
+related_incidents:
+  - id: "AAGF-2026-029"
+    relationship: "Closest structural parallel — OpenAI Codex GitHub OAuth token exfiltration via command injection; both incidents involve AI agents running with over-scoped credentials that can be extracted and used to pivot outside the agent's intended boundary"
+  - id: "AAGF-2026-013"
+    relationship: "Same pattern group (ai-agent-platform-security-crisis) — Flowise MCP RCE exposed underlying agent platform credentials; platform-level security failures enabling credential access"
+  - id: "AAGF-2026-037"
+    relationship: "Same pattern group — Moltbook platform breach via missing Supabase RLS; platform default security posture failure affecting all tenants"
+  - id: "AAGF-2026-010"
+    relationship: "Same pattern group — AI agent platform security design flaw with broad customer impact"
+
+pattern_group: "ai-agent-platform-security-crisis"
+tags:
+  - "gcp"
+  - "vertex-ai"
+  - "agent-engine"
+  - "p4sa"
+  - "service-account"
+  - "metadata-service"
+  - "privilege-escalation"
+  - "cloud-storage"
+  - "artifact-registry"
+  - "iam"
+  - "least-privilege"
+  - "byosa"
+  - "unit-42"
+  - "palo-alto-networks"
+  - "platform-design-flaw"
+  - "credential-exfiltration"
+  - "double-agents"
+
+sources:
+  - url: "https://unit42.paloaltonetworks.com/double-agents-vertex-ai/"
+    title: "Double Agents: Exposing Security Blind Spots in GCP Vertex AI"
+    author: "Ofir Shaty, Unit 42 / Palo Alto Networks"
+    date: "2026-03-31"
+    type: "primary"
+  - url: "https://thehackernews.com/2026/03/vertex-ai-vulnerability-exposes-google.html"
+    title: "Vertex AI Vulnerability Exposes Google Infrastructure to AI Agents"
+    author: "The Hacker News"
+    date: "2026-03-31"
+    type: "secondary"
+  - url: "https://www.securityweek.com/google-addresses-vertex-security-issues-after-researchers-weaponize-ai-agent/"
+    title: "Google Addresses Vertex Security Issues After Researchers Weaponize AI Agent"
+    author: "SecurityWeek"
+    date: "2026-04-01"
+    type: "secondary"
+  - url: "https://venturebeat.com/security/six-exploits-broke-ai-coding-agents-iam-never-saw-them"
+    title: "Six exploits broke AI coding agents — IAM never saw them"
+    author: "VentureBeat"
+    date: "2026-04-01"
+    type: "secondary"
+
+researcher_notes: "No CVE assigned. Google's response was documentation-only — the insecure default P4SA permission set remains. The 'Double Agents' framing from Unit 42 is apt: an agent that appears to serve its legitimate purpose while simultaneously (and covertly) exfiltrating credentials and data. The absence of any per-deployment network egress control or metadata service restriction means the attack surface is architectural, not incidental. BYOSA is a meaningful mitigation but requires customer action against a secure-by-default expectation."
+council_verdict: "Core findings are factually grounded and the High/near-miss classification is earned, but three issues require pre-publication correction: remove 'Autonomous Escalation' as a category (the credentials are pre-granted, not dynamically escalated), correct the Capital One comparison to explicitly note the mechanism differs (direct tool call vs. SSRF), and fix the invalid 'confidence: low' enum value to a valid schema field."
+
+---
+
+## Executive Summary
+
+Google Vertex AI Agent Engine provisions all agents with a Per-Project, Per-Product Service Account (P4SA) that, by platform default, holds unrestricted read access to every Cloud Storage bucket in the GCP project. Unit 42 researcher Ofir Shaty demonstrated that any agent (or attacker who compromises one) can query the GCP instance metadata service to extract P4SA credentials and immediately pivot to read all project-level GCS data plus restricted Artifact Registry repositories — including Google's own internal Vertex AI Reasoning Engine Docker images. No patch was issued; Google updated its documentation to recommend an opt-in mitigation (BYOSA), leaving the insecure default in place for all deployments that have not explicitly remediated.
+
+---
+
+## Timeline
+
+| Date | Event |
+|------|-------|
+| Late 2024 / Early 2025 | Vertex AI Agent Engine reaches General Availability. P4SA with project-wide GCS read permissions is assigned by default to all new Agent Engine deployments. |
+| 2025-01-01 (approx.) | Vulnerability exists from GA onward; no confirmed in-the-wild exploitation. |
+| Pre-2026-03-31 | Ofir Shaty (Unit 42, Palo Alto Networks) investigates Vertex AI Agent Engine security posture; discovers P4SA over-permission and develops proof-of-concept exploit chain. |
+| 2026-03-31 | Unit 42 publishes "Double Agents: Exposing Security Blind Spots in GCP Vertex AI." Simultaneous coverage in The Hacker News and other outlets. Google updates Vertex AI documentation recommending BYOSA concurrent with or immediately following disclosure. |
+| 2026-04-01 | SecurityWeek, VentureBeat, Dark Reading, and additional outlets cover the disclosure. Google confirms "strong, non-overridable controls" for production image modification but does not announce a change to default P4SA GCS permissions. |
+| 2026-05-06 | Incident curated for AgentFail. Insecure default P4SA permission remains in place. |
+
+---
+
+## What Happened
+
+### The "Double Agent" Framing
+
+The Unit 42 research was named "Double Agents" for a reason that goes beyond marketing. A double agent operates inside a trusted institution, performs their visible duties, and covertly serves a second principal. The vulnerability enables exactly this: an AI agent deployed on Vertex AI Agent Engine executes its assigned tasks — coding, analysis, data processing — while simultaneously, through a single metadata service query, exfiltrating credentials that grant read access to the entire project's cloud storage. The agent serves its owner while betraying them.
+
+### The Platform Default That Created the Problem
+
+When a developer deploys an agent to Vertex AI Agent Engine, Google automatically provisions a P4SA (Per-Project, Per-Product Service Account) for the agent runtime. This is a platform convenience: agents need credentials to call Google APIs, and P4SA eliminates the burden of manual service account creation.
+
+The problem is what P4SA comes with. By default, the P4SA is bound to IAM roles that include unrestricted read access to every Cloud Storage bucket in the GCP project. This is not a bug in the traditional sense — it is an intentional platform design decision that sacrifices the principle of least privilege for operational convenience. A developer who deploys a Vertex AI agent and does nothing further has, without knowing it, granted that agent access to potentially every piece of data their organization stores in GCS.
+
+### What Unit 42 Demonstrated
+
+Shaty's proof-of-concept follows a clean five-step attack chain:
+
+1. **Agent deployment with a custom tool.** An attacker deploys (or compromises) a Vertex AI agent and registers a tool that makes an HTTP request to the GCP instance metadata service.
+
+2. **Metadata service query.** The agent invokes the tool, which queries `http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true` with the required `Metadata-Flavor: Google` header.
+
+3. **Credential extraction.** The metadata service returns a JSON payload containing the P4SA's OAuth 2.0 access token, the GCP project ID, the agent's identity, and the full list of OAuth scopes — including storage read.
+
+4. **Cloud Storage pivot.** Using the extracted P4SA token, the attacker authenticates to the Google Cloud Storage API and lists/reads all buckets in the project. No additional authentication, no privilege escalation in the traditional sense — the token is already authorized.
+
+5. **Artifact Registry access.** The same token grants access to restricted `cloud-aiplatform-private` Artifact Registry repositories. Unit 42 demonstrated downloading Google's internal `reasoning-engine` and `llm-extension/reasoning-engine-py310` images — Google's proprietary Vertex AI Reasoning Engine internals that were never intended for customer visibility. Internal GCS paths (e.g., `gs://reasoning-engine-restricted/versioned_py/Dockerfile.zip`) were also exposed.
+
+The attack requires no CVE, no memory corruption, no zero-day exploit. It leverages fully legitimate, working-as-designed platform infrastructure. The P4SA token is real, the metadata service is real, and the GCS permissions are real.
+
+---
+
+## Technical Analysis
+
+### The GCP Metadata Service as an Implicit Credential Store
+
+Every GCP compute instance — including the containerized runtimes underlying Vertex AI Agent Engine — has access to the instance metadata service at the link-local address `169.254.169.254` (also accessible at `metadata.google.internal`). This service provides instance configuration, labels, and — critically — the OAuth 2.0 token for whatever service account is attached to the instance.
+
+This is standard GCP architecture. It is documented, intentional, and used by GCP SDKs for Application Default Credentials (ADC). The risk it creates in an agent context is that any code executing on the agent runtime — including code invoked through agent tools — can silently access this service and obtain the service account token without any user prompt, permission request, or audit event distinguishable from normal API usage.
+
+### Why P4SA Holds Project-Wide GCS Read
+
+GCP's P4SA model was designed for Google-managed services that need to operate across a project without requiring customers to manually configure IAM bindings. Cloud Build, Cloud Run, and various other GCP services use similar patterns. The P4SA permissions are set by Google at service creation and are not customer-configurable in the default configuration.
+
+For Vertex AI Agent Engine, the P4SA needs storage access for legitimate purposes: reading model artifacts, writing logs, accessing training data. Rather than scoping this access to specific buckets the agent legitimately needs, the default grants project-wide read — a "works for everything" permission that is convenient during development but violates least privilege in production.
+
+The result: an agent deployed for customer service Q&A in a project that also contains HR data, financial records, and source code backups has implicit access to all of it through its P4SA.
+
+### What Least Privilege Would Look Like
+
+A properly scoped Agent Engine deployment would have:
+
+- A dedicated service account with IAM bindings scoped to the specific GCS buckets the agent needs to read
+- `storage.objectViewer` on `gs://my-project-agent-data/` rather than project-wide
+- No access to Artifact Registry (unless the agent has a legitimate build/deploy function)
+- Regular rotation of service account keys
+- Audit logging enabled for all P4SA credential usage
+
+This is exactly what BYOSA enables — but it requires the customer to know they need to do it, know how to do it, and actually do it before deployment. Platform defaults should make this the path of least resistance, not the opt-out.
+
+### The Metadata Service Network Control Gap
+
+The metadata service vulnerability class is well-known in cloud security — it is the same mechanism that made the 2019 Capital One breach possible (EC2 metadata service on AWS). GCP's v2 metadata service (IMDS v2 equivalent) adds a session token requirement that provides some SSRF resistance, but agent runtimes that execute arbitrary tool code are not SSRF — they are direct HTTP clients. A tool that calls `metadata.google.internal` is indistinguishable at the network layer from legitimate ADC usage.
+
+---
+
+## Root Cause Analysis — 5 Whys
+
+**Why was this vulnerability possible?**
+Because a deployed Vertex AI agent could query the metadata service and obtain P4SA credentials with project-wide Cloud Storage read access.
+
+**Why did the P4SA have project-wide Cloud Storage read access?**
+Because Google's Agent Engine platform assigned this permission by default to all deployments, trading least-privilege for operational convenience and platform simplicity.
+
+**Why was project-wide GCS read set as the default rather than scoped access?**
+Because the P4SA permission model was designed for platform-level service operations (writing logs, accessing shared model artifacts) without anticipating that the agent runtime itself could be a threat actor — or a vector for one.
+
+**Why was the agent runtime not considered a potential threat actor when the platform was designed?**
+Because AI agent platform IAM architecture was inherited from general-purpose cloud compute IAM models, where the code running on the instance is assumed to be the customer's trusted workload. The threat model for agentic systems — where the agent may execute attacker-influenced code through tool calls, prompt injection, or supply chain compromise of agent dependencies — was not reflected in the permission design.
+
+**Why was the threat model for AI agents as compromise vectors not incorporated into the platform's IAM design?**
+Because AI agent platforms were designed and launched at a time when the security industry's understanding of agentic threat models was immature, and time-to-market pressure favored operational simplicity over security-by-default. The platform inherited the assumption that all agent actions are customer-authorized, which is false in a world of prompt injection, multi-agent orchestration, and externally-controlled tool inputs.
+
+**Root cause:** AI agent platform IAM was designed with a compute-era threat model that treats agent code as inherently trusted. Modern agentic systems require a new threat model: agents must be treated as potentially compromised, and their credentials must be scoped to the minimum necessary for their legitimate function — not to the maximum convenient for platform operation.
+
+---
+
+## Impact Assessment
+
+### Scope of Affected Deployments
+
+Every Vertex AI Agent Engine deployment worldwide that has not implemented BYOSA is affected. Google has not disclosed the number of Agent Engine deployments or the fraction that have adopted BYOSA. Given that:
+
+- BYOSA is an opt-in, not the default
+- The vulnerability was not widely known before the Unit 42 disclosure
+- Many organizations rely on GCP defaults as secure-by-default
+
+...the at-risk population is likely the majority of Agent Engine deployments at the time of disclosure.
+
+### What Customer Data Was at Risk
+
+The exposure surface is entirely determined by what each GCP project stores in Cloud Storage buckets. Because GCS is a universal storage layer for GCP workloads, a typical enterprise project might store:
+
+- **Model training data**: datasets containing PII, financial records, healthcare data
+- **Application data**: database exports, backups, log archives
+- **Source code and build artifacts**: CI/CD pipeline outputs, dependency caches
+- **Configuration and secrets**: files containing API keys, database credentials, infrastructure configs
+- **Customer-facing content**: documents, media, user-uploaded files
+- **Compliance data**: audit logs, regulatory filings
+
+Any of these, in any quantity, in any regulated industry, is accessible to an attacker who has compromised or deployed a single agent on the platform.
+
+### Google's Internal Infrastructure Exposed
+
+Unit 42's demonstration went beyond theoretical customer data exposure. By pivoting through the P4SA to the `cloud-aiplatform-private` Artifact Registry and associated GCS buckets, they obtained:
+
+- The `reasoning-engine` Docker image: Google's proprietary Vertex AI Reasoning Engine runtime
+- The `llm-extension/reasoning-engine-py310` image: Python 3.10 variant
+- The `gs://reasoning-engine-restricted/versioned_py/Dockerfile.zip`: internal Dockerfile for the reasoning engine build
+
+This is infrastructure that Google itself restricted — it was never intended to be customer-accessible. The fact that the P4SA granted access to it indicates that even Google's internal Artifact Registry ACLs did not fully account for the P4SA's over-broad permission scope.
+
+### What Was Confirmed vs. Potential
+
+- **Confirmed**: Unit 42 successfully extracted P4SA credentials and accessed Google's internal restricted Artifact Registry in a research/demonstration context
+- **Confirmed**: The vulnerability existed in all Agent Engine deployments without BYOSA
+- **Not confirmed**: Any customer data exfiltrated by a malicious actor
+- **Not confirmed**: Any in-the-wild exploitation
+
+The "near-miss" classification reflects that the mechanism was fully functional and demonstrated — but no adversarial exploitation of customer data has been disclosed.
+
+---
+
+## How It Could Have Been Prevented
+
+### 1. Secure-by-Default Service Account Scoping
+
+Google could have shipped Agent Engine with a default service account scoped to only what agents require: specific project-level APIs (Vertex AI endpoints, logging) and no general GCS bucket access. Customers who need broader GCS access could opt in by explicitly granting permissions, not opt out of insecure defaults.
+
+### 2. Workload Identity Federation Instead of P4SA Tokens
+
+Instead of exposing a long-lived OAuth token via the metadata service, Agent Engine could use Workload Identity Federation with short-lived, audience-restricted tokens that cannot be used outside the agent's runtime context. This would not prevent a compromised agent from reading GCS, but it would prevent credential exfiltration and reuse outside the authorized workload boundary.
+
+### 3. Metadata Service Access Controls at the Platform Layer
+
+Google could restrict metadata service access for Agent Engine runtimes to a set of approved callers (GCP SDKs, ADC libraries) rather than allowing arbitrary HTTP clients. This would break the tool-based exfiltration vector even if P4SA permissions were unchanged.
+
+### 4. IAM Audit Tooling Pre-Deployment
+
+An automated pre-deployment check in the Agent Engine SDK or CLI that warns operators when their deployment will run with over-broad IAM permissions (or any permissions beyond a defined least-privilege baseline) would catch this class of issue before it reaches production.
+
+### 5. Threat Modeling AI Agents as Untrusted Workloads
+
+Incorporating a "compromised agent" threat model into the platform's security review process — treating agents as potentially hostile code that may attempt to access the metadata service — would have surfaced this risk before GA.
+
+---
+
+## How It Was / Could Be Fixed
+
+### Google's Actual Response
+
+Google's response to the Unit 42 disclosure was:
+
+1. **Documentation update**: Added guidance recommending BYOSA for production Agent Engine deployments
+2. **ADK deployment workflow modification**: Modified the Agent Development Kit (ADK) workflow to facilitate BYOSA implementation
+3. **Confirmation of production image modification controls**: Clarified that the Artifact Registry images accessed by Unit 42 cannot be modified in production — but did not change read access controls
+4. **No change to default P4SA permissions**: The insecure default GCS read access remains in place for deployments that do not implement BYOSA
+
+The practical result: the vulnerability is unchanged for deployments that do not opt into BYOSA. Google's response shifted remediation responsibility to customers.
+
+### The BYOSA Mitigation
+
+BYOSA (Bring Your Own Service Account) allows operators to attach a customer-managed service account to their Agent Engine deployment instead of the platform-assigned P4SA. With BYOSA:
+
+1. Create a GCP service account with only the permissions the agent legitimately requires
+2. Apply IAM bindings scoped to specific buckets (e.g., `storage.objectViewer` on `gs://my-agent-data/`)
+3. Attach this service account to the Agent Engine deployment at creation time
+4. Revoke or not grant any Artifact Registry access
+
+This is a complete fix — but it requires customer awareness, correct IAM configuration, and proactive implementation against a default that appears to "just work."
+
+---
+
+## Solutions Analysis
+
+### Solution 1: BYOSA (Bring Your Own Service Account) — Recommended Immediate Mitigation
+
+**What it does**: Replaces the over-permissioned platform P4SA with a customer-managed service account scoped to the agent's actual needs.
+
+**Plausibility**: High — fully supported by Google, documented, and available now.
+
+**Practicality**: Medium — requires IAM knowledge, project-level access, and time to audit each deployment's actual permission requirements. Organizations with many Agent Engine deployments or complex GCS access patterns face non-trivial implementation effort.
+
+**Limitations**: Does not protect against metadata service credential extraction per se — a BYOSA-attached service account's token is still accessible via the metadata service. The difference is that a properly scoped BYOSA account's token, if extracted, has minimal blast radius.
+
+**Verdict**: Implement immediately for all production Agent Engine deployments. Do not defer.
+
+---
+
+### Solution 2: GCS Bucket-Level IAM Hardening (Defense in Depth)
+
+**What it does**: Rather than (or in addition to) scoping the agent's service account, apply explicit Deny policies on sensitive GCS buckets to exclude the Agent Engine P4SA (and/or all service accounts other than explicitly authorized ones).
+
+**Plausibility**: High — GCS IAM Conditions and Deny policies support this pattern.
+
+**Practicality**: Medium — requires auditing which buckets exist in each GCP project and applying policies; can be automated via Terraform or GCP Organization Policy constraints.
+
+**Limitations**: Reactive rather than proactive — requires knowing which buckets are sensitive and consistently applying policies. New buckets created after policy implementation may not automatically inherit protections without organization-level policies.
+
+**Verdict**: Implement as a defense-in-depth layer alongside BYOSA. Particularly important for regulated data (HIPAA, PCI, SOC 2).
+
+---
+
+### Solution 3: Metadata Service Egress Filtering at the VPC / Firewall Layer
+
+**What it does**: Restricts outbound network access from Agent Engine runtimes to the metadata service link-local address (`169.254.169.254`) to authorized processes only, or logs all accesses for anomaly detection.
+
+**Plausibility**: Medium — VPC firewall rules can restrict traffic from workloads, but blocking metadata service access may break legitimate GCP SDK authentication flows.
+
+**Practicality**: Low — metadata service access is deeply integrated into GCP SDK authentication. Blocking it would break ADC and require alternative credential injection mechanisms. Logging is more feasible than blocking.
+
+**Limitations**: Cannot selectively allow GCP SDK metadata access while blocking tool-based HTTP client access without deep packet inspection or eBPF-level controls — impractical in a managed platform context.
+
+**Verdict**: Not a primary mitigation. Log metadata service access patterns for anomaly detection; do not attempt to block without careful testing of legitimate SDK dependencies.
+
+---
+
+### Solution 4: IAM Anomaly Detection for Agent Runtimes
+
+**What it does**: Deploys Cloud Audit Logs monitoring and alerting on P4SA token usage patterns inconsistent with the agent's expected behavior — particularly, GCS ListBuckets or GetObject calls on buckets the agent has no legitimate reason to access.
+
+**Plausibility**: High — Cloud Audit Logs captures all GCS data access; Security Command Center or SIEM can alert on anomalous patterns.
+
+**Practicality**: Medium — requires defining a baseline of expected agent behavior (which buckets it should access) and building alerting rules; generates false positives during agent development.
+
+**Limitations**: Detective, not preventive — exfiltration may complete before detection. Alert fatigue in large GCP environments. Does not prevent the initial credential extraction.
+
+**Verdict**: Implement as a detective control while deploying BYOSA as the preventive control. Provides audit trail for potential breach investigation.
+
+---
+
+### Solution 5: Platform-Level Fix — Scoped P4SA Permissions by Default (Google's Responsibility)
+
+**What it does**: Google changes the Agent Engine P4SA default to grant only the permissions strictly required for platform operation (Vertex AI API access, designated logging bucket write), with explicit customer opt-in for any GCS read access beyond this baseline.
+
+**Plausibility**: High — technically trivial; requires Google policy and deployment change.
+
+**Practicality**: Low (for Google, short-term) — changing defaults would break existing deployments that rely on the over-broad P4SA for legitimate GCS access without realizing they're relying on it; requires migration support and communication.
+
+**Limitations**: Google has chosen not to implement this, preferring to shift responsibility to customers via BYOSA. This decision prioritizes backward compatibility and operator convenience over security-by-default.
+
+**Verdict**: This is the correct long-term fix. Customer-side mitigations (Solutions 1–4) are necessary because Google has not implemented this. Security teams should formally request that Google change Agent Engine defaults and track this as an open vendor security posture issue.
+
+---
+
+## Related Incidents
+
+| ID | Title | Relationship |
+|----|-------|-------------|
+| [AAGF-2026-029](AAGF-2026-029.md) | OpenAI Codex GitHub OAuth Token Exposure via Branch Name Command Injection | Closest structural parallel: AI agent running with over-scoped credentials (GitHub OAuth token) that can be extracted and used to pivot outside the agent's intended boundary. Both incidents are agent-as-credential-exfiltration-vector via platform defaults. |
+| [AAGF-2026-013](AAGF-2026-013.md) | Flowise MCP RCE — CVSS 10.0 code injection in AI agent builder | Same pattern group (ai-agent-platform-security-crisis): platform-level security failure enabling credential access and lateral movement; 12,000+ instances exposed |
+| [AAGF-2026-037](AAGF-2026-037.md) | Moltbook Platform Breach: 1.5M AI Agent Credentials Exposed via Missing Supabase RLS | Same pattern group: platform default security posture failure (missing RLS vs. over-broad P4SA) affecting all platform tenants |
+| [AAGF-2026-010](AAGF-2026-010.md) | AI agent platform security design flaw | Same pattern group: platform-level security design decision with broad downstream customer impact |
+
+---
+
+## Strategic Council Review
+
+### Phase 1 — Challenger
+
+**Challenge 1: "Autonomous Escalation" is a categorically incorrect label.**
+
+The P4SA over-permission is a static IAM misconfiguration present from the moment of deployment. The agent does not escalate privileges — it simply uses credentials it was already granted. There is no dynamic privilege acquisition, no exploitation of a privilege escalation vulnerability, and no autonomous decision to seek higher access. The attack chain is: query an HTTP endpoint, receive a token, use the token. This is credential misuse enabled by a misconfigured default, which belongs entirely under "Unauthorized Data Access." Listing "Autonomous Escalation" as a category misrepresents the technical mechanism and may mislead readers who consult the incident for threat modeling. The AgentFail taxonomy presumably distinguishes between these categories for a reason; mislabeling undermines the database's analytical value.
+
+**Challenge 2: The Capital One 2019 parallel is technically inaccurate and risks misleading readers.**
+
+Capital One was an SSRF attack: the attacker exploited a misconfigured WAF to make the application server issue HTTP requests the attacker could not make directly, routing those requests to the EC2 IMDS. The Vertex AI case is a direct HTTP tool call — the agent's tool explicitly calls the metadata service as a first-class action. These are fundamentally different attack vectors. SSRF requires a vulnerable intermediary; this attack requires none. The comparison introduces false equivalence. If the parallel is kept, it must explicitly note the mechanism differs: "same target (IMDS), different attack vector (direct tool call vs. SSRF)." As written, the comparison implies the mechanism is similar, which it is not. A closer historical parallel is the Travis CI metadata service exposure (2021), where secrets were directly accessible from CI job scripts — much closer to the direct-call model.
+
+**Challenge 3: The threat model prerequisite is understated, making the risk appear universally immediate when it is conditional.**
+
+The five-step attack chain requires the attacker to either (a) deploy a new agent with a malicious custom tool, requiring GCP project permissions, or (b) compromise an existing agent and inject tool calls, requiring a prior vulnerability (prompt injection, supply chain compromise, etc.). The report frames the risk as universally affecting "every Agent Engine deployment without BYOSA" — which is accurate for the exposure surface — but does not adequately distinguish between "exposed" and "actively exploitable as a standalone attack." For most organizations the actual exploitation path requires a prior compromise event. The operator TL;DR should reflect this conditionality: the P4SA over-permission amplifies the blast radius of an agent compromise; it is not itself a standalone remote exploitation vector.
+
+**Challenge 4: The damage estimate's 100x range ($500K–$50M) at confidence "low" is epistemically indefensible as a point estimate.**
+
+The methodology cites IBM's $4.88M average breach cost as a benchmark but provides no unit count, no per-unit estimate, and no adjustment for the "read-only scope" it mentions. The 100x range signals the estimate carries no meaningful analytical basis. Publishing $5M averted damage as a composite figure — even with low confidence notation — creates a specific-sounding number from what is genuinely unknowable. The `confidence` field value "low" is also flagged as invalid in the draft's own inline comment (should be "estimated" or "order-of-magnitude"). An invalid enum value in published YAML is a data quality failure. The report should either supply traceable methodology (N deployments × P(data in GCS) × average breach cost × P(exploitation)) or drop the point estimate and publish the range only, flagged as order-of-magnitude.
+
+**Challenge 5: Google's claim of "strong, non-overridable controls" on production image modification is not adequately stress-tested.**
+
+The report acknowledges Google's statement that the accessed Artifact Registry images "cannot be modified in production" but treats this as a parenthetical clarification. The stronger steelman for Google's position: if the images can be read but not written, and if they contain no customer credentials or secrets (only Google proprietary code), then the demonstrated harm is IP exposure (Google's IP, not the customer's) and the supply chain threat is zero. The report's framing of "Google's own restricted Artifact Registry access" is maximally dramatic but does not address whether this read access enables any concrete attack path beyond embarrassment. The report must either demonstrate that read-only access creates a concrete exploitation path (e.g., enables vulnerability discovery in Google's proprietary runtime), or moderate the framing to reflect that this was a permission boundary violation, not a confirmed supply chain risk.
+
+**Challenge 6: The "pattern_group: ai-agent-platform-security-crisis" grouping is too broad to carry analytical signal.**
+
+The related incidents span an agent-over-scoped-credentials case (AAGF-2026-029), an RCE in an agent builder (AAGF-2026-013), a missing database RLS policy (AAGF-2026-037), and a vague "platform design flaw" (AAGF-2026-010). These share only the most superficial commonality: all involve AI agent platforms with security failures. The failure modes are mechanistically different: credential over-permission, command injection, missing access control, and unspecified design flaw. Pattern groups should enable readers to identify common root causes or reusable mitigations. "Platform security crisis" is a marketing phrase, not an analytical category. If the intended pattern is "platform IAM defaults failing least privilege," that should be stated explicitly and the group limited to incidents sharing that root cause.
+
+---
+
+### Phase 2 — Steelman
+
+**Defense 1: The "near-miss" classification and High severity are correct regardless of whether Google's documentation change shifted the effective default.**
+
+The report is explicit and accurate: the underlying P4SA permission set is unchanged by the documentation update. Existing deployments retain their over-broad P4SA until operators actively implement BYOSA. New deployments that follow the updated ADK workflow may receive better guidance — but operators who deployed before March 2026 or who follow older documentation remain exposed. The "near-miss" designation is therefore not overstated: the mechanism is proven, the exposure is architectural and affects all non-BYOSA deployments as a default, and remediation is opt-in with no automated backfill.
+
+**Defense 2: The "agent as a threat actor" framing is analytically valuable even though exploitation requires prior access.**
+
+The challenger's point about entry prerequisites is correct but does not undermine the report's primary thesis. The value of the P4SA finding is not "attacker can remotely compromise your GCS from the internet without any foothold." It is "if any component of your agent stack is compromised — through prompt injection, a malicious dependency, a rogue tool, or insider threat — the blast radius automatically expands to project-wide GCS read." This is the "double agent" framing: the agent's legitimate credentials become the attacker's credentials. The report's 5 Whys root cause correctly identifies this as a threat model gap — the platform was designed assuming agent code is always trusted, which fails in a world of prompt injection and multi-agent orchestration. The conditionality is present in the operator TL;DR ("compromised or malicious agent"), if underemphasized.
+
+**Defense 3: Publishing a wide-range damage estimate with documented uncertainty is superior to publishing nothing.**
+
+The AgentFail damage estimation methodology is designed for near-miss incidents where no confirmed loss exists. The IBM benchmark provides at minimum an order-of-magnitude anchor. The range ($500K–$50M) is intentionally wide because the exposure surface is genuinely heterogeneous: a startup with a near-empty GCS bucket and an enterprise with HIPAA-covered health records in GCS represent fundamentally different risk profiles. The low-confidence flag and near-miss classification communicate this uncertainty. The estimate is not presented as a precise figure; it is presented as a bounded range with explicit uncertainty disclosure. The invalid `confidence` enum value is a legitimate data quality defect that must be corrected, but it does not invalidate the estimation framework.
+
+**Defense 4: The five key takeaways are operationally sound and represent the correct lessons for this incident class.**
+
+Even where the technical framing requires correction (Capital One parallel, category label), the report's prescriptive content is accurate and useful. "Platform defaults are a security policy," "metadata service is an implicit credential endpoint," "vendor documentation updates are not security fixes" — these are correct, actionable principles that are undersupported in most security guidance for AI teams. The report earns its High severity designation through the breadth of exposure (all non-BYOSA deployments by default) and the trivial exploit chain (five steps, no CVE, no zero-day). The takeaways deliver value to AgentFail's primary audience regardless of the categorization debates.
+
+**Defense 5: The Artifact Registry access is significant as an evidence point about permission scope, not merely as a dramatic flourish.**
+
+The challenger argues that read-only access to Google's proprietary images may create no concrete attack path. This is partially correct — but the significance of the Artifact Registry access is evidential, not solely operational. It proves that the P4SA's permission scope reaches beyond customer-accessible resources into Google's own internal infrastructure, meaning the IAM boundary that was supposed to exist between customer-facing and Google-internal resources was violated. This is significant for two reasons: it demonstrates the over-permission is worse than documentation implied (not just "customer GCS"); and read access to proprietary runtime images creates a vulnerability research pathway — static analysis of Google's AI infrastructure code could surface exploitable weaknesses in the Vertex AI runtime API surface. The report would be stronger if it explicitly distinguished evidential significance from operational risk rather than leaving the dramatic framing unqualified.
+
+---
+
+### Phase 3 — Synthesis
+
+The draft is substantively sound on its most important claims: the exposure is real, the mechanism is proven, the insecure default remains unchanged, and the operator guidance is correct. The report earns its High severity and near-miss classifications. However, three issues require changes before publication. First, "Autonomous Escalation" must be removed from the category list. This is not a matter of interpretation — the attack chain does not involve autonomous privilege escalation; the credentials are pre-granted at deployment. Publishing a miscategorized incident degrades the database's analytical integrity and will mislead security teams building threat models from AgentFail's taxonomy. Second, the Capital One parallel must be corrected to acknowledge the mechanistic difference: same target (IMDS), different attack vector (direct tool call vs. WAF SSRF). The Travis CI 2021 incident is a closer parallel and should be considered as a replacement reference. Third, the `confidence` enum value must be corrected from "low" to a valid schema value; this is a data quality error the draft's own inline comment flags.
+
+Two challenger points were answered satisfactorily by the steelman and do not require blocking changes, but do warrant minor additions. The "threat model requires prior access" challenge is valid but does not require lowering the severity designation — it should prompt one sentence of clarification in the operator TL;DR explicitly stating that the P4SA over-permission amplifies blast radius of an existing agent compromise rather than functioning as a standalone remote vector. The Artifact Registry framing challenge is valid; the report should add one sentence distinguishing the evidential significance (proves permission scope exceeds documented boundaries, enables vulnerability research) from the operational risk (read-only, no confirmed weaponization), which defuses the "maximally dramatic" criticism without undermining the finding's importance.
+
+The damage estimate range and pattern group concerns are noted but do not require blocking changes. The estimate's uncertainty is adequately communicated in surrounding prose; fixing the invalid enum value addresses the data quality defect. The pattern group's analytical weakness is a database-level taxonomy concern, not a per-incident fix — flag for a future taxonomy review pass.
+
+**Confidence level: Medium.** The core findings are well-supported by the primary source (Unit 42 / Palo Alto Networks, with broad secondary coverage). The mechanistic details — metadata service behavior, P4SA permission scope, BYOSA as opt-in — are factually grounded. The confidence penalty reflects: (1) absence of independent technical verification of the Artifact Registry findings beyond secondary coverage; (2) uncertainty about whether Google's post-disclosure ADK workflow modification substantively changes the default P4SA permission for new deployments or only provides better BYOSA onboarding; (3) the damage estimate's acknowledged zero grounding in confirmed losses.
+
+**Unresolved uncertainties:**
+- Whether Google's post-disclosure ADK workflow modification changes the default P4SA permission scope for new Agent Engine deployments, or only provides improved BYOSA guidance
+- The current fraction of Agent Engine deployments that have adopted BYOSA since the March 2026 disclosure
+- Whether read-only access to the accessed Artifact Registry images creates any concrete vulnerability research or exploitation path beyond IP exposure
+- Schema validity of `confidence: "low"` — requires verification against the AgentFail YAML schema before the field is corrected
+
+---
+
+## Key Takeaways
+
+### 1. Platform Defaults Are a Security Policy, Not Just a Convenience Choice
+
+When a cloud AI platform sets default permissions, it is implicitly making a security policy decision on behalf of every customer who deploys on it. A default that grants project-wide storage read is a policy that says "agent compromise = project data compromise." Operators must audit platform defaults before deploying agents in production, not after.
+
+**Action**: Before deploying any managed AI agent platform (Vertex AI Agent Engine, AWS Bedrock Agents, Azure AI Foundry), document what service account and permissions the platform assigns by default. If the default violates least privilege for your environment, implement the platform's custom credential option (BYOSA or equivalent) before go-live.
+
+---
+
+### 2. The Metadata Service Is an Implicit Credential Endpoint in Every Agent Runtime
+
+Every major cloud provider's compute infrastructure exposes credentials via a link-local metadata service. This is the same mechanism that has powered numerous high-profile cloud breaches (Capital One 2019, others). In an AI agent context, where agents execute tool calls that may include attacker-influenced inputs, the metadata service is a credential that can be extracted without any traditional "hacking" — just an HTTP request.
+
+**Action**: Include metadata service credential access in your AI agent threat model. Assume any code running in an agent runtime can access the metadata service and obtain the runtime's service account token. Design IAM accordingly: if the token is exfiltrated, what can it do?
+
+---
+
+### 3. "Demonstrated in Research" Is Not "Safe Until Exploited in the Wild"
+
+The absence of confirmed in-the-wild exploitation is not evidence of safety — it is evidence of luck and the current attacker population's focus. The Vertex AI P4SA vulnerability was fully weaponizable with a trivial exploit chain. Organizations waiting for a confirmed breach before acting have miscalibrated their risk threshold.
+
+**Action**: Treat credibly demonstrated proof-of-concept exploits as production-critical vulnerabilities, not academic findings. The near-miss classification in this database exists precisely to highlight the gap between "confirmed harm" and "actual risk."
+
+---
+
+### 4. Vendor "Documentation Updates" Are Not Security Fixes
+
+Google's response — update the docs, recommend an opt-in mitigation — is common in platform-level security issues where changing the default would cause backward compatibility problems. But documentation updates do not protect customers who have not read the update, do not retroactively protect existing deployments, and do not change the default attack surface.
+
+**Action**: When a vendor responds to a security finding with documentation updates rather than a default change, escalate internally. Assign an owner to implement the recommended mitigation (BYOSA) on a deadline. Do not treat "vendor acknowledged" as "we're protected."
+
+---
+
+### 5. AI Agent Threat Modeling Requires a New Principal: the Agent as Attacker
+
+Traditional cloud IAM threat models assume the workload is trusted and the threat comes from outside. AI agents break this assumption: an agent can be prompted (injected), can execute attacker-supplied tool inputs, can be part of a multi-agent chain where one compromised agent influences another, and can make API calls that the legitimate user never intended. The threat model must include "what if the agent is adversarial?" — not just "what if an external attacker reaches the agent?"
+
+**Action**: For every AI agent deployment, complete a threat model that includes: (1) What can the agent's credentials access? (2) What happens if an attacker controls the agent's tool inputs? (3) What is the blast radius of full agent compromise? If the answer to (1) or (3) is "everything in the project," the deployment is not production-ready.
+
+---
+
+## References
+
+| Source | Title | Date | Type |
+|--------|-------|------|------|
+| [Unit 42 / Palo Alto Networks](https://unit42.paloaltonetworks.com/double-agents-vertex-ai/) | "Double Agents: Exposing Security Blind Spots in GCP Vertex AI" — Ofir Shaty | 2026-03-31 | Primary research |
+| [The Hacker News](https://thehackernews.com/2026/03/vertex-ai-vulnerability-exposes-google.html) | "Vertex AI Vulnerability Exposes Google Infrastructure to AI Agents" | 2026-03-31 | Secondary coverage |
+| [SecurityWeek](https://www.securityweek.com/google-addresses-vertex-security-issues-after-researchers-weaponize-ai-agent/) | "Google Addresses Vertex Security Issues After Researchers Weaponize AI Agent" | 2026-04-01 | Secondary coverage |
+| [VentureBeat](https://venturebeat.com/security/six-exploits-broke-ai-coding-agents-iam-never-saw-them) | "Six exploits broke AI coding agents — IAM never saw them" | 2026-04-01 | Secondary coverage |
+| [Google Cloud Documentation](https://cloud.google.com/vertex-ai/docs/agent-engine/security) | Vertex AI Agent Engine Security — BYOSA guidance | 2026-03-31 (updated) | Vendor documentation |
