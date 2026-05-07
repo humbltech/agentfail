@@ -11,6 +11,7 @@ import { FrameworkRefsCard } from "@/components/incidents/framework-refs";
 import { RelatedIncidents } from "@/components/incidents/related-incidents";
 import { MarkdownContent } from "@/components/incidents/markdown-content";
 import { HeroStatsBar } from "@/components/incidents/hero-stats-bar";
+import { DamageBreakdownCard } from "@/components/incidents/damage-breakdown-card";
 import { KeyTakeawaysCard } from "@/components/incidents/key-takeaways-card";
 import { VisualTimeline } from "@/components/incidents/visual-timeline";
 import { CollapsibleSection } from "@/components/incidents/collapsible-section";
@@ -244,6 +245,9 @@ export default async function IncidentDetailPage({
         <div style={{ marginBottom: "36px" }}>
           <HeroStatsBar incident={incident} />
         </div>
+
+        {/* ── Damage Breakdown Card ─────────────────────────────────────────── */}
+        <DamageBreakdownCard incident={incident} />
 
         {/* ── Headline stat + Operator TL;DR card ───────────────────────────── */}
         {(incident.headline_stat || incident.operator_tldr) && (

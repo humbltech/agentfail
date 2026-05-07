@@ -74,6 +74,26 @@ export function formatUSD(amount: number | null | undefined): string {
   }).format(amount);
 }
 
+/**
+ * CONTRACT:
+ * - WHAT: Formats a large USD amount in compact notation ($1.2M, $3.4B), or "Unknown" for null.
+ * - INPUTS: number (any non-negative finite value) or null
+ * - OUTPUTS: Compact string like "$96.4M", "$2.1B", "$8,889" (< $1M uses full format)
+ * - ERRORS: None
+ * - SIDE EFFECTS: None
+ * - INVARIANTS: Returns exactly "Unknown" when input is null/undefined
+ */
+export function formatUSDCompact(amount: number | null | undefined): string {
+  if (amount === null || amount === undefined) return "Unknown";
+  if (amount >= 1_000_000_000) {
+    return `$${(amount / 1_000_000_000).toLocaleString("en-US", { maximumFractionDigits: 1 })}B`;
+  }
+  if (amount >= 1_000_000) {
+    return `$${(amount / 1_000_000).toLocaleString("en-US", { maximumFractionDigits: 1 })}M`;
+  }
+  return formatUSD(amount);
+}
+
 // ─── Taxonomy slug lookups ────────────────────────────────────────────────────
 
 /**

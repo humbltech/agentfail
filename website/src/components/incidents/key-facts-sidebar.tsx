@@ -1,5 +1,6 @@
 import type { Incident, VendorResponse } from "@/lib/content/types";
-import { formatUSD } from "@/lib/utils";
+import { formatUSD, formatUSDCompact } from "@/lib/utils";
+import { ConfidenceBadge } from "@/components/shared/confidence-badge";
 
 const VENDOR_RESPONSE_LABELS: Record<VendorResponse, string> = {
   none: "No response",
@@ -61,7 +62,19 @@ interface KeyFactsSidebarProps {
   incident: Incident;
 }
 
-/** Sticky sidebar showing key quantitative facts in a 2-column grid. */
+/**
+ * CONTRACT:
+ * - WHAT: Sticky sidebar showing key quantitative facts in a 2-column grid.
+ *   Includes an averted damage row (full-width, accent-tinted) when the
+ *   incident has a non-null averted_damage_usd estimate.
+ * - INPUTS: Incident (full type)
+ * - OUTPUTS: A sticky aside with Key Facts section; layout is stable regardless
+ *   of whether averted damage is present.
+ * - ERRORS: None
+ * - SIDE EFFECTS: None
+ * - INVARIANTS: Averted damage row only renders when averted_damage_usd is non-null.
+ *   All other rows always render.
+ */
 export function KeyFactsSidebar({ incident }: KeyFactsSidebarProps) {
   const vendorLabel = VENDOR_RESPONSE_LABELS[incident.vendor_response];
   const vendorDotColor = VENDOR_RESPONSE_DOT_COLORS[incident.vendor_response];
@@ -95,6 +108,9 @@ export function KeyFactsSidebar({ incident }: KeyFactsSidebarProps) {
     none: "None",
     extra_usage_pool_exhausted: "Usage pool exhausted",
   };
+
+  const avertedDamage = incident.damage_estimate?.averted_damage_usd ?? null;
+  const avertedConfidence = incident.damage_estimate?.confidence ?? "";
 
   return (
     <aside
@@ -139,6 +155,48 @@ export function KeyFactsSidebar({ incident }: KeyFactsSidebarProps) {
           label="Damage Speed"
           value={incident.damage_speed || "Unknown"}
         />
+
+        {/* Averted Damage row — full width, only when present */}
+        {avertedDamage !== null && (
+          <div
+            style={{
+              gridColumn: "1 / -1",
+              background: "var(--accent-dim)",
+              border: "1px solid var(--border-visible)",
+              borderRadius: "4px",
+              padding: "10px 12px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "11px",
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: "var(--text-muted)",
+                marginBottom: "3px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              Averted Damage
+              {avertedConfidence !== "cited" && avertedConfidence !== "" && (
+                <ConfidenceBadge confidence={avertedConfidence} />
+              )}
+            </div>
+            <div
+              className="font-mono"
+              style={{
+                fontSize: "16px",
+                fontWeight: 600,
+                color: "var(--accent)",
+              }}
+            >
+              {formatUSDCompact(avertedDamage)}
+            </div>
+          </div>
+        )}
 
         {/* Row 2: Damage Window | Recovery */}
         <FactRow

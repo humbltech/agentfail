@@ -83,6 +83,14 @@ const mockIncident: Incident = {
   researcher_notes: "",
   council_verdict: "Confirmed runaway billing incident.",
 
+  // Near-miss metadata
+  actual_vs_potential: null,
+  potential_damage: null,
+  intervention: null,
+
+  // Damage estimate
+  damage_estimate: null,
+
   // Visibility
   visibility: "public",
   internal_notes: "",

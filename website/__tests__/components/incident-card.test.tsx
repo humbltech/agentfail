@@ -25,6 +25,9 @@ const mockIncident: IncidentCardType = {
   tags: ["billing", "runaway"],
   pattern_group: "runaway-context-loop",
   public_attention: "viral",
+  actual_vs_potential: null,
+  damage_estimate_composite: null,
+  damage_estimate_confidence: "",
 };
 
 // ─── Tests ────────────────────────────────────────────────────────────────────

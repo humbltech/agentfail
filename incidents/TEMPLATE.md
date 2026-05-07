@@ -48,6 +48,27 @@ systems_affected: []       # e.g. ["production-database", "ci-cd", "billing", "c
 vendor_response: ""              # "none" | "acknowledged" | "fixed" | "refund_issued" | "disputed"
 vendor_response_time: ""         # "none" | "<24h" | "1-7 days" | "7-30 days" | "30+ days"
 
+# Damage Quantification (populated by /estimate-damage agent; human_override: true to lock)
+damage_estimate:
+  confirmed_loss_usd: null       # Same as financial_impact_usd — canonical alias in this block
+  recovery_cost_usd: null        # Same as recovery_cost_usd — what it cost to contain/fix the damage
+  averted_damage_usd: null       # Probability-weighted potential damage that was averted
+  averted_range_low: null        # Lower bound before probability weighting
+  averted_range_high: null       # Upper bound before probability weighting
+  composite_damage_usd: null     # confirmed_loss + recovery_cost + averted_damage (the roll-up figure)
+  confidence: ""                 # "cited" | "calculated" | "estimated" | "order-of-magnitude"
+  probability_weight: null       # 0.0–1.0 — likelihood averted damage would have materialized
+  methodology: ""                # One-line: "964K users × $10K/machine × 1% exploitation rate"
+  methodology_detail:
+    per_unit_cost_usd: null      # e.g. 10000 (per machine)
+    unit_count: null             # e.g. 964000
+    unit_type: ""                # "machine" | "record" | "credential" | "order" | "hour" | "user"
+    multiplier: null             # Supply chain or downstream multiplier (e.g. 3.0)
+    benchmark_source: ""         # "IBM 2024 CODB" | "SANS 2024" | "Gartner" | "Public filings"
+  estimation_date: ""            # ISO date of last estimation run
+  human_override: false          # Set true to lock — agent skips on re-runs
+  notes: ""                      # Calibration notes, caveats, or override rationale
+
 # Presentation
 headline_stat: ""                # THE shareable hook: "$6,000 in 26 hours" or "9 seconds to delete production DB"
 operator_tldr: ""                # One sentence action for someone running this platform: "Set spending caps before..."

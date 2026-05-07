@@ -65,6 +65,37 @@ export interface FrameworkRefs {
   ttps_ai: string[];
 }
 
+export type DamageConfidence =
+  | "cited"
+  | "calculated"
+  | "estimated"
+  | "order-of-magnitude"
+  | "";
+
+export interface DamageEstimateDetail {
+  per_unit_cost_usd: number | null;
+  unit_count: number | null;
+  unit_type: string;
+  multiplier: number | null;
+  benchmark_source: string;
+}
+
+export interface DamageEstimate {
+  confirmed_loss_usd: number | null;
+  recovery_cost_usd: number | null;
+  averted_damage_usd: number | null;
+  averted_range_low: number | null;
+  averted_range_high: number | null;
+  composite_damage_usd: number | null;
+  confidence: DamageConfidence;
+  probability_weight: number | null;
+  methodology: string;
+  methodology_detail: DamageEstimateDetail;
+  estimation_date: string;
+  human_override: boolean;
+  notes: string;
+}
+
 // ─── Core incident frontmatter (44 fields, directly mirroring YAML) ──────────
 
 export interface IncidentFrontmatter {
@@ -136,6 +167,14 @@ export interface IncidentFrontmatter {
   researcher_notes: string;
   council_verdict: string;
 
+  // Near-miss metadata
+  actual_vs_potential: "actual" | "partial" | "near-miss" | null;
+  potential_damage: string | null;
+  intervention: string | null;
+
+  // Damage quantification
+  damage_estimate: DamageEstimate | null;
+
   // Visibility control
   visibility: IncidentVisibility;
   internal_notes: string;
@@ -172,6 +211,9 @@ export interface IncidentCard {
   tags: string[];
   pattern_group: string;
   public_attention: PublicAttention;
+  actual_vs_potential: "actual" | "partial" | "near-miss" | null;
+  damage_estimate_composite: number | null;
+  damage_estimate_confidence: DamageConfidence;
 }
 
 /** A parsed section of the incident markdown body for in-page navigation. */

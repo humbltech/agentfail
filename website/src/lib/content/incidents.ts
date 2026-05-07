@@ -94,6 +94,9 @@ function toIncidentCard(data: IncidentFrontmatter): IncidentCard {
     tags: data.tags ?? [],
     pattern_group: data.pattern_group ?? "",
     public_attention: data.public_attention,
+    actual_vs_potential: data.actual_vs_potential ?? null,
+    damage_estimate_composite: data.damage_estimate?.composite_damage_usd ?? null,
+    damage_estimate_confidence: data.damage_estimate?.confidence ?? "",
   };
 }
 
@@ -262,18 +265,25 @@ export async function getUniqueAgentTypes(basePath?: string): Promise<string[]> 
  * Get aggregate statistics across all published incidents.
  *
  * CONTRACT:
- * - Output: { total, categories, platforms, totalFinancialImpact }
+ * - Output: { total, categories, platforms, totalFinancialImpact, nearMissCount,
+ *             totalAvertedDamage, totalCompositeDamage }
  * - Invariants:
  *   - total === number of published incidents
  *   - categories === count of unique category strings
  *   - platforms === count of unique platform strings
  *   - totalFinancialImpact === sum of all non-null financial_impact_usd values
+ *   - nearMissCount === count of incidents with actual_vs_potential === "near-miss"
+ *   - totalAvertedDamage === sum of all non-null damage_estimate.averted_damage_usd values
+ *   - totalCompositeDamage === sum of all non-null damage_estimate.composite_damage_usd values
  */
 export async function getStats(basePath?: string): Promise<{
   total: number;
   categories: number;
   platforms: number;
   totalFinancialImpact: number;
+  nearMissCount: number;
+  totalAvertedDamage: number;
+  totalCompositeDamage: number;
 }> {
   const resolvedPath = basePath ?? defaultBasePath();
   const parsed = readPublishedFrontmatter(resolvedPath);
@@ -285,11 +295,23 @@ export async function getStats(basePath?: string): Promise<{
   const totalFinancialImpact = parsed.reduce((sum, { data }) => {
     return sum + (data.financial_impact_usd ?? 0);
   }, 0);
+  const nearMissCount = parsed.filter(
+    ({ data }) => data.actual_vs_potential === "near-miss",
+  ).length;
+  const totalAvertedDamage = parsed.reduce((sum, { data }) => {
+    return sum + (data.damage_estimate?.averted_damage_usd ?? 0);
+  }, 0);
+  const totalCompositeDamage = parsed.reduce((sum, { data }) => {
+    return sum + (data.damage_estimate?.composite_damage_usd ?? 0);
+  }, 0);
 
   return {
     total: parsed.length,
     categories: uniqueCategories.size,
     platforms: uniquePlatforms.size,
     totalFinancialImpact,
+    nearMissCount,
+    totalAvertedDamage,
+    totalCompositeDamage,
   };
 }
