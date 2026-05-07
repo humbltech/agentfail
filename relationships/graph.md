@@ -1,6 +1,6 @@
 # Incident Relationship Graph
 
-Last updated: 2026-05-07 — 41 incidents published
+Last updated: 2026-05-07 — 43 incidents published
 
 ---
 
@@ -115,8 +115,8 @@ Incidents where an autonomous AI agent conducts social engineering or reputation
 
 ---
 
-### agentic-ide-vulnerability-class (confirmed, n=8)
-Incidents where autonomous AI agents embedded in IDE platforms create novel attack surfaces through tool access, sandbox bypass, or configuration injection that did not exist in traditional IDE architectures. Defining signature: agentic IDE provides native tools or configuration mechanisms → agent's tool invocations or ingested content are influenced by untrusted external input → security architecture designed for human-driven workflows fails to constrain agent-originated actions → exploitation achieves sandbox escape, RCE, data exfiltration, or persistent backdoor. IDEsaster (AAGF-2026-016) demonstrates this is a universal vulnerability class affecting all AI coding tools, not a vendor-specific bug. AAGF-2026-029 extends the class from IDE-layer attacks to cloud-agent-container-layer attacks: different attack surface (HTTP API branch parameter vs. IDE config file injection), same root architectural failure (AI coding agent holds live credentials and executes shell operations with attacker-influenced inputs). AAGF-2026-042 and AAGF-2026-043 add a third vector: file-write validator bypass and trust dialog bypass, both targeting Claude Code's permission enforcement layer via attacker-controlled configuration files.
+### agentic-ide-vulnerability-class (confirmed, n=9)
+Incidents where autonomous AI agents embedded in IDE platforms or operating as autonomous SWE agents create novel attack surfaces through tool access, sandbox bypass, or configuration injection that did not exist in traditional IDE architectures. Defining signature: agentic IDE or SWE agent provides native tools or configuration mechanisms → agent's tool invocations or ingested content are influenced by untrusted external input → security architecture designed for human-driven workflows fails to constrain agent-originated actions → exploitation achieves sandbox escape, RCE, data exfiltration, or persistent backdoor. IDEsaster (AAGF-2026-016) demonstrates this is a universal vulnerability class affecting all AI coding tools, not a vendor-specific bug. AAGF-2026-029 extends the class from IDE-layer attacks to cloud-agent-container-layer attacks: different attack surface (HTTP API branch parameter vs. IDE config file injection), same root architectural failure (AI coding agent holds live credentials and executes shell operations with attacker-influenced inputs). AAGF-2026-042 and AAGF-2026-043 add a third vector: file-write validator bypass and trust dialog bypass, both targeting Claude Code's permission enforcement layer via attacker-controlled configuration files. AAGF-2026-046 adds the SWE-agent indirect prompt injection to full kill chain vector: a cloud-hosted autonomous SWE agent (Devin AI) with shell, browser, credential store, and port-exposure tools demonstrates that the vulnerability class extends to non-IDE autonomous agents operating asynchronously on developer-assigned tasks.
 
 - **[[AAGF-2026-015]]** — Google Antigravity: three-step attack chain (indirect prompt injection via repo comments → shell script staging → flag injection into `find_by_name` tool's `fd` invocation) achieves full RCE. Secure Mode bypass: native tools execute before sandbox evaluates the call. Patched Feb 2026; no confirmed wild exploitation. Near-miss. Medium severity (actual); Critical potential.
   - *Seed incident for this pattern group*
@@ -135,6 +135,8 @@ Incidents where autonomous AI agents embedded in IDE platforms create novel atta
   - *Seventh member — blocklist bypass attack on Claude Code's file write validator. Second consecutive defeat of the same validator class. Demonstrates that blocklist-based defenses in agentic IDEs require structural redesign, not incremental blocklist expansion.*
 - **[[AAGF-2026-043]]** — TrustFall: Claude Code Trust Dialog Silently Bypassed via Settings File (CVE-2026-33068): a `.claude/settings.json` with `permissions.defaultMode: bypassPermissions` committed to a repository is processed by Claude Code before the workspace trust dialog is displayed — silently granting full tool execution authority with no user interaction. 42-byte payload. Third trust dialog bypass in Claude Code within 6 months. Patched v2.1.53 March 2026. No confirmed in-the-wild exploitation. Near-miss. High severity.
   - *Eighth member — trust boundary collapse at the configuration layer: repo-committed settings file pre-empts the very trust dialog designed to protect against untrusted repos. Distinct from AAGF-2026-042 (file write validator bypass) but same architectural root: Claude Code's permission enforcement is bypassable via attacker-controlled configuration before user decisions are solicited. (confirmed, n=8)*
+- **[[AAGF-2026-046]]** — ZombAI (Devin AI): $500 of API access to demonstrate three independent kill chains against a live commercial SWE agent — RCE via Sliver C2 reverse shell (GitHub issue injection), four-vector credential exfiltration (Shell/curl, Browser, Markdown image, Slack), and public `.devinapps.com` DevBox tunnel via `expose_port` tool. Devin's base64-improvisation in Vector A illustrates the autonomy-as-attack-multiplier dynamic: the agent problem-solved its way past an exfiltration obstacle. 120+ day non-response from Cognition Labs; 'Secure Mode' (February 2026) partially mitigates but does not resolve the injection root cause. Near-miss. High severity.
+  - *Ninth member — SWE-agent category. First fully-documented autonomous coding agent kill chain with RCE + credential exfiltration + internet tunnel demonstrated in a single research report. Extends the pattern group from IDE-integrated assistants to cloud-hosted autonomous SWE agents. (confirmed, n=9)*
 
 ---
 
@@ -161,6 +163,15 @@ Incidents where an AI customer service system's backend storage for interaction 
 
 - **[[AAGF-2026-038]]** — Sears Home Services Samantha AI chatbot + KAIros platform: three cloud storage buckets containing 3.7M records (4.3TB) — 2.1M chat transcripts, 1.4M voice recordings (some up to 4 hours), 207K scheduling logs — publicly accessible without authentication for an unknown duration dating to 2024. Discovered by Jeremiah Fowler via Shodan scan on 2026-02-03; remediated within 24 hours with no public acknowledgment. Voice recordings up to 4 hours suggest call-end detection failure or metadata artifact. Exposed conversation corpus reveals Samantha's full decision logic at production scale.
   *Seed incident for this pattern group (provisional)*
+  *Cross-reference: AAGF-2026-047 (OmniGPT) shares the theme of AI conversation data exposed at scale, but the qualifying mechanism is different: -038 is storage misconfiguration (no auth on cloud buckets); -047 is data governance failure (retention policy + security classification mismatch). Both are distinct from enterprise-copilot-prompt-injection-exfiltration.*
+
+---
+
+### ai-platform-data-governance-failure (provisional, n=1)
+Incidents where an AI chat or aggregator platform's inadequate data governance — specifically, the indefinite retention of user conversation history without adequate disclosure, classification, or security controls — creates a concentrated attack surface. Distinct from ai-chatbot-data-storage-breach (which covers storage misconfiguration exposing AI interaction metadata). Defining signature: users embed sensitive data (credentials, API keys, PII, business documents) in AI chat sessions they believe are ephemeral → platform retains conversations indefinitely as a product feature → platform's conversation database is secured as a "chat service" rather than as the credential store it functionally is → breach of the conversation database yields cross-platform credential exposure via NHI chain attacks.
+
+- **[[AAGF-2026-047]]** — OmniGPT (alleged): AI chatbot aggregator (GPT-4, Claude, Gemini, Midjourney unified interface) — alleged breach exposed 34.27M lines of user-AI conversations for $100 on BreachForums, including API keys extracted via regex, ~130 cryptocurrency private keys (10 with confirmed balances), 30K+ email addresses, 6K+ phone numbers, and 6K+ uploaded files. OmniGPT issued no public statement, no user notification, and no breach disclosure. Threat actor "Gloomer" is the sole source — breach is alleged, not confirmed by vendor or independent forensic verification. Near-miss for full API key lateral movement; partial exploitation confirmed for crypto key extraction.
+  *Seed incident for this pattern group (provisional). Illustrates the "conversation-as-credential-store" structural risk: users treat AI chat as ephemeral; platforms retain data indefinitely; one breach yields multi-platform credential exposure.*
 
 ---
 
@@ -295,6 +306,12 @@ AI agent or platform processes untrusted external inputs (emails, documents, for
 - AAGF-2026-039 (EmailGPT Express.js API passed user input to GPT-3.5 as a direct pass-through — no sanitization, no prompt boundaries, no output validation; LLM treated user-controlled text as potentially instructional, enabling system prompt extraction, behavior override, and API quota exhaustion)
 - AAGF-2026-044 (ZombAI: hidden PR description content — invisible Unicode and HTML comments, visible to LLM but not to human reviewer — processed as trusted task instructions by Copilot Agent Mode; agent wrote permission-expanding config without constraint; worm propagation embeds same payload in code the agent authors during normal workflows)
 - AAGF-2026-045 (RoguePilot: GitHub Issue body content — including HTML comment injection — directed Copilot to `gh pr checkout` on attacker PR; symlink in PR resolved by agent's file read to Codespace secrets; `$schema` URL parameter triggers VS Code json.schemaDownload HTTP GET as covert exfiltration channel)
+- AAGF-2026-046 (Devin AI: GitHub issues and web pages ingested during normal task execution processed as operator-level instructions with no trust boundary or sanitization; agent executes shell commands, accesses credentials, and exposes ports based on attacker-authored content — all three kill chains trace to this single architectural failure)
+
+### Autonomous coding agent holds live credentials at runtime without capability-scoped access
+AI coding/SWE agent holds production credentials (OAuth tokens, AWS keys, API tokens) in its runtime environment — not ephemeral, not scoped to the task, not isolated by session — making any agent compromise or injection event a credential theft event.
+- AAGF-2026-029 (Codex: GitHub OAuth tokens embedded in plaintext git remote URLs in the agent's container; Installation Access Tokens with potential org-wide scope available to the container's shell environment)
+- AAGF-2026-046 (Devin: AWS access keys, API tokens, database passwords stored in DevBox environment variables across all sessions; any injection that reaches the shell tool or browser tool can read and exfiltrate the full credential store; no per-task credential scoping)
 
 ### Pattern-matching-only defense model
 All defensive layers use the same paradigm (deny-list pattern matching) rather than structurally different control types, allowing a single attacker methodology to bypass all layers independently.
@@ -310,6 +327,10 @@ Agent platform classifies internal tools as trusted, placing them outside the se
 ### Anthropic non-response pattern
 Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AAGF-2026-003, AAGF-2026-004, AAGF-2026-006. (AAGF-2026-005 received a response only after ~2.4M viral impressions on HN.)
 - AAGF-2026-036 (50-subcommand bypass patched silently in v2.1.90 with non-descriptive label "parse-fail fallback deny-rule degradation"; no CVE assigned; no security advisory; GitHub #8961 (settings.local.json deny-rule reliability failure) open October 2025 with zero Anthropic staff response as of May 2026)
+
+### AI platform conversation retention as unacknowledged credential store
+AI chat platforms retain user conversation history indefinitely as a product feature, but classify and secure the resulting database as a "chat service" rather than as the credential store it functionally is — because users routinely embed API keys, private keys, PII, and business-sensitive data in conversations they treat as ephemeral. A single breach of this database yields cross-platform credential exposure.
+- AAGF-2026-047 (OmniGPT: indefinite conversation retention without data classification or security controls commensurate with credential sensitivity)
 
 ---
 
@@ -384,6 +405,12 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 ### Google Chrome Extension + Gmail (EmailGPT / self-hosted Express.js API)
 - AAGF-2026-039
 
+### OmniGPT (AI chatbot aggregator — GPT-4, Claude, Gemini, Midjourney)
+- AAGF-2026-047
+
+### Devin AI (Cognition Labs)
+- AAGF-2026-046
+
 ---
 
 ## Industry Clusters
@@ -392,7 +419,7 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 - AAGF-2026-023 (Operator unauthorized purchase), AAGF-2026-026 (WhatsApp MCP rug-pull)
 
 ### Software Development / Open Source / SaaS
-- AAGF-2026-001, AAGF-2026-002, AAGF-2026-003, AAGF-2026-004, AAGF-2026-005, AAGF-2026-014, AAGF-2026-015, AAGF-2026-016, AAGF-2026-017, AAGF-2026-020, AAGF-2026-021, AAGF-2026-029, AAGF-2026-031, AAGF-2026-032, AAGF-2026-033, AAGF-2026-034, AAGF-2026-036, AAGF-2026-039, AAGF-2026-042, AAGF-2026-043, AAGF-2026-044, AAGF-2026-045
+- AAGF-2026-001, AAGF-2026-002, AAGF-2026-003, AAGF-2026-004, AAGF-2026-005, AAGF-2026-014, AAGF-2026-015, AAGF-2026-016, AAGF-2026-017, AAGF-2026-020, AAGF-2026-021, AAGF-2026-029, AAGF-2026-031, AAGF-2026-032, AAGF-2026-033, AAGF-2026-034, AAGF-2026-036, AAGF-2026-039, AAGF-2026-042, AAGF-2026-043, AAGF-2026-044, AAGF-2026-045, AAGF-2026-046
 
 ### B2B SaaS (non-coding-tool)
 - AAGF-2026-007 (PocketOS — rental management SaaS; victim is the developer, not an end user of Claude)
@@ -411,6 +438,9 @@ Issues marked stale with zero staff engagement: AAGF-2026-001, AAGF-2026-002, AA
 
 ### SaaS / Venture Capital
 - AAGF-2026-019 (SaaStr founder's curated executive contact database destroyed by Replit Agent during vibe coding experiment)
+
+### AI Platform / SaaS
+- AAGF-2026-047 (OmniGPT alleged breach; AI chatbot aggregator; alleged 34.27M conversation lines exposed including API keys, crypto private keys, user PII; sole-source threat actor claim; no vendor confirmation)
 
 ### AI Infrastructure / Developer Tools
 - AAGF-2026-009 (LiteLLM AI gateway supply chain compromise; downstream impact across Manufacturing, Education, Technology sectors)
@@ -577,6 +607,18 @@ Three distinct incidents now document Anthropic's security governance failing at
 | AAGF-2026-045 | AAGF-2026-044 | Pattern group (enterprise-copilot-prompt-injection-exfiltration), same platform (GitHub Copilot in Codespaces), same attack session (Orca Security 2026-02 GitHub Copilot research) | Both target GitHub Copilot in similar timeframes (Feb 2026 for -045; Aug 2025 for -044, same research community). Both use GitHub content (PR descriptions, Issue bodies) as injection vectors. -044: worm + permission escalation via VS Code settings write. -045: credential theft via symlink traversal + json.schemaDownload covert channel in Codespaces. Different attack primitives (config file write vs. symlink + schema URL), same organizational threat model: a single malicious contributor can compromise developer machines via normal GitHub workflow interactions with Copilot agents. |
 | AAGF-2026-045 | AAGF-2026-031 | Pattern group (enterprise-copilot-prompt-injection-exfiltration), GitHub platform, issue body as injection vector, credential exfiltration via agent write tool | Both use GitHub Issue body content as the injection vector for AI agents with write/action capabilities. -031: agent reads Issue → follows payload → calls `create_pull_request` with exfiltrated repo data. -045: agent reads Issue → follows payload → runs `gh pr checkout` → reads symlink target (Codespace secrets) → exfiltrates via `$schema` URL. Both confirm GitHub Issues as a viable prompt injection surface for AI agents with repository/credential access. |
 | AAGF-2026-045 | AAGF-2026-029 | Pattern group (agentic-ide-vulnerability-class), shared attack class (symlink traversal as privileged path read vector) | OpenAI Codex branch injection (-029) companion CVE-2026-25724 used symlink traversal to read privileged paths via agent file-read tools. RoguePilot (-045) uses symlink traversal in a PR checkout to read Codespace secrets via the same class. Different platforms (Codex cloud container vs. GitHub Codespaces), same symlink traversal attack class: attacker plants a symlink pointing to a privileged path → AI agent's file-read tool resolves it → secret exfiltrated. Confirms symlink traversal as a cross-vendor, cross-platform attack primitive against AI coding agents with filesystem access. |
+
+### Batch 9 — AAGF-2026-046 (Devin AI ZombAI)
+- AAGF-2026-046 → AAGF-2026-029: Same category (autonomous SWE agent holding live credentials + indirect prompt injection), different attack surface (GitHub issue body vs. HTTP API branch parameter). Both in `agentic-ide-vulnerability-class`.
+- AAGF-2026-046 → AAGF-2026-031: Same injection surface (GitHub issue bodies ingested as trusted content). Different platform (Devin vs. GitHub MCP server). Both demonstrate GitHub Issues as a persistent indirect prompt injection vector.
+- AAGF-2026-046 → AAGF-2026-036: Shared pattern of AI coding agent file access weaponized via agent tool primitives. Different mechanisms (expose_port remote tunnel vs. deny-rule bypass). Both in `agentic-ide-vulnerability-class`.
+- AAGF-2026-046 → AAGF-2026-044: Same primary attack vector (PR/issue content injection into coding agent context). Shared trust model failure. Both in `agentic-ide-vulnerability-class`.
+- AAGF-2026-046 → AAGF-2026-045: Closest analog — autonomous coding agent, GitHub Issue injection, credential exfiltration, near-miss, researcher-only discovery. Contrasting vendor response: Cognition 120+ days/no patch vs. Microsoft 2 weeks/patched before disclosure.
+
+### Batch 10 — AAGF-2026-047 (OmniGPT Alleged Breach)
+- AAGF-2026-047 → AAGF-2026-009: Both involve AI infrastructure that concentrates credentials across multiple LLM providers in a single target. AAGF-2026-009 (LiteLLM) was a supply chain attack against an AI gateway; AAGF-2026-047 (OmniGPT) was an alleged database breach of an AI aggregator. Different mechanisms, same structural theme: single-point-of-failure credential concentration in AI infrastructure.
+- AAGF-2026-047 → AAGF-2026-037: Both are AI platform breaches involving credential/API key exposure. AAGF-2026-037 (Moltbook) exposed API keys via RLS misconfiguration on a social network for agents; AAGF-2026-047 (OmniGPT) alleged exposure via conversation retention. Both belong to different pattern groups but share the "AI platform as credential aggregator" structural risk.
+- AAGF-2026-047 → AAGF-2026-038: Both expose AI conversation/interaction data at scale. AAGF-2026-038 (Sears Samantha) is storage misconfiguration (ai-chatbot-data-storage-breach); AAGF-2026-047 (OmniGPT) is data governance failure (ai-platform-data-governance-failure). Distinct pattern groups; complementary coverage of AI conversation data as a novel attack surface category.
 
 ---
 
