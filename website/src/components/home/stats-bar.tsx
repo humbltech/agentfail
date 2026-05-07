@@ -1,4 +1,4 @@
-import { formatUSD, formatUSDCompact } from "@/lib/utils";
+import { formatUSDCompact } from "@/lib/utils";
 import { StarTooltip } from "@/components/shared/star-tooltip";
 
 interface StatsBarProps {
@@ -10,6 +10,9 @@ interface StatsBarProps {
     nearMissCount: number;
     totalAvertedDamage: number;
     totalCompositeDamage: number;
+    incidentsThisYear: number;
+    incidentsLastYear: number;
+    earliestYear: number;
   };
 }
 
@@ -91,16 +94,35 @@ export function StatsBar({ stats }: StatsBarProps) {
               Estimated Damage Averted
             </span>
 
-            {/* Confirmed losses sub-note */}
-            {stats.totalFinancialImpact > 0 && (
-              <span className="text-[11px] text-[var(--text-muted)] italic">
-                incl.{" "}
-                <span style={{ color: "var(--text-secondary)" }}>
-                  {formatUSD(stats.totalFinancialImpact)}
-                </span>{" "}
-                confirmed losses
-              </span>
-            )}
+            {/* Year-over-year comparison sub-note */}
+            {(() => {
+              const currentYear = new Date().getFullYear();
+              const delta = stats.incidentsThisYear - stats.incidentsLastYear;
+              const arrow = delta > 0 ? "↑" : delta < 0 ? "↓" : null;
+              const absDelta = Math.abs(delta);
+              return (
+                <span className="text-[11px] text-[var(--text-muted)]">
+                  <span style={{ color: "var(--text-secondary)" }}>
+                    {stats.incidentsThisYear}
+                  </span>
+                  {" incidents in "}{currentYear}
+                  {stats.incidentsLastYear > 0 && arrow !== null && (
+                    <>
+                      {" · "}
+                      <span
+                        style={{
+                          color: delta > 0 ? "var(--accent)" : "var(--severity-low, #4ade80)",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {arrow}{absDelta}
+                      </span>
+                      {" vs "}{currentYear - 1}
+                    </>
+                  )}
+                </span>
+              );
+            })()}
           </div>
 
           {/* ── Col 3: Near-Miss Incidents ────────────────────────────── */}

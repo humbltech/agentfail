@@ -272,15 +272,12 @@ export async function getUniqueAgentTypes(basePath?: string): Promise<string[]> 
  *
  * CONTRACT:
  * - Output: { total, categories, platforms, totalFinancialImpact, nearMissCount,
- *             totalAvertedDamage, totalCompositeDamage }
+ *             totalAvertedDamage, totalCompositeDamage, incidentsThisYear,
+ *             incidentsLastYear, earliestYear }
  * - Invariants:
  *   - total === number of published incidents
- *   - categories === count of unique category strings
- *   - platforms === count of unique platform strings
- *   - totalFinancialImpact === sum of all non-null financial_impact_usd values
- *   - nearMissCount === count of incidents with actual_vs_potential === "near-miss"
- *   - totalAvertedDamage === sum of all non-null damage_estimate.averted_damage_usd values
- *   - totalCompositeDamage === sum of all non-null damage_estimate.composite_damage_usd values
+ *   - incidentsThisYear / incidentsLastYear count by date_occurred calendar year
+ *   - earliestYear === the calendar year of the oldest date_occurred
  */
 export async function getStats(basePath?: string): Promise<{
   total: number;
@@ -290,9 +287,15 @@ export async function getStats(basePath?: string): Promise<{
   nearMissCount: number;
   totalAvertedDamage: number;
   totalCompositeDamage: number;
+  incidentsThisYear: number;
+  incidentsLastYear: number;
+  earliestYear: number;
 }> {
   const resolvedPath = basePath ?? defaultBasePath();
   const parsed = readPublishedFrontmatter(resolvedPath);
+
+  const currentYear = new Date().getFullYear();
+  const lastYear = currentYear - 1;
 
   const uniqueCategories = new Set(parsed.flatMap(({ data }) => data.category ?? []));
   const uniquePlatforms = new Set(
@@ -310,6 +313,16 @@ export async function getStats(basePath?: string): Promise<{
   const totalCompositeDamage = parsed.reduce((sum, { data }) => {
     return sum + (data.damage_estimate?.composite_damage_usd ?? 0);
   }, 0);
+  const incidentsThisYear = parsed.filter(({ data }) =>
+    data.date_occurred?.startsWith(String(currentYear)),
+  ).length;
+  const incidentsLastYear = parsed.filter(({ data }) =>
+    data.date_occurred?.startsWith(String(lastYear)),
+  ).length;
+  const earliestYear = parsed.reduce((min, { data }) => {
+    const y = data.date_occurred ? parseInt(data.date_occurred.slice(0, 4), 10) : currentYear;
+    return isNaN(y) ? min : Math.min(min, y);
+  }, currentYear);
 
   return {
     total: parsed.length,
@@ -319,5 +332,8 @@ export async function getStats(basePath?: string): Promise<{
     nearMissCount,
     totalAvertedDamage,
     totalCompositeDamage,
+    incidentsThisYear,
+    incidentsLastYear,
+    earliestYear,
   };
 }
