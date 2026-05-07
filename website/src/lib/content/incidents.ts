@@ -115,8 +115,14 @@ async function toIncident(data: IncidentFrontmatter, content: string): Promise<I
     renderMarkdown(content),
     splitIntoSections(content),
   ]);
+
+  // Normalize sources: some incidents use structured {url, title, ...} objects instead of plain strings
+  const rawSources = (data.sources ?? []) as Array<string | { url: string }>;
+  const sources = rawSources.map((s) => (typeof s === "string" ? s : s.url));
+
   return {
     ...(data as IncidentFrontmatter),
+    sources,
     slug: data.id,
     content,
     contentHtml,

@@ -177,4 +177,38 @@ describe("KeyFactsSidebar", () => {
     render(<KeyFactsSidebar incident={incident} />);
     expect(screen.getByText("Refund issued")).toBeInTheDocument();
   });
+
+  it("does not render averted damage row when damage_estimate is null", () => {
+    render(<KeyFactsSidebar incident={mockIncident} />);
+    expect(screen.queryByText("Averted Damage")).not.toBeInTheDocument();
+  });
+
+  it("renders averted damage row when averted_damage_usd is non-null", () => {
+    const incident: Incident = {
+      ...mockIncident,
+      damage_estimate: {
+        confirmed_loss_usd: null,
+        recovery_cost_usd: null,
+        averted_damage_usd: 96400000,
+        averted_range_low: null,
+        averted_range_high: null,
+        composite_damage_usd: 96400000,
+        confidence: "estimated",
+        probability_weight: 0.01,
+        methodology: "964K × $10K × 1%",
+        methodology_detail: {
+          per_unit_cost_usd: 10000,
+          unit_count: 964000,
+          unit_type: "machine",
+          multiplier: null,
+          benchmark_source: "SANS 2024",
+        },
+        estimation_date: "2026-05-06",
+        human_override: false,
+        notes: "",
+      },
+    };
+    render(<KeyFactsSidebar incident={incident} />);
+    expect(screen.getByText("Averted Damage")).toBeInTheDocument();
+  });
 });

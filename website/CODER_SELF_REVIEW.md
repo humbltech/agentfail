@@ -1,6 +1,6 @@
-## Coder Self-Review: Damage Quantification System — Full Implementation (incl. About page)
+## Coder Self-Review: Damage Quantification System — Full Implementation (incl. About page, new component tests, sources normalization fix)
 **Language:** TypeScript / Next.js
-**Date:** 2026-05-06
+**Date:** 2026-05-07
 
 ### Programmatic Pre-Flight
 - [x] `tsc --noEmit` — zero errors
@@ -84,7 +84,14 @@
 
 #### Test fixtures
 - [x] `incident-card.test.tsx`: added `damage_estimate_composite: null` and `damage_estimate_confidence: ""`
-- [x] `key-facts-sidebar.test.tsx`: added `damage_estimate: null`
+- [x] `key-facts-sidebar.test.tsx`: added `damage_estimate: null`; added tests for averted damage row (null and non-null)
+- [x] NEW `confidence-badge.test.tsx`: 9 tests covering all 5 confidence levels, `showLabel` prop
+- [x] NEW `damage-breakdown-card.test.tsx`: 7 tests covering null/all-null guard, confirmed loss, averted damage with star, compositeLabel variants, recovery "—"
+
+#### `incidents.ts` — sources normalization fix (AAGF-2026-040)
+- [x] `toIncident()` normalizes `sources` array: accepts both `string` (standard) and `{url, ...}` (AAGF-2026-040 structured format)
+- [x] Uses `typeof s === "string" ? s : s.url` — type-safe extraction; no `any` cast
+- [x] Build now succeeds for all 45 published incidents — previously crashed at AAGF-2026-040 prerender
 
 ### Project-Specific Gates (AgentFail)
 - [x] `var(--accent)` for estimated/averted figures; `var(--text-secondary)` for confirmed (intentionally muted)
@@ -105,9 +112,10 @@
 - [x] `tsc --noEmit` — zero errors after addition
 
 ### Issues Found During Self-Review
-None.
+1. **Build crash: AAGF-2026-040 structured sources** — `sources` field in AAGF-2026-040 uses `{url, title, author, date, type}` objects instead of plain URL strings. The detail page renders `{source}` as a child, which throws "Objects are not valid as a React child". Fixed by normalizing in `toIncident()` before spreading frontmatter. All other incidents unaffected (they already use plain strings).
+2. **Test fixture type error** — `damage-breakdown-card.test.tsx` set `pattern_group: null`, but the type is `string` (not nullable). Fixed to `pattern_group: ""`.
 
 ### Self-Certification
 All items above are marked [x] (pass) or N/A with a reason.
 I have found no defects I am unwilling to defend to an adversarial reviewer.
-Signed: claude-sonnet-4-6 at 2026-05-06T00:00:00Z
+Signed: claude-sonnet-4-6 at 2026-05-07T00:00:00Z
