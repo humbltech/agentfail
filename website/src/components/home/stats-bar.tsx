@@ -1,4 +1,5 @@
 import { formatUSD, formatUSDCompact } from "@/lib/utils";
+import { StarTooltip } from "@/components/shared/star-tooltip";
 
 interface StatsBarProps {
   stats: {
@@ -19,19 +20,17 @@ interface StatItemProps {
 
 /**
  * CONTRACT:
- * - WHAT: Renders a single stat item with a large numeric value and a label.
+ * - WHAT: Renders a single plain stat item: large value + small label.
  * - INPUTS: value (formatted string), label (display string)
- * - OUTPUTS: A div with value in muted color and label in muted text
+ * - OUTPUTS: A centred div with the value prominent and label muted
  * - ERRORS: None
  * - SIDE EFFECTS: None
  * - INVARIANTS: value is always displayed above label
  */
 function StatItem({ value, label }: StatItemProps) {
   return (
-    <div className="flex flex-col items-center text-center py-5 px-4">
-      <span
-        className="font-[family-name:var(--font-display)] text-[var(--text-secondary)] text-3xl mb-1"
-      >
+    <div className="flex flex-col items-center text-center py-6 px-4">
+      <span className="font-[family-name:var(--font-display)] text-[var(--text-secondary)] text-3xl mb-1">
         {value}
       </span>
       <span className="text-xs text-[var(--text-muted)]">{label}</span>
@@ -41,18 +40,19 @@ function StatItem({ value, label }: StatItemProps) {
 
 /**
  * CONTRACT:
- * - WHAT: Server component rendering the aggregate stats section.
- *   Leads with a prominent damage callout contrasting confirmed losses vs.
- *   probability-weighted estimated exposure, then the 4-column detail grid.
+ * - WHAT: Server component rendering the aggregate stats bar — a single-row grid
+ *   of four stat cells. The "Estimated Damage" cell is the visual hero: accent-
+ *   tinted background, composite figure prominent, confirmed losses shown as a
+ *   sub-note, and an interactive ★ that reveals methodology on hover/tap.
  * - INPUTS: stats object with total, categories, platforms, totalFinancialImpact,
  *   nearMissCount, totalAvertedDamage, totalCompositeDamage
- * - OUTPUTS: Section with damage callout + 4-column stat grid
+ * - OUTPUTS: A <section> with a 4-column stat grid
  * - ERRORS: None
  * - SIDE EFFECTS: None
  * - INVARIANTS:
- *   - Damage callout always renders above the stat grid
- *   - Financial impact uses formatUSD; composite uses formatUSDCompact
- *   - All values are non-negative integers or sums
+ *   - Hero cell always renders in the second column position
+ *   - StarTooltip is a client component; StatsBar stays server-rendered
+ *   - Direct loss sub-note only renders when totalFinancialImpact > 0
  */
 export function StatsBar({ stats }: StatsBarProps) {
   return (
@@ -61,69 +61,55 @@ export function StatsBar({ stats }: StatsBarProps) {
       className="border-y border-[var(--border-subtle)] bg-[var(--bg-surface)]"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-
-        {/* ── Damage callout: the contrast IS the story ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-0 py-8 border-b border-[var(--border-subtle)]">
-
-          {/* Confirmed losses — intentionally muted */}
-          <div className="flex flex-col items-center sm:items-end text-center sm:text-right px-6">
-            <span className="font-[family-name:var(--font-display)] text-[var(--text-secondary)] text-4xl sm:text-5xl leading-none mb-2">
-              {formatUSD(stats.totalFinancialImpact)}
-            </span>
-            <span className="text-sm text-[var(--text-muted)] max-w-[16rem]">
-              confirmed financial losses across {stats.total} incidents
-            </span>
-          </div>
-
-          {/* Separator */}
-          <div
-            aria-hidden="true"
-            className="hidden sm:flex flex-col items-center gap-2 px-8"
-          >
-            <div className="h-12 w-px bg-[var(--border-visible)]" />
-            <span className="text-xs font-[family-name:var(--font-display)] text-[var(--text-muted)] tracking-widest uppercase">
-              vs
-            </span>
-            <div className="h-12 w-px bg-[var(--border-visible)]" />
-          </div>
-          <div aria-hidden="true" className="sm:hidden flex items-center gap-3 my-4 px-6">
-            <div className="flex-1 h-px bg-[var(--border-visible)]" />
-            <span className="text-xs font-[family-name:var(--font-display)] text-[var(--text-muted)] tracking-widest uppercase">vs</span>
-            <div className="flex-1 h-px bg-[var(--border-visible)]" />
-          </div>
-
-          {/* Estimated exposure — alarming, prominent */}
-          <div className="flex flex-col items-center sm:items-start text-center sm:text-left px-6">
-            <div className="flex items-baseline gap-2">
-              <span className="font-[family-name:var(--font-display)] text-[var(--accent)] text-4xl sm:text-5xl leading-none mb-2">
-                ~{formatUSDCompact(stats.totalCompositeDamage)}
-              </span>
-              <span className="text-[var(--accent)] text-xl leading-none mb-2" aria-hidden="true">★</span>
-            </div>
-            <span className="text-sm text-[var(--text-muted)] max-w-[20rem]">
-              probability-weighted estimated exposure —{" "}
-              {stats.nearMissCount} incidents where full damage was averted
-            </span>
-            <span className="text-xs text-[var(--text-muted)] max-w-[20rem] mt-1 italic">
-              ★ Estimated using industry benchmarks weighted by exploitation probability.
-            </span>
-          </div>
-        </div>
-
-        {/* ── Detail stat grid ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-[var(--border-subtle)]">
+
+          {/* ── Col 1: Incidents Analyzed ─────────────────────────────── */}
           <StatItem
             value={String(stats.total)}
             label="Incidents Analyzed"
           />
+
+          {/* ── Col 2: Hero — Estimated Damage ────────────────────────── */}
+          <div
+            className="flex flex-col items-center text-center py-6 px-4"
+            style={{
+              background: "var(--accent-dim)",
+              borderTop: "2px solid var(--accent)",
+              marginTop: "-1px",
+            }}
+          >
+            {/* Main figure + star */}
+            <div className="flex items-baseline gap-0.5 mb-1">
+              <span className="font-[family-name:var(--font-display)] text-[var(--accent)] text-3xl leading-none">
+                ~{formatUSDCompact(stats.totalCompositeDamage)}
+              </span>
+              <StarTooltip nearMissCount={stats.nearMissCount} />
+            </div>
+
+            {/* Label */}
+            <span className="text-xs text-[var(--text-muted)] mb-1.5">
+              Estimated Damage Averted
+            </span>
+
+            {/* Confirmed losses sub-note */}
+            {stats.totalFinancialImpact > 0 && (
+              <span className="text-[11px] text-[var(--text-muted)] italic">
+                incl.{" "}
+                <span style={{ color: "var(--text-secondary)" }}>
+                  {formatUSD(stats.totalFinancialImpact)}
+                </span>{" "}
+                confirmed losses
+              </span>
+            )}
+          </div>
+
+          {/* ── Col 3: Near-Miss Incidents ────────────────────────────── */}
           <StatItem
-            value={formatUSD(stats.totalFinancialImpact)}
-            label="Documented Direct Loss"
+            value={String(stats.nearMissCount)}
+            label="Near-Miss Incidents"
           />
-          <StatItem
-            value={`~${formatUSDCompact(stats.totalAvertedDamage)} ★`}
-            label="Estimated Damage Averted"
-          />
+
+          {/* ── Col 4: Platforms Covered ──────────────────────────────── */}
           <StatItem
             value={String(stats.platforms)}
             label="Platforms Covered"
