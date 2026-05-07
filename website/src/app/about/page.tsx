@@ -46,6 +46,57 @@ const PIPELINE_STAGES = [
   },
 ] as const;
 
+const DAMAGE_LAYERS = [
+  {
+    label: "Confirmed Loss",
+    badge: null,
+    description: "Directly cited from source reporting, vendor disclosures, or public filings. No estimation involved.",
+  },
+  {
+    label: "Recovery Cost",
+    badge: null,
+    description: "Containment and remediation spend — when cited or derivable from documented labor hours and incident scope.",
+  },
+  {
+    label: "Averted Damage",
+    badge: "★",
+    description: "Probability-weighted potential damage for near-miss incidents where full exploitation did not occur. Never shown for confirmed-loss incidents.",
+  },
+] as const;
+
+const CONFIDENCE_LEVELS = [
+  {
+    badge: null,
+    label: "Cited",
+    description: "Figure sourced directly from reporting, filings, or vendor acknowledgement. No estimation.",
+  },
+  {
+    badge: "(i)",
+    label: "Calculated",
+    description: "Derived mathematically from documented facts (e.g., hourly rate × documented labor hours). One-step derivation, no inference.",
+  },
+  {
+    badge: "★",
+    label: "Estimated",
+    description: "Inferred from affected party counts and industry cost benchmarks with one or two assumptions.",
+  },
+  {
+    badge: "★★",
+    label: "Order of magnitude",
+    description: "Rough magnitude from limited data. More than two stacked assumptions required. Treat as directionally correct, not precise.",
+  },
+] as const;
+
+const BENCHMARKS = [
+  { category: "Developer machine full remediation", cost: "$10,000/machine", source: "SANS 2024 IR Report" },
+  { category: "Credential rotation", cost: "$350/credential", source: "Industry median" },
+  { category: "Per-record data breach (general)", cost: "$165/record", source: "IBM 2024 Cost of Data Breach" },
+  { category: "Developer time lost", cost: "$150/hour", source: "US BLS + 30% benefits, senior dev" },
+  { category: "E-commerce downtime (Amazon-scale)", cost: "$75,000/minute", source: "Amazon public filings est." },
+  { category: "E-commerce downtime (mid-market SaaS)", cost: "$5,000/minute", source: "Gartner 2023 estimate" },
+  { category: "Supply chain downstream multiplier", cost: "2–5× direct", source: "CISA supply chain guidance" },
+] as const;
+
 const DIFFERENTIATORS = [
   {
     title: "Root Cause, Not Just Symptoms",
@@ -142,6 +193,122 @@ export default function AboutPage() {
               </li>
             ))}
           </ol>
+        </section>
+
+        {/* ── Damage Estimates ──────────────────────────────────────── */}
+        <section aria-labelledby="damage-heading">
+          <h2
+            id="damage-heading"
+            className="text-2xl font-semibold text-[var(--text-primary)] mb-4 font-[family-name:var(--font-display)]"
+          >
+            Damage Estimates
+          </h2>
+          <div className="space-y-4 text-base text-[var(--text-secondary)] leading-relaxed mb-8">
+            <p>
+              Documented financial losses across AI agent incidents are often small — a few
+              thousand dollars in direct charges. But the real exposure in near-miss incidents,
+              where a vulnerability existed but wasn&rsquo;t fully exploited, is orders of
+              magnitude larger.
+            </p>
+            <p>
+              AgentFail models each incident across three damage layers and surfaces a
+              probability-weighted composite figure. All estimates are marked with a confidence
+              indicator so you can judge how much weight to give them.
+            </p>
+          </div>
+
+          {/* Three damage layers */}
+          <h3 className="text-base font-semibold text-[var(--text-primary)] mb-4">
+            Three damage layers
+          </h3>
+          <div className="space-y-3 mb-10">
+            {DAMAGE_LAYERS.map(({ label, badge, description }) => (
+              <div
+                key={label}
+                className="flex gap-4 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4"
+              >
+                <div className="flex-shrink-0 w-28">
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">
+                    {label}
+                  </span>
+                  {badge && (
+                    <span
+                      className="ml-1 text-sm"
+                      style={{ color: "var(--accent)" }}
+                      aria-hidden="true"
+                    >
+                      {badge}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{description}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Confidence indicators */}
+          <h3 className="text-base font-semibold text-[var(--text-primary)] mb-4">
+            Confidence indicators
+          </h3>
+          <div className="space-y-3 mb-10">
+            {CONFIDENCE_LEVELS.map(({ badge, label, description }) => (
+              <div key={label} className="flex items-start gap-4 text-sm">
+                <div
+                  className="flex-shrink-0 w-8 text-center font-mono font-semibold"
+                  style={{ color: badge ? "var(--accent)" : "var(--text-muted)" }}
+                  aria-hidden="true"
+                >
+                  {badge ?? "—"}
+                </div>
+                <div>
+                  <span className="font-medium text-[var(--text-primary)]">{label}</span>
+                  <span className="text-[var(--text-secondary)]"> — {description}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Benchmark sources */}
+          <h3 className="text-base font-semibold text-[var(--text-primary)] mb-4">
+            Benchmark sources (v1, 2026-05-06)
+          </h3>
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-4">
+            Near-miss estimates use industry benchmarks weighted by exploitation probability.
+            The probability weight reflects the likelihood that the vulnerability would have been
+            actively exploited given available evidence (PoC existence, supply chain distribution,
+            confirmed partial exploitation).
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-[var(--border-subtle)]">
+                  <th className="text-left py-2 pr-4 font-semibold text-[var(--text-muted)] text-xs uppercase tracking-wide">
+                    Category
+                  </th>
+                  <th className="text-left py-2 pr-4 font-semibold text-[var(--text-muted)] text-xs uppercase tracking-wide">
+                    Cost
+                  </th>
+                  <th className="text-left py-2 font-semibold text-[var(--text-muted)] text-xs uppercase tracking-wide">
+                    Source
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-subtle)]">
+                {BENCHMARKS.map(({ category, cost, source }) => (
+                  <tr key={category}>
+                    <td className="py-2 pr-4 text-[var(--text-secondary)]">{category}</td>
+                    <td className="py-2 pr-4 font-mono text-[var(--text-primary)]">{cost}</td>
+                    <td className="py-2 text-[var(--text-muted)] text-xs">{source}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-[var(--text-muted)] mt-3 italic">
+            Estimates exceeding $1B are flagged for human review. No estimate exceeds $50B
+            (the nation-state attack ceiling). Figures marked ★★ should be read as directional
+            only.
+          </p>
         </section>
 
         {/* ── What makes it different ───────────────────────────────── */}

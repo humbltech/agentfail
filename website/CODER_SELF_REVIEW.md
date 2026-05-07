@@ -1,4 +1,4 @@
-## Coder Self-Review: Damage Quantification System — Full Implementation
+## Coder Self-Review: Damage Quantification System — Full Implementation (incl. About page)
 **Language:** TypeScript / Next.js
 **Date:** 2026-05-06
 
@@ -92,6 +92,17 @@
 - [x] `font-[family-name:var(--font-display)]` on large figures — consistent
 - [x] Container `mx-auto max-w-7xl px-4 sm:px-6 lg:px-8` unchanged
 - [x] `DamageBreakdownCard` placed between `HeroStatsBar` and Headline/TL;DR card in detail page — good visual flow
+
+#### `about/page.tsx` (damage estimates section)
+- [x] New "Damage Estimates" section inserted between Methodology and "What makes it different"
+- [x] Three damage layers table: Confirmed Loss | Recovery Cost | Averted Damage ★
+- [x] Four confidence levels with badges: — / (i) / ★ / ★★ with descriptions
+- [x] Benchmark table: 7 rows, category + cost + source, overflow-x-auto for mobile
+- [x] Guardrail footnote: $50B ceiling and ★★ directional-only caveat
+- [x] All data in `const` arrays at module level — page component stays clean
+- [x] No hardcoded colors — all `var(--...)` throughout
+- [x] Fully static — no data fetching; consistent with rest of page
+- [x] `tsc --noEmit` — zero errors after addition
 
 ### Issues Found During Self-Review
 None.
